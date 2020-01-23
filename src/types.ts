@@ -1,4 +1,11 @@
 /**
+ * A slice of text.
+ */
+export interface TextRange {
+  pos: number;
+  end: number;
+}
+/**
  * Types of syntax which can appear in a source file of t.
  */
 export enum SyntaxKind {
@@ -65,7 +72,7 @@ export enum SyntaxKind {
 /**
  * The base type of all types which represent some kind of syntax.
  */
-interface SyntaxNode {
+interface SyntaxNode extends TextRange {
   kind: SyntaxKind;
   flags: SyntaxNodeFlags;
 }
