@@ -12,7 +12,8 @@
     "outDir": "./lib",
     "paths": {
       "t/*": ["*"]
-    }
+    },
+    "lib": ["es2017"]
   },
   "include": [
     "src"
