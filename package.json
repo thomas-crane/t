@@ -1,0 +1,41 @@
+{
+  "name": "t",
+  "version": "0.1.0",
+  "description": "A basic language used to explore compiler design techniques.",
+  "main": "lib/index.js",
+  "scripts": {
+    "compile": "tsc -p .",
+    "lint": "tslint -p .",
+    "test": "ava"
+  },
+  "ava": {
+    "extensions": [
+      "ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thomas-crane/t.git"
+  },
+  "keywords": [
+    "programming-language",
+    "compiler"
+  ],
+  "author": "Thomas Crane <thomasgcrane@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/thomas-crane/t/issues"
+  },
+  "homepage": "https://github.com/thomas-crane/t#readme",
+  "devDependencies": {
+    "@types/node": "^13.1.8",
+    "ava": "^3.0.0",
+    "ts-lint": "^4.5.1",
+    "ts-node": "^8.6.2",
+    "tslint": "^6.0.0",
+    "typescript": "^3.7.5"
+  }
+}
