@@ -59,7 +59,7 @@ export enum SyntaxKind {
   ReturnStatement,
   LoopStatement,
 
-  Program,
+  SourceFile,
 }
 
 /**
@@ -253,11 +253,14 @@ export type StatementNode
   ;
 
 /**
- * A top level node which contains the list of statements in a program.
+ * A top level node which contains the list of statements in a program,
+ * and some information about the file which the statements came from.
  */
-export interface ProgramNode extends SyntaxNode {
-  kind: SyntaxKind.Program;
+export interface SourceFile extends SyntaxNode {
+  kind: SyntaxKind.SourceFile;
   statements: StatementNode[];
+  text: string;
+  fileName: string;
 }
 
 /**
@@ -266,5 +269,5 @@ export interface ProgramNode extends SyntaxNode {
 export type Node
   = StatementNode
   | ExpressionNode
-  | ProgramNode
+  | SourceFile
   ;
