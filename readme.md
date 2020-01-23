@@ -1,5 +1,7 @@
 # t
 
+[![Build Status](https://travis-ci.com/thomas-crane/t.svg?token=stAj7zoP2UACMHFzdTXv&branch=master)](https://travis-ci.com/thomas-crane/t)
+
 t is an extremely basic language. It's only real purpose is to allow me to explore various techniques for designing a good compiler and language toolchain.
 
 Currently, t only supports enough features to give the semantic analysis and codegen phases of the compiler a good amount of work to do. If it had any fewer features, there would not be much point in performing any kind of analysis beyond checking the syntax.
