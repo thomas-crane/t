@@ -8,7 +8,11 @@
     "noFallthroughCasesInSwitch": true,
     "incremental": true,
     "rootDir": "./src",
-    "outDir": "./lib"
+    "baseUrl": "./src",
+    "outDir": "./lib",
+    "paths": {
+      "t/*": ["*"]
+    }
   },
   "include": [
     "src"
