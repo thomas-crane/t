@@ -1,116 +1,119 @@
-import { IdentifierLiteral, NumberLiteral, SyntaxKind, SyntaxNodeFlags, SyntaxToken, TokenSyntaxKind, ExpressionNode, BinaryOperator, BinaryExpression, FnCallExpression, StatementNode, BlockStatement, IfStatement, AssignmentStatement, DeclarationStatement, FnDeclarationStatement, ReturnStatement, LoopStatement, SourceFile } from 't/types';
+import { AssignmentStatement, BinaryExpression, BinaryOperator, BlockStatement, DeclarationStatement, ExpressionNode, FnCallExpression, FnDeclarationStatement, IdentifierLiteral, IfStatement, LoopStatement, NumberLiteral, ReturnStatement, SourceFile, StatementNode, SyntaxKind, SyntaxNodeFlags, SyntaxToken, TextRange, TokenSyntaxKind } from 't/types';
+import { setTextRange } from 't/utils';
 
-export function createToken<T extends TokenSyntaxKind>(tokenKind: T): SyntaxToken<T> {
-  return {
+export function createToken<T extends TokenSyntaxKind>(tokenKind: T, location?: TextRange): SyntaxToken<T> {
+  return setTextRange({
     kind: tokenKind,
     flags: SyntaxNodeFlags.None
-  };
+  }, location);
 }
 
-export function createNumberLiteral(value: number): NumberLiteral {
-  return {
+export function createNumberLiteral(value: number, location?: TextRange): NumberLiteral {
+  return setTextRange({
     kind: SyntaxKind.NumberLiteral,
     value,
     flags: SyntaxNodeFlags.None,
-  };
+  }, location);
 }
 
-export function createIdentifier(value: string): IdentifierLiteral {
-  return {
+export function createIdentifier(value: string, location?: TextRange): IdentifierLiteral {
+  return setTextRange({
     kind: SyntaxKind.IdentifierLiteral,
     value,
     flags: SyntaxNodeFlags.None,
-  };
+  }, location);
 }
 
-export function createBinaryExpression(left: ExpressionNode, operator: BinaryOperator, right: ExpressionNode): BinaryExpression {
-  return {
+export function createBinaryExpression(left: ExpressionNode, operator: BinaryOperator, right: ExpressionNode, location?: TextRange): BinaryExpression {
+  return setTextRange({
     kind: SyntaxKind.BinaryExpression,
     left,
     operator,
     right,
     flags: SyntaxNodeFlags.None,
-  };
+  }, location);
 }
 
-export function createFnCallExpression(fnName: IdentifierLiteral, args: ExpressionNode[]): FnCallExpression {
-  return {
+export function createFnCallExpression(fnName: IdentifierLiteral, args: ExpressionNode[], location?: TextRange): FnCallExpression {
+  return setTextRange({
     kind: SyntaxKind.FnCallExpression,
     fnName,
     args,
     flags: SyntaxNodeFlags.None,
-  };
+  }, location);
 }
 
-export function createBlockStatement(statements: StatementNode[]): BlockStatement {
-  return {
+export function createBlockStatement(statements: StatementNode[], location?: TextRange): BlockStatement {
+  return setTextRange({
     kind: SyntaxKind.BlockStatement,
     statements,
     flags: SyntaxNodeFlags.None,
-  };
+  }, location);
 }
 
-export function createIfStatement(condition: ExpressionNode, body: BlockStatement, elseBody?: BlockStatement): IfStatement {
-  return {
+export function createIfStatement(condition: ExpressionNode, body: BlockStatement, elseBody?: BlockStatement, location?: TextRange): IfStatement {
+  return setTextRange({
     kind: SyntaxKind.IfStatement,
     condition,
     body,
     elseBody,
     flags: SyntaxNodeFlags.None,
-  };
+  }, location);
 }
 
-export function createAssignmentStatement(identifier: IdentifierLiteral, value: ExpressionNode): AssignmentStatement {
-  return {
+export function createAssignmentStatement(identifier: IdentifierLiteral, value: ExpressionNode, location?: TextRange): AssignmentStatement {
+  return setTextRange({
     kind: SyntaxKind.AssignmentStatement,
     identifier,
     value,
     flags: SyntaxNodeFlags.None,
-  };
+  }, location);
 }
 
-export function createDeclarationStatement(isConst: boolean, identifier: IdentifierLiteral, value: ExpressionNode): DeclarationStatement {
-  return {
+export function createDeclarationStatement(isConst: boolean, identifier: IdentifierLiteral, value: ExpressionNode, location?: TextRange): DeclarationStatement {
+  return setTextRange({
     kind: SyntaxKind.DeclarationStatement,
     isConst,
     identifier,
     value,
     flags: SyntaxNodeFlags.None,
-  };
+  }, location);
 }
 
-export function createFnDeclarationStatement(fnName: IdentifierLiteral, params: IdentifierLiteral[], body: BlockStatement): FnDeclarationStatement {
-  return {
+export function createFnDeclarationStatement(fnName: IdentifierLiteral, params: IdentifierLiteral[], body: BlockStatement, location?: TextRange): FnDeclarationStatement {
+  return setTextRange({
     kind: SyntaxKind.FnDeclarationStatement,
     fnName,
     params,
     body,
     flags: SyntaxNodeFlags.None,
-  };
+  }, location);
 }
 
-export function createReturnStatement(value: ExpressionNode): ReturnStatement {
-  return {
+export function createReturnStatement(value: ExpressionNode, location?: TextRange): ReturnStatement {
+  return setTextRange({
     kind: SyntaxKind.ReturnStatement,
     value,
     flags: SyntaxNodeFlags.None,
-  };
+  }, location);
 }
 
-export function createLoopStatement(body: BlockStatement): LoopStatement {
-  return {
+export function createLoopStatement(body: BlockStatement, location?: TextRange): LoopStatement {
+  return setTextRange({
     kind: SyntaxKind.LoopStatement,
     body,
     flags: SyntaxNodeFlags.None,
-  };
+  }, location);
 }
 
-export function createProgramNode(statements: StatementNode[], text: string, fileName: string): SourceFile {
+export function createSourceFile(statements: StatementNode[], text: string, fileName: string): SourceFile {
   return {
     kind: SyntaxKind.SourceFile,
     statements,
     text,
     fileName,
     flags: SyntaxNodeFlags.None,
+    pos: 0,
+    end: text.length - 1,
   };
 }
