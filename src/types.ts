@@ -157,8 +157,7 @@ export const enum SyntaxNodeFlags {
 }
 
 /**
- * A token. These are generally just single characters such as
- * operators.
+ * A token. This can include single characters, operators and keywords.
  */
 export interface SyntaxToken<TokenKind extends TokenSyntaxKind> extends SyntaxNode {
   kind: TokenKind;
@@ -183,6 +182,16 @@ export type TokenSyntaxKind
   | SyntaxKind.NotEqualTo
   | SyntaxKind.LogicalAnd
   | SyntaxKind.LogicalOr
+  | SyntaxKind.LetKeyword
+  | SyntaxKind.MutKeyword
+  | SyntaxKind.IfKeyword
+  | SyntaxKind.ElseKeyword
+  | SyntaxKind.FnKeyword
+  | SyntaxKind.ReturnKeyword
+  | SyntaxKind.LoopKeyword
+  | SyntaxKind.StopKeyword
+  | SyntaxKind.NumberLiteral
+  | SyntaxKind.IdentifierLiteral
   ;
 
 /**
@@ -340,6 +349,8 @@ export interface SourceFile extends SyntaxNode {
   statements: StatementNode[];
   text: string;
   fileName: string;
+
+  diagnostics: DiagnosticType[];
 }
 
 /**
@@ -350,3 +361,12 @@ export type Node
   | ExpressionNode
   | SourceFile
   ;
+
+
+/**
+ * An interface for turning some text into a stream of tokens.
+ */
+export interface Lexer {
+  nextToken(): SyntaxToken<TokenSyntaxKind>;
+  getDiagnostics(): DiagnosticType[];
+}
