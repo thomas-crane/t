@@ -1,9 +1,9 @@
 import test, { ExecutionContext } from 'ava';
 import { createIdentifier, createNumberLiteral, createToken } from './factory';
 import { createLexer } from './lexer';
-import { SyntaxKind, SyntaxToken, TokenSyntaxKind, DiagnosticKind } from './types';
+import { DiagnosticKind, SyntaxKind, SyntaxToken, TokenSyntaxKind } from './types';
 
-const keywords: [string, SyntaxToken<TokenSyntaxKind>][] = [
+const keywords: Array<[string, SyntaxToken<TokenSyntaxKind>]> = [
   ['let', createToken(SyntaxKind.LetKeyword)],
   ['mut', createToken(SyntaxKind.MutKeyword)],
 
@@ -19,7 +19,7 @@ const keywords: [string, SyntaxToken<TokenSyntaxKind>][] = [
 
 function tokens(input: string) {
   const lexer = createLexer(input);
-  const result: SyntaxToken<any>[] = [];
+  const result: Array<SyntaxToken<any>> = [];
   let token: SyntaxToken<any>;
   do {
     token = lexer.nextToken();
