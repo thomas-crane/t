@@ -1,5 +1,5 @@
-import { DiagnosticType, SyntaxKind, Lexer, TokenSyntaxKind } from './types';
-import { createToken, createNumberLiteral, createIdentifier } from './factory';
+import { createIdentifier, createNumberLiteral, createToken } from './factory';
+import { DiagnosticType, Lexer, SyntaxKind, TokenSyntaxKind } from './types';
 
 type SyntaxKindMap = { [key: string]: TokenSyntaxKind };
 
@@ -21,7 +21,6 @@ const charMap: SyntaxKindMap = {
   ',': SyntaxKind.CommaToken,
   ':': SyntaxKind.ColonToken,
 
-
   '{': SyntaxKind.LeftCurlyToken,
   '}': SyntaxKind.RightCurlyToken,
   '(': SyntaxKind.LeftParenToken,
@@ -29,17 +28,17 @@ const charMap: SyntaxKindMap = {
 };
 
 const keywordMap: SyntaxKindMap = {
-  'let': SyntaxKind.LetKeyword,
-  'mut': SyntaxKind.MutKeyword,
+  let: SyntaxKind.LetKeyword,
+  mut: SyntaxKind.MutKeyword,
 
-  'if': SyntaxKind.IfKeyword,
-  'else': SyntaxKind.ElseKeyword,
+  if: SyntaxKind.IfKeyword,
+  else: SyntaxKind.ElseKeyword,
 
-  'fn': SyntaxKind.FnKeyword,
-  'return': SyntaxKind.ReturnKeyword,
+  fn: SyntaxKind.FnKeyword,
+  return: SyntaxKind.ReturnKeyword,
 
-  'loop': SyntaxKind.LoopKeyword,
-  'stop': SyntaxKind.StopKeyword,
+  loop: SyntaxKind.LoopKeyword,
+  stop: SyntaxKind.StopKeyword,
 };
 
 const whitespace = /\s/;
@@ -74,7 +73,7 @@ export function createLexer(src: string): Lexer {
           pos++;
         } while (digit.test(src[pos]));
         // TODO(thomas.crane): support floating point numbers.
-        return createNumberLiteral(parseInt(buf, 10), { pos: start, end: pos, });
+        return createNumberLiteral(parseInt(buf, 10), { pos: start, end: pos });
       }
 
       // identifiers
@@ -117,6 +116,6 @@ export function createLexer(src: string): Lexer {
         }
       }
       return createToken(kind, { pos: charStart, end: pos });
-    }
-  }
+    },
+  };
 }
