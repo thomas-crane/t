@@ -18,7 +18,8 @@
       "no-public"
     ],
     "object-literal-sort-keys": false,
-    "no-bitwise": false
+    "no-bitwise": false,
+    "switch-default": false
   },
   "rulesDirectory": []
 }

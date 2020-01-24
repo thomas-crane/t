@@ -1,14 +1,42 @@
-import { AssignmentStatement, BinaryExpression, BinaryOperator, BlockStatement, DeclarationStatement, ExpressionNode, FnCallExpression, FnDeclarationStatement, IdentifierLiteral, IfStatement, LoopStatement, NumberLiteral, ReturnStatement, SourceFile, StatementNode, SyntaxKind, SyntaxNodeFlags, SyntaxToken, TextRange, TokenSyntaxKind, DiagnosticType } from './types';
+import {
+  AssignmentStatement,
+  BinaryExpression,
+  BinaryOperator,
+  BlockStatement,
+  DeclarationStatement,
+  DiagnosticType,
+  ExpressionNode,
+  FnCallExpression,
+  FnDeclarationStatement,
+  IdentifierLiteral,
+  IfStatement,
+  LoopStatement,
+  NumberLiteral,
+  ReturnStatement,
+  SourceFile,
+  StatementNode,
+  SyntaxKind,
+  SyntaxNodeFlags,
+  SyntaxToken,
+  TextRange,
+  TokenSyntaxKind,
+} from './types';
 import { setTextRange } from './utils';
 
-export function createToken<T extends TokenSyntaxKind>(tokenKind: T, location?: TextRange): SyntaxToken<T> {
+export function createToken<T extends TokenSyntaxKind>(
+  tokenKind: T,
+  location?: TextRange,
+): SyntaxToken<T> {
   return setTextRange({
     kind: tokenKind,
-    flags: SyntaxNodeFlags.None
+    flags: SyntaxNodeFlags.None,
   }, location);
 }
 
-export function createNumberLiteral(value: number, location?: TextRange): NumberLiteral {
+export function createNumberLiteral(
+  value: number,
+  location?: TextRange,
+): NumberLiteral {
   return setTextRange({
     kind: SyntaxKind.NumberLiteral,
     value,
@@ -16,7 +44,10 @@ export function createNumberLiteral(value: number, location?: TextRange): Number
   }, location);
 }
 
-export function createIdentifier(value: string, location?: TextRange): IdentifierLiteral {
+export function createIdentifier(
+  value: string,
+  location?: TextRange,
+): IdentifierLiteral {
   return setTextRange({
     kind: SyntaxKind.IdentifierLiteral,
     value,
@@ -24,7 +55,12 @@ export function createIdentifier(value: string, location?: TextRange): Identifie
   }, location);
 }
 
-export function createBinaryExpression(left: ExpressionNode, operator: BinaryOperator, right: ExpressionNode, location?: TextRange): BinaryExpression {
+export function createBinaryExpression(
+  left: ExpressionNode,
+  operator: BinaryOperator,
+  right: ExpressionNode,
+  location?: TextRange,
+): BinaryExpression {
   return setTextRange({
     kind: SyntaxKind.BinaryExpression,
     left,
@@ -34,7 +70,11 @@ export function createBinaryExpression(left: ExpressionNode, operator: BinaryOpe
   }, location);
 }
 
-export function createFnCallExpression(fnName: IdentifierLiteral, args: ExpressionNode[], location?: TextRange): FnCallExpression {
+export function createFnCallExpression(
+  fnName: IdentifierLiteral,
+  args: ExpressionNode[],
+  location?: TextRange,
+): FnCallExpression {
   return setTextRange({
     kind: SyntaxKind.FnCallExpression,
     fnName,
@@ -43,7 +83,10 @@ export function createFnCallExpression(fnName: IdentifierLiteral, args: Expressi
   }, location);
 }
 
-export function createBlockStatement(statements: StatementNode[], location?: TextRange): BlockStatement {
+export function createBlockStatement(
+  statements: StatementNode[],
+  location?: TextRange,
+): BlockStatement {
   return setTextRange({
     kind: SyntaxKind.BlockStatement,
     statements,
@@ -51,7 +94,12 @@ export function createBlockStatement(statements: StatementNode[], location?: Tex
   }, location);
 }
 
-export function createIfStatement(condition: ExpressionNode, body: BlockStatement, elseBody?: BlockStatement, location?: TextRange): IfStatement {
+export function createIfStatement(
+  condition: ExpressionNode,
+  body: BlockStatement,
+  elseBody?: BlockStatement,
+  location?: TextRange,
+): IfStatement {
   return setTextRange({
     kind: SyntaxKind.IfStatement,
     condition,
@@ -61,7 +109,11 @@ export function createIfStatement(condition: ExpressionNode, body: BlockStatemen
   }, location);
 }
 
-export function createAssignmentStatement(identifier: IdentifierLiteral, value: ExpressionNode, location?: TextRange): AssignmentStatement {
+export function createAssignmentStatement(
+  identifier: IdentifierLiteral,
+  value: ExpressionNode,
+  location?: TextRange,
+): AssignmentStatement {
   return setTextRange({
     kind: SyntaxKind.AssignmentStatement,
     identifier,
@@ -70,7 +122,12 @@ export function createAssignmentStatement(identifier: IdentifierLiteral, value: 
   }, location);
 }
 
-export function createDeclarationStatement(isConst: boolean, identifier: IdentifierLiteral, value: ExpressionNode, location?: TextRange): DeclarationStatement {
+export function createDeclarationStatement(
+  isConst: boolean,
+  identifier: IdentifierLiteral,
+  value: ExpressionNode,
+  location?: TextRange,
+): DeclarationStatement {
   return setTextRange({
     kind: SyntaxKind.DeclarationStatement,
     isConst,
@@ -80,7 +137,12 @@ export function createDeclarationStatement(isConst: boolean, identifier: Identif
   }, location);
 }
 
-export function createFnDeclarationStatement(fnName: IdentifierLiteral, params: IdentifierLiteral[], body: BlockStatement, location?: TextRange): FnDeclarationStatement {
+export function createFnDeclarationStatement(
+  fnName: IdentifierLiteral,
+  params: IdentifierLiteral[],
+  body: BlockStatement,
+  location?: TextRange,
+): FnDeclarationStatement {
   return setTextRange({
     kind: SyntaxKind.FnDeclarationStatement,
     fnName,
@@ -90,7 +152,10 @@ export function createFnDeclarationStatement(fnName: IdentifierLiteral, params: 
   }, location);
 }
 
-export function createReturnStatement(value: ExpressionNode, location?: TextRange): ReturnStatement {
+export function createReturnStatement(
+  value: ExpressionNode,
+  location?: TextRange,
+): ReturnStatement {
   return setTextRange({
     kind: SyntaxKind.ReturnStatement,
     value,
@@ -98,7 +163,10 @@ export function createReturnStatement(value: ExpressionNode, location?: TextRang
   }, location);
 }
 
-export function createLoopStatement(body: BlockStatement, location?: TextRange): LoopStatement {
+export function createLoopStatement(
+  body: BlockStatement,
+  location?: TextRange,
+): LoopStatement {
   return setTextRange({
     kind: SyntaxKind.LoopStatement,
     body,
@@ -106,7 +174,12 @@ export function createLoopStatement(body: BlockStatement, location?: TextRange):
   }, location);
 }
 
-export function createSourceFile(statements: StatementNode[], text: string, fileName: string, diagnostics?: DiagnosticType[]): SourceFile {
+export function createSourceFile(
+  statements: StatementNode[],
+  text: string,
+  fileName: string,
+  diagnostics?: DiagnosticType[],
+): SourceFile {
   if (!diagnostics) {
     diagnostics = [];
   }

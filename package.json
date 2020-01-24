@@ -5,7 +5,7 @@
   "main": "lib/index.js",
   "scripts": {
     "compile": "tsc -p .",
-    "lint": "tslint -p .",
+    "lint": "tslint -p . src/**/*.ts",
     "test": "ava"
   },
   "ava": {

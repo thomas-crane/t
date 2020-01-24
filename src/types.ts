@@ -362,7 +362,6 @@ export type Node
   | SourceFile
   ;
 
-
 /**
  * An interface for turning some text into a stream of tokens.
  */
