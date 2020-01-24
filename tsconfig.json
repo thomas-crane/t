@@ -8,11 +8,7 @@
     "noFallthroughCasesInSwitch": true,
     "incremental": true,
     "rootDir": "./src",
-    "baseUrl": "./src",
     "outDir": "./lib",
-    "paths": {
-      "t/*": ["*"]
-    },
     "lib": ["es2017"]
   },
   "include": [

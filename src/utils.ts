@@ -1,4 +1,4 @@
-import { TextRange } from 't/types';
+import { TextRange } from './types';
 
 /**
  * Sets the text range on the given target.
