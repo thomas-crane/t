@@ -48,7 +48,7 @@ export interface DiagnosticWarning extends Diagnostic, TextRange {
  * and from which the system cannot continue.
  */
 export interface DiagnosticError extends Diagnostic, TextRange {
-  kind: DiagnosticKind.Warning;
+  kind: DiagnosticKind.Error;
   error: string;
 }
 
