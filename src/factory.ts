@@ -1,5 +1,5 @@
-import { AssignmentStatement, BinaryExpression, BinaryOperator, BlockStatement, DeclarationStatement, ExpressionNode, FnCallExpression, FnDeclarationStatement, IdentifierLiteral, IfStatement, LoopStatement, NumberLiteral, ReturnStatement, SourceFile, StatementNode, SyntaxKind, SyntaxNodeFlags, SyntaxToken, TextRange, TokenSyntaxKind } from 't/types';
-import { setTextRange } from 't/utils';
+import { AssignmentStatement, BinaryExpression, BinaryOperator, BlockStatement, DeclarationStatement, ExpressionNode, FnCallExpression, FnDeclarationStatement, IdentifierLiteral, IfStatement, LoopStatement, NumberLiteral, ReturnStatement, SourceFile, StatementNode, SyntaxKind, SyntaxNodeFlags, SyntaxToken, TextRange, TokenSyntaxKind, DiagnosticType } from './types';
+import { setTextRange } from './utils';
 
 export function createToken<T extends TokenSyntaxKind>(tokenKind: T, location?: TextRange): SyntaxToken<T> {
   return setTextRange({
@@ -106,13 +106,17 @@ export function createLoopStatement(body: BlockStatement, location?: TextRange):
   }, location);
 }
 
-export function createSourceFile(statements: StatementNode[], text: string, fileName: string): SourceFile {
+export function createSourceFile(statements: StatementNode[], text: string, fileName: string, diagnostics?: DiagnosticType[]): SourceFile {
+  if (!diagnostics) {
+    diagnostics = [];
+  }
   return {
     kind: SyntaxKind.SourceFile,
     statements,
     text,
     fileName,
     flags: SyntaxNodeFlags.None,
+    diagnostics,
     pos: 0,
     end: text.length - 1,
   };

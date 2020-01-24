@@ -1,5 +1,5 @@
-import { DiagnosticType, SyntaxKind, Lexer, TokenSyntaxKind } from 't/types';
-import { createToken, createNumberLiteral, createIdentifier } from 't/factory';
+import { DiagnosticType, SyntaxKind, Lexer, TokenSyntaxKind } from './types';
+import { createToken, createNumberLiteral, createIdentifier } from './factory';
 
 type SyntaxKindMap = { [key: string]: TokenSyntaxKind };
 
