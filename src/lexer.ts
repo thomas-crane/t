@@ -1,5 +1,5 @@
-import { DiagnosticType, SyntaxKind, Lexer, TokenSyntaxKind } from './types';
-import { createToken, createNumberLiteral, createIdentifier } from './factory';
+import { createIdentifier, createNumberLiteral, createToken } from './factory';
+import { DiagnosticKind, DiagnosticSource, DiagnosticType, Lexer, SyntaxKind, TokenSyntaxKind } from './types';
 
 type SyntaxKindMap = { [key: string]: TokenSyntaxKind };
 
@@ -72,7 +72,7 @@ export function createLexer(src: string): Lexer {
         do {
           buf += src[pos];
           pos++;
-        } while (digit.test(src[pos]));
+        } while (!atEnd() && digit.test(src[pos]));
         // TODO(thomas.crane): support floating point numbers.
         return createNumberLiteral(parseInt(buf, 10), { pos: start, end: pos, });
       }
@@ -84,7 +84,7 @@ export function createLexer(src: string): Lexer {
         do {
           buf += src[pos];
           pos++;
-        } while (idBody.test(src[pos]));
+        } while (!atEnd() && idBody.test(src[pos]));
         // keywords
         if (keywordMap[buf]) {
           return createToken(keywordMap[buf], { pos: start, end: pos });
@@ -115,6 +115,15 @@ export function createLexer(src: string): Lexer {
             kind = charMap[char];
             break;
         }
+      }
+      if (kind === SyntaxKind.UnknownToken) {
+        diagnostics.push({
+          kind: DiagnosticKind.Error,
+          error: `Unknown character "${char}"`,
+          pos: charStart,
+          end: pos,
+          source: DiagnosticSource.Lexer,
+        });
       }
       return createToken(kind, { pos: charStart, end: pos });
     }
