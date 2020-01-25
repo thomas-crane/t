@@ -378,3 +378,10 @@ export interface Lexer {
   nextToken(): SyntaxToken<TokenSyntaxKind>;
   getDiagnostics(): DiagnosticType[];
 }
+
+/**
+ * An interface for turning some text into a source file node.
+ */
+export interface Parser {
+  parse(): SourceFile;
+}
