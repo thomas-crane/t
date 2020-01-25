@@ -18,11 +18,20 @@ export const enum DiagnosticSource {
 }
 
 /**
+ * Unique codes for each diagnostic message which can be generated.
+ */
+export enum DiagnosticCode {
+  UnknownToken,
+  UnexpectedToken,
+}
+
+/**
  * The base type of all types which represent some kind of diagnostic.
  */
 interface Diagnostic {
   kind: DiagnosticKind;
   source: DiagnosticSource;
+  code: DiagnosticCode;
 }
 
 /**
