@@ -1,7 +1,7 @@
 import test, { ExecutionContext } from 'ava';
 import { createIdentifier, createNumberLiteral, createToken } from './factory';
 import { createLexer } from './lexer';
-import { DiagnosticKind, SyntaxKind, SyntaxToken, TokenSyntaxKind } from './types';
+import { DiagnosticKind, SyntaxKind, SyntaxToken, TokenSyntaxKind, DiagnosticCode } from './types';
 
 const keywords: Array<[string, SyntaxToken<TokenSyntaxKind>]> = [
   ['let', createToken(SyntaxKind.LetKeyword)],
@@ -66,4 +66,5 @@ test('Lexer reports diagnostics for unknown tokens', (t) => {
   lexer.nextToken();
   const [diagnostic] = lexer.getDiagnostics();
   t.is(diagnostic.kind, DiagnosticKind.Error);
+  t.is(diagnostic.code, DiagnosticCode.UnknownToken);
 });
