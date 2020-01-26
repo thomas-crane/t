@@ -13,6 +13,7 @@ import {
   IfStatement,
   LoopStatement,
   NumberLiteral,
+  ParenExpression,
   ReturnStatement,
   SourceFile,
   StatementNode,
@@ -80,6 +81,17 @@ export function createFnCallExpression(
     kind: SyntaxKind.FnCallExpression,
     fnName,
     args,
+    flags: SyntaxNodeFlags.None,
+  }, location);
+}
+
+export function createParenExpression(
+  expr: ExpressionNode,
+  location?: TextRange,
+): ParenExpression {
+  return setTextRange({
+    kind: SyntaxKind.ParenExpression,
+    expr,
     flags: SyntaxNodeFlags.None,
   }, location);
 }
