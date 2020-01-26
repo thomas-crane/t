@@ -41,7 +41,7 @@ import {
 export function createParser(source: SourceFile): Parser {
   const parsedSource = createSourceFile([], source.text, source.fileName);
   const lexer = createLexer(source.text);
-  const tokens: SyntaxToken<TokenSyntaxKind>[] = [];
+  const tokens: Array<SyntaxToken<TokenSyntaxKind>> = [];
   while (true) {
     const token = lexer.nextToken();
     // skip unknown tokens, they will just cause
@@ -315,6 +315,6 @@ export function createParser(source: SourceFile): Parser {
         }
       }
       return parsedSource;
-    }
-  }
+    },
+  };
 }

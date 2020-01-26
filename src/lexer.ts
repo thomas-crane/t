@@ -1,5 +1,17 @@
-import { createIdentifier, createNumberLiteral, createToken } from './factory';
-import { DiagnosticCode, DiagnosticKind, DiagnosticSource, DiagnosticType, Lexer, SyntaxKind, TokenSyntaxKind } from './types';
+import {
+  createIdentifier,
+  createNumberLiteral,
+  createToken,
+} from './factory';
+import {
+  DiagnosticCode,
+  DiagnosticKind,
+  DiagnosticSource,
+  DiagnosticType,
+  Lexer,
+  SyntaxKind,
+  TokenSyntaxKind,
+} from './types';
 
 type SyntaxKindMap = { [key: string]: TokenSyntaxKind };
 

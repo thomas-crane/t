@@ -6,6 +6,7 @@ import {
   DeclarationStatement,
   DiagnosticType,
   ExpressionNode,
+  ExpressionStatement,
   FnCallExpression,
   FnDeclarationStatement,
   IdentifierLiteral,
@@ -20,7 +21,6 @@ import {
   SyntaxToken,
   TextRange,
   TokenSyntaxKind,
-  ExpressionStatement,
 } from './types';
 import { setTextRange } from './utils';
 

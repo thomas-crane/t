@@ -2,13 +2,13 @@ import {
   createAssignmentStatement,
   createBinaryExpression,
   createBlockStatement,
+  createExpressionStatement,
   createFnCallExpression,
   createFnDeclarationStatement,
   createIfStatement,
   createLoopStatement,
   createReturnStatement,
   createSourceFile,
-  createExpressionStatement,
 } from './factory';
 import {
   BlockStatement,

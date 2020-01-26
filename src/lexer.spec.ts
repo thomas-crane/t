@@ -1,7 +1,7 @@
 import test, { ExecutionContext } from 'ava';
 import { createIdentifier, createNumberLiteral, createToken } from './factory';
 import { createLexer } from './lexer';
-import { DiagnosticKind, SyntaxKind, SyntaxToken, TokenSyntaxKind, DiagnosticCode } from './types';
+import { DiagnosticCode, DiagnosticKind, SyntaxKind, SyntaxToken, TokenSyntaxKind } from './types';
 
 const keywords: Array<[string, SyntaxToken<TokenSyntaxKind>]> = [
   ['let', createToken(SyntaxKind.LetKeyword)],
