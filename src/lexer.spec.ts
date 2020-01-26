@@ -68,3 +68,10 @@ test('Lexer reports diagnostics for unknown tokens', (t) => {
   t.is(diagnostic.kind, DiagnosticKind.Error);
   t.is(diagnostic.code, DiagnosticCode.UnknownToken);
 });
+
+test('Lexer recognises multi character tokens.', allTokens, '== != && ||', [
+  SyntaxKind.EqualTo,
+  SyntaxKind.NotEqualTo,
+  SyntaxKind.LogicalAnd,
+  SyntaxKind.LogicalOr,
+]);
