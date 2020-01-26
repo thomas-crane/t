@@ -18,11 +18,20 @@ export const enum DiagnosticSource {
 }
 
 /**
+ * Unique codes for each diagnostic message which can be generated.
+ */
+export enum DiagnosticCode {
+  UnknownToken,
+  UnexpectedToken,
+}
+
+/**
  * The base type of all types which represent some kind of diagnostic.
  */
 interface Diagnostic {
   kind: DiagnosticKind;
   source: DiagnosticSource;
+  code: DiagnosticCode;
 }
 
 /**
@@ -137,6 +146,7 @@ export enum SyntaxKind {
   FnDeclarationStatement,
   ReturnStatement,
   LoopStatement,
+  ExpressionStatement,
 
   SourceFile,
 }
@@ -328,6 +338,15 @@ export interface LoopStatement extends SyntaxNode {
 }
 
 /**
+ * An expression statement.
+ */
+export interface ExpressionStatement extends SyntaxNode {
+  kind: SyntaxKind.ExpressionStatement;
+
+  expr: ExpressionNode;
+}
+
+/**
  * The set of all syntax items which are statements.
  */
 export type StatementNode
@@ -338,6 +357,7 @@ export type StatementNode
   | FnDeclarationStatement
   | ReturnStatement
   | LoopStatement
+  | ExpressionStatement
   ;
 
 /**
@@ -368,4 +388,11 @@ export type Node
 export interface Lexer {
   nextToken(): SyntaxToken<TokenSyntaxKind>;
   getDiagnostics(): DiagnosticType[];
+}
+
+/**
+ * An interface for turning some text into a source file node.
+ */
+export interface Parser {
+  parse(): SourceFile;
 }

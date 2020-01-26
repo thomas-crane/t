@@ -1,5 +1,17 @@
-import { createIdentifier, createNumberLiteral, createToken } from './factory';
-import { DiagnosticKind, DiagnosticSource, DiagnosticType, Lexer, SyntaxKind, TokenSyntaxKind } from './types';
+import {
+  createIdentifier,
+  createNumberLiteral,
+  createToken,
+} from './factory';
+import {
+  DiagnosticCode,
+  DiagnosticKind,
+  DiagnosticSource,
+  DiagnosticType,
+  Lexer,
+  SyntaxKind,
+  TokenSyntaxKind,
+} from './types';
 
 type SyntaxKindMap = { [key: string]: TokenSyntaxKind };
 
@@ -116,6 +128,7 @@ export function createLexer(src: string): Lexer {
           pos: charStart,
           end: pos,
           source: DiagnosticSource.Lexer,
+          code: DiagnosticCode.UnknownToken,
         });
       }
       return createToken(kind, { pos: charStart, end: pos });
