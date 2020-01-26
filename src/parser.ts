@@ -267,8 +267,7 @@ export function createParser(source: SourceFile): Parser {
 
   function parsePrimaryExpression(): ExpressionNode | undefined {
     switch (tokens[idx].kind) {
-      case SyntaxKind.IdentifierLiteral:
-        {
+      case SyntaxKind.IdentifierLiteral: {
           if (tokens[idx + 1] && tokens[idx + 1].kind === SyntaxKind.LeftParenToken) {
             return parseFnCallExpression();
           } else {
@@ -276,8 +275,7 @@ export function createParser(source: SourceFile): Parser {
             return expr;
           }
         }
-      case SyntaxKind.NumberLiteral:
-        {
+      case SyntaxKind.NumberLiteral: {
           const expr = consume(SyntaxKind.NumberLiteral) as ExpressionNode;
           return expr;
         }

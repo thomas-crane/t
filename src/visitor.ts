@@ -27,8 +27,7 @@ export type Visitor = (node: Node) => Node;
  */
 export function traverse(node: Node, visitor: Visitor): Node {
   switch (node.kind) {
-    case SyntaxKind.SourceFile:
-      {
+    case SyntaxKind.SourceFile: {
         const statements: StatementNode[] = [];
         let hasChanged = false;
         for (const stmt of node.statements) {
@@ -43,8 +42,7 @@ export function traverse(node: Node, visitor: Visitor): Node {
         }
         return visitor(node);
       }
-    case SyntaxKind.BlockStatement:
-      {
+    case SyntaxKind.BlockStatement: {
         const statements: StatementNode[] = [];
         let hasChanged = false;
         for (const stmt of node.statements) {
@@ -60,8 +58,7 @@ export function traverse(node: Node, visitor: Visitor): Node {
         }
         return visitor(node);
       }
-    case SyntaxKind.IfStatement:
-      {
+    case SyntaxKind.IfStatement: {
         const condition = visitor(node.condition) as ExpressionNode;
         const body = traverse(node.body, visitor) as BlockStatement;
         let elseBody: BlockStatement | undefined;
@@ -74,8 +71,7 @@ export function traverse(node: Node, visitor: Visitor): Node {
         }
         return visitor(node);
       }
-    case SyntaxKind.AssignmentStatement:
-      {
+    case SyntaxKind.AssignmentStatement: {
 
         const identifier = traverse(node.identifier, visitor) as IdentifierLiteral;
         const value = traverse(node.value, visitor) as ExpressionNode;
@@ -85,8 +81,7 @@ export function traverse(node: Node, visitor: Visitor): Node {
         }
         return visitor(node);
       }
-    case SyntaxKind.DeclarationStatement:
-      {
+    case SyntaxKind.DeclarationStatement: {
         const identifier = traverse(node.identifier, visitor) as IdentifierLiteral;
         const value = traverse(node.value, visitor) as ExpressionNode;
         if (identifier !== node.identifier || value !== node.value) {
@@ -95,8 +90,7 @@ export function traverse(node: Node, visitor: Visitor): Node {
         }
         return visitor(node);
       }
-    case SyntaxKind.FnDeclarationStatement:
-      {
+    case SyntaxKind.FnDeclarationStatement: {
         const fnName = traverse(node.fnName, visitor) as IdentifierLiteral;
         let hasChanged = false;
         const params: IdentifierLiteral[] = [];
@@ -114,8 +108,7 @@ export function traverse(node: Node, visitor: Visitor): Node {
         }
         return visitor(node);
       }
-    case SyntaxKind.ReturnStatement:
-      {
+    case SyntaxKind.ReturnStatement: {
         const value = traverse(node.value, visitor) as ExpressionNode;
         if (value !== node.value) {
           node = createReturnStatement(value);
@@ -123,8 +116,7 @@ export function traverse(node: Node, visitor: Visitor): Node {
         }
         return visitor(node);
       }
-    case SyntaxKind.LoopStatement:
-      {
+    case SyntaxKind.LoopStatement: {
         const body = traverse(node.body, visitor) as BlockStatement;
         if (body !== node.body) {
           node = createLoopStatement(body);
@@ -132,8 +124,7 @@ export function traverse(node: Node, visitor: Visitor): Node {
         }
         return visitor(node);
       }
-    case SyntaxKind.ExpressionStatement:
-      {
+    case SyntaxKind.ExpressionStatement: {
         const expr = traverse(node.expr, visitor) as ExpressionNode;
         if (expr !== node.expr) {
           node = createExpressionStatement(expr);
@@ -141,8 +132,7 @@ export function traverse(node: Node, visitor: Visitor): Node {
         }
         return visitor(node);
       }
-    case SyntaxKind.BinaryExpression:
-      {
+    case SyntaxKind.BinaryExpression: {
         const left = traverse(node.left, visitor) as ExpressionNode;
         const right = traverse(node.right, visitor) as ExpressionNode;
         if (left !== node.left || right !== node.right) {
@@ -151,8 +141,7 @@ export function traverse(node: Node, visitor: Visitor): Node {
         }
         return visitor(node);
       }
-    case SyntaxKind.FnCallExpression:
-      {
+    case SyntaxKind.FnCallExpression: {
         const fnName = traverse(node.fnName, visitor) as IdentifierLiteral;
         let hasChanged = false;
         const args: ExpressionNode[] = [];
@@ -170,8 +159,7 @@ export function traverse(node: Node, visitor: Visitor): Node {
         return visitor(node);
       }
     case SyntaxKind.NumberLiteral:
-    case SyntaxKind.IdentifierLiteral:
-      {
+    case SyntaxKind.IdentifierLiteral: {
         return visitor(node);
       }
   }
