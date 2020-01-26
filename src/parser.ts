@@ -266,8 +266,9 @@ export function createParser(source: SourceFile): Parser {
   }
 
   function parsePrimaryExpression(): ExpressionNode | undefined {
-    switch (tokens[idx].kind) {
-      case SyntaxKind.IdentifierLiteral: {
+    while (!atEnd()) {
+      switch (tokens[idx].kind) {
+        case SyntaxKind.IdentifierLiteral: {
           if (tokens[idx + 1] && tokens[idx + 1].kind === SyntaxKind.LeftParenToken) {
             return parseFnCallExpression();
           } else {
@@ -275,13 +276,23 @@ export function createParser(source: SourceFile): Parser {
             return expr;
           }
         }
-      case SyntaxKind.NumberLiteral: {
+        case SyntaxKind.NumberLiteral: {
           const expr = consume(SyntaxKind.NumberLiteral) as ExpressionNode;
           return expr;
         }
-      default:
-        return undefined;
+        default:
+          parsedSource.diagnostics.push({
+            kind: DiagnosticKind.Error,
+            source: DiagnosticSource.Parser,
+            code: DiagnosticCode.UnexpectedToken,
+            pos: tokens[idx].pos,
+            end: tokens[idx].end,
+            error: `Unexpected token ${SyntaxKind[tokens[idx].kind]}. Expected an expression.`,
+          });
+          idx++;
+      }
     }
+    return undefined;
   }
 
   function parseFnCallExpression(): FnCallExpression | undefined {
