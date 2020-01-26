@@ -8,6 +8,7 @@ import {
   createLoopStatement,
   createReturnStatement,
   createSourceFile,
+  createExpressionStatement,
 } from './factory';
 import {
   BlockStatement,
@@ -127,6 +128,15 @@ export function traverse(node: Node, visitor: Visitor): Node {
         const body = traverse(node.body, visitor) as BlockStatement;
         if (body !== node.body) {
           node = createLoopStatement(body);
+          node.flags |= SyntaxNodeFlags.Synthetic;
+        }
+        return visitor(node);
+      }
+    case SyntaxKind.ExpressionStatement:
+      {
+        const expr = traverse(node.expr, visitor) as ExpressionNode;
+        if (expr !== node.expr) {
+          node = createExpressionStatement(expr);
           node.flags |= SyntaxNodeFlags.Synthetic;
         }
         return visitor(node);
