@@ -20,6 +20,7 @@ import {
   SyntaxToken,
   TextRange,
   TokenSyntaxKind,
+  ExpressionStatement,
 } from './types';
 import { setTextRange } from './utils';
 
@@ -170,6 +171,17 @@ export function createLoopStatement(
   return setTextRange({
     kind: SyntaxKind.LoopStatement,
     body,
+    flags: SyntaxNodeFlags.None,
+  }, location);
+}
+
+export function createExpressionStatement(
+  expr: ExpressionNode,
+  location?: TextRange,
+): ExpressionStatement {
+  return setTextRange({
+    kind: SyntaxKind.ExpressionStatement,
+    expr,
     flags: SyntaxNodeFlags.None,
   }, location);
 }
