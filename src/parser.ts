@@ -8,6 +8,7 @@ import {
   createFnDeclarationStatement,
   createIfStatement,
   createLoopStatement,
+  createParenExpression,
   createReturnStatement,
   createSourceFile,
   createToken,
@@ -28,6 +29,7 @@ import {
   IdentifierLiteral,
   IfStatement,
   LoopStatement,
+  ParenExpression,
   Parser,
   ReturnStatement,
   SourceFile,
@@ -268,6 +270,8 @@ export function createParser(source: SourceFile): Parser {
   function parsePrimaryExpression(): ExpressionNode | undefined {
     while (!atEnd()) {
       switch (tokens[idx].kind) {
+        case SyntaxKind.LeftParenToken:
+          return parseParenExpression();
         case SyntaxKind.IdentifierLiteral: {
           if (tokens[idx + 1] && tokens[idx + 1].kind === SyntaxKind.LeftParenToken) {
             return parseFnCallExpression();
@@ -313,6 +317,16 @@ export function createParser(source: SourceFile): Parser {
       pos: fnName.pos,
       end: end.end,
     });
+  }
+
+  function parseParenExpression(): ParenExpression | undefined {
+    const start = consume(SyntaxKind.LeftParenToken);
+    const expr = parseExpression();
+    if (expr === undefined) {
+      return undefined;
+    }
+    const end = consume(SyntaxKind.RightParenToken);
+    return createParenExpression(expr, { pos: start.pos, end: end.end });
   }
 
   return {

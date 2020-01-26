@@ -7,6 +7,7 @@ import {
   createFnDeclarationStatement,
   createIfStatement,
   createLoopStatement,
+  createParenExpression,
   createReturnStatement,
   createSourceFile,
 } from './factory';
@@ -158,6 +159,14 @@ export function traverse(node: Node, visitor: Visitor): Node {
         }
         return visitor(node);
       }
+    case SyntaxKind.ParenExpression: {
+      const expr = traverse(node.expr, visitor) as ExpressionNode;
+      if (expr !== node.expr) {
+        node = createParenExpression(expr);
+        node.flags |= SyntaxNodeFlags.Synthetic;
+      }
+      return visitor(node);
+    }
     case SyntaxKind.NumberLiteral:
     case SyntaxKind.IdentifierLiteral: {
         return visitor(node);

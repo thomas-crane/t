@@ -133,6 +133,7 @@ export enum SyntaxKind {
   // expressions
   BinaryExpression,
   FnCallExpression,
+  ParenExpression,
 
   // literals
   IdentifierLiteral,
@@ -257,6 +258,15 @@ export interface FnCallExpression extends SyntaxNode {
 }
 
 /**
+ * An expression which is wrapped in parentheses.
+ */
+export interface ParenExpression extends SyntaxNode {
+  kind: SyntaxKind.ParenExpression;
+
+  expr: ExpressionNode;
+}
+
+/**
  * The set of all syntax items which are expressions.
  */
 export type ExpressionNode
@@ -264,6 +274,7 @@ export type ExpressionNode
   | IdentifierLiteral
   | BinaryExpression
   | FnCallExpression
+  | ParenExpression
   ;
 
 /**
