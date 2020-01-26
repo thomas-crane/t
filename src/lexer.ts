@@ -4,6 +4,13 @@ import { DiagnosticKind, DiagnosticSource, DiagnosticType, Lexer, SyntaxKind, To
 type SyntaxKindMap = { [key: string]: TokenSyntaxKind };
 
 const charMap: SyntaxKindMap = {
+  // these are unknown for now, but they exist in the map
+  // to allow the system of finding multi character tokens
+  // to work properly.
+  '&': SyntaxKind.UnknownToken,
+  '|': SyntaxKind.UnknownToken,
+  '!': SyntaxKind.UnknownToken,
+
   '+': SyntaxKind.PlusToken,
   '-': SyntaxKind.MinusToken,
   '/': SyntaxKind.SlashToken,
@@ -93,27 +100,14 @@ export function createLexer(src: string): Lexer {
 
       // misc stuff
       const charStart = pos;
-      const char = src[pos++];
+      let char = src[pos++];
       let kind: TokenSyntaxKind = SyntaxKind.UnknownToken;
-      if (charMap[char]) {
-        // check for double chars.
-        switch (char) {
-          case '!':
-            if (src[pos] === '=') {
-              kind = SyntaxKind.NotEqualTo;
-              pos++;
-            }
-            break;
-          case '=':
-            if (src[pos] === '=') {
-              kind = SyntaxKind.EqualTo;
-              pos++;
-            }
-            break;
-          default:
-            kind = charMap[char];
-            break;
+      if (charMap[char] !== undefined) {
+        // see if adding another char results in a recognised token.
+        while (!atEnd() && charMap[char + src[pos]] !== undefined) {
+          char += src[pos++];
         }
+        kind = charMap[char];
       }
       if (kind === SyntaxKind.UnknownToken) {
         diagnostics.push({
