@@ -13,7 +13,9 @@ import {
   TokenSyntaxKind,
 } from './types';
 
-type SyntaxKindMap = { [key: string]: TokenSyntaxKind };
+interface SyntaxKindMap {
+  [key: string]: TokenSyntaxKind;
+}
 
 const charMap: SyntaxKindMap = {
   // these are unknown for now, but they exist in the map
