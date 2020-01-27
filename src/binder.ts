@@ -4,6 +4,10 @@ import {
   Binder,
   BlockStatement,
   DeclarationStatement,
+  DiagnosticCode,
+  DiagnosticKind,
+  DiagnosticSource,
+  DiagnosticType,
   ExpressionStatement,
   FnCallExpression,
   FnDeclarationStatement,
@@ -19,6 +23,7 @@ import {
   SymbolType,
   SyntaxKind,
   SyntaxNodeFlags,
+  TextRange,
   VariableSymbol,
 } from './types';
 
@@ -28,6 +33,7 @@ export function createBinder(): Binder {
   const symbolTables: SymbolTable[] = [
     new Map(),
   ];
+  const diagnostics: DiagnosticType[] = [];
 
   function pushScope() {
     symbolTables.unshift(new Map());
@@ -45,6 +51,20 @@ export function createBinder(): Binder {
   }
   function addSymbol(symbol: SymbolType) {
     symbolTables[0].set(symbol.name, symbol);
+  }
+
+  function createDiagnostic(
+    error: string,
+    code: DiagnosticCode,
+    location: TextRange,
+  ) {
+    diagnostics.push({
+      kind: DiagnosticKind.Error,
+      source: DiagnosticSource.Binder,
+      code,
+      error,
+      ...location,
+    });
   }
 
   function bind(node: Node) {
@@ -87,25 +107,26 @@ export function createBinder(): Binder {
     bind(node.right);
   }
   function bindFnCallExpression(node: FnCallExpression) {
-    const callSymbol = findSymbol(node.fnName.value);
-    if (callSymbol !== undefined) {
-      callSymbol.references.push(node);
-      node.symbol = callSymbol;
+    const fnSymbol = findSymbol(node.fnName.value);
+    if (fnSymbol !== undefined) {
+      fnSymbol.references.push(node);
+      node.symbol = fnSymbol;
     } else {
-      const unknownSymbol: FunctionSymbol = {
-        kind: SymbolKind.Function,
-        name: node.fnName.value,
-        firstMention: node,
-        references: [node],
-        parameters: [],
-      };
-      node.symbol = unknownSymbol;
+      createDiagnostic(
+        `Cannot find name "${node.fnName.value}"`,
+        DiagnosticCode.UnknownSymbol,
+        {
+          pos: node.fnName.pos,
+          end: node.fnName.end,
+        },
+      );
       node.flags |= SyntaxNodeFlags.HasErrors;
     }
     bindChildren(node.args);
   }
   function bindParenExpression(node: ParenExpression) {
     bind(node.expr);
+    node.symbol = node.expr.symbol;
   }
   function bindIdentifierLiteral(node: IdentifierLiteral) {
     const varSymbol = findSymbol(node.value);
@@ -113,14 +134,14 @@ export function createBinder(): Binder {
       varSymbol.references.push(node);
       node.symbol = varSymbol;
     } else {
-      const unknownSymbol: VariableSymbol = {
-        kind: SymbolKind.Variable,
-        name: node.value,
-        firstMention: node,
-        references: [node],
-        isConst: false,
-      };
-      node.symbol = unknownSymbol;
+      createDiagnostic(
+        `Cannot find name "${node.value}"`,
+        DiagnosticCode.UnknownSymbol,
+        {
+          pos: node.pos,
+          end: node.end,
+        },
+      );
       node.flags |= SyntaxNodeFlags.HasErrors;
     }
   }
@@ -139,17 +160,21 @@ export function createBinder(): Binder {
   function bindAssignmentStatement(node: AssignmentStatement) {
     bind(node.identifier);
     bind(node.value);
-    // set the error flag if we're assigning to a const variable.
-    if ((node.identifier.symbol as VariableSymbol)?.isConst) {
-      node.flags |= SyntaxNodeFlags.HasErrors;
-    }
+    node.symbol = node.identifier.symbol;
   }
   function bindDeclarationStatement(node: DeclarationStatement) {
     bind(node.value);
     // make sure we're not redeclaring an existing variable.
     const existingSymbol = findSymbol(node.identifier.value);
     if (existingSymbol !== undefined) {
-      existingSymbol.references.push(node);
+      createDiagnostic(
+        `Duplicate identifier "${existingSymbol.name}"`,
+        DiagnosticCode.DuplicateSymbol,
+        {
+          pos: node.identifier.pos,
+          end: node.identifier.end,
+        },
+      );
       node.flags |= SyntaxNodeFlags.HasErrors;
     } else {
       const varSymbol: VariableSymbol = {
@@ -167,7 +192,14 @@ export function createBinder(): Binder {
     // check for redeclaration again
     const existingSymbol = findSymbol(node.fnName.value);
     if (existingSymbol !== undefined) {
-      existingSymbol.references.push(node);
+      createDiagnostic(
+        `Duplicate identifier "${existingSymbol.name}"`,
+        DiagnosticCode.DuplicateSymbol,
+        {
+          pos: node.fnName.pos,
+          end: node.fnName.end,
+        },
+      );
       node.flags |= SyntaxNodeFlags.HasErrors;
     } else {
       // bind each param as a parameter symbol.
@@ -201,17 +233,20 @@ export function createBinder(): Binder {
   }
   function bindReturnStatement(node: ReturnStatement) {
     bind(node.value);
+    node.symbol = node.value.symbol;
   }
   function bindLoopStatement(node: LoopStatement) {
     bind(node.body);
   }
   function bindExpressionStatement(node: ExpressionStatement) {
     bind(node.expr);
+    node.symbol = node.expr.symbol;
   }
 
   return {
     bind(source) {
       bindChildren(source.statements);
+      source.diagnostics.push(...diagnostics);
     },
   };
 }
