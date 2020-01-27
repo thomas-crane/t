@@ -14,7 +14,8 @@ export enum DiagnosticKind {
 export const enum DiagnosticSource {
   Lexer = 0,
   Parser = 1 << 1,
-  Checker = 1 << 2,
+  Binder = 1 << 2,
+  Checker = 1 << 3,
 }
 
 /**
@@ -23,6 +24,9 @@ export const enum DiagnosticSource {
 export enum DiagnosticCode {
   UnknownToken,
   UnexpectedToken,
+
+  UnknownSymbol,
+  DuplicateSymbol,
 }
 
 /**
