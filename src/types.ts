@@ -14,7 +14,8 @@ export enum DiagnosticKind {
 export const enum DiagnosticSource {
   Lexer = 0,
   Parser = 1 << 1,
-  Checker = 1 << 2,
+  Binder = 1 << 2,
+  Checker = 1 << 3,
 }
 
 /**
@@ -23,6 +24,9 @@ export const enum DiagnosticSource {
 export enum DiagnosticCode {
   UnknownToken,
   UnexpectedToken,
+
+  UnknownSymbol,
+  DuplicateSymbol,
 }
 
 /**
@@ -459,4 +463,12 @@ export interface Lexer {
  */
 export interface Parser {
   parse(): SourceFile;
+}
+
+/**
+ * An interface for taking an existing source file node and filling
+ * out some of the semantic information such as symbols.
+ */
+export interface Binder {
+  bind(source: SourceFile): void;
 }

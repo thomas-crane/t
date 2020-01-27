@@ -209,6 +209,7 @@ export function createParser(source: SourceFile): Parser {
 
   function parseAssignmentStatement(): AssignmentStatement | undefined {
     const identifier = consume(SyntaxKind.IdentifierLiteral) as IdentifierLiteral;
+    consume(SyntaxKind.EqualsToken);
     const value = parseExpression();
     if (value === undefined) {
       return undefined;
