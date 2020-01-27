@@ -460,3 +460,11 @@ export interface Lexer {
 export interface Parser {
   parse(): SourceFile;
 }
+
+/**
+ * An interface for taking an existing source file node and filling
+ * out some of the semantic information such as symbols.
+ */
+export interface Binder {
+  bind(source: SourceFile): void;
+}
