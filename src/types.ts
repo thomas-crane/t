@@ -80,6 +80,57 @@ export type DiagnosticType
   ;
 
 /**
+ * Types of symbols which can appear in the AST.
+ */
+export enum SymbolKind {
+  Variable,
+  Function,
+  Parameter,
+}
+
+/**
+ * The base type of all types which represent some kind of symbol.
+ */
+interface Symbol {
+  kind: SymbolKind;
+  name: string;
+  firstMention: SyntaxNode;
+  references: SyntaxNode[];
+}
+
+/**
+ * A symbol which refers to a variable.
+ */
+export interface VariableSymbol extends Symbol {
+  kind: SymbolKind.Variable;
+  isConst: boolean;
+}
+
+/**
+ * A symbol which refers to a function.
+ */
+export interface FunctionSymbol extends Symbol {
+  kind: SymbolKind.Function;
+  parameters: ParameterSymbol[];
+}
+
+/**
+ * A symbol which refers to the parameter of a function.
+ */
+export interface ParameterSymbol extends Symbol {
+  kind: SymbolKind.Parameter;
+}
+
+/**
+ * The set of all symbol types.
+ */
+export type SymbolType
+  = VariableSymbol
+  | FunctionSymbol
+  | ParameterSymbol
+  ;
+
+/**
  * A slice of text.
  */
 export interface TextRange {
@@ -158,6 +209,8 @@ export enum SyntaxKind {
 interface SyntaxNode extends TextRange {
   kind: SyntaxKind;
   flags: SyntaxNodeFlags;
+
+  symbol?: SymbolType;
 }
 
 export const enum SyntaxNodeFlags {
