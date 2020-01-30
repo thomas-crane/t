@@ -147,14 +147,29 @@ function printIfStatement(node: IfStatement): string {
 function printAssignmentStatement(node: AssignmentStatement): string {
   const identifier = printNode(node.identifier);
   const value = printNode(node.value);
-  return `(AssignmentStatement ${identifier} ${value})`;
+  return [
+    '(AssignmentStatement',
+    ...indent([
+      identifier,
+      value,
+    ], INDENT_SIZE),
+    ')',
+  ].join('\n');
 }
 
 function printDeclarationStatement(node: DeclarationStatement): string {
   const identifier = printNode(node.identifier);
   const value = printNode(node.value);
   const declType = node.isConst ? 'LetKeyword' : 'MutKeyword';
-  return `(DeclarationStatement ${declType} ${identifier} ${value})`;
+  return [
+    '(DeclarationStatement',
+    ...indent([
+      declType,
+      identifier,
+      value,
+    ], INDENT_SIZE),
+    ')',
+  ].join('\n');
 }
 
 function printFnDeclarationStatement(node: FnDeclarationStatement): string {
