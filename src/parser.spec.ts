@@ -108,8 +108,12 @@ test(
   'Parser recognises loop statements',
   parse,
   'loop { stop }',
-  `(LoopStatement
-  (StopStatement)
+  `(SourceFile
+  (LoopStatement
+    (BlockStatement
+      (StopStatement)
+    )
+  )
 )`,
 );
 
