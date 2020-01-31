@@ -163,7 +163,7 @@ export interface NumberType extends TypeInfo {
 export interface FunctionType extends TypeInfo {
   kind: TypeKind.Function;
 
-  parameters: ParameterSymbol;
+  parameters: ParameterSymbol[];
 }
 
 /**
@@ -173,6 +173,29 @@ export type Type
   = NumberType
   | FunctionType
   ;
+
+/**
+ * Types of matches which can occur when trying to
+ * convert `fromType` into `toType`.
+ */
+export enum TypeMatch {
+  /**
+   * `fromType` does not match `toType` in any way.
+   */
+  NoMatch,
+  /**
+   * `fromType` is an exact match of `toType`.
+   */
+  Equal,
+  /**
+   * `fromType` is a subtype of `toType`.
+   */
+  SubEqual,
+  /**
+   * `fromType` is a supertype of `toType`.
+   */
+  SuperEqual,
+}
 
 /**
  * A slice of text.
