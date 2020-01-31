@@ -11,6 +11,7 @@ import {
   createParenExpression,
   createReturnStatement,
   createSourceFile,
+  createStopStatement,
   createToken,
 } from './factory';
 import { createLexer } from './lexer';
@@ -34,6 +35,7 @@ import {
   ReturnStatement,
   SourceFile,
   StatementNode,
+  StopStatement,
   SyntaxKind,
   SyntaxNodeFlags,
   SyntaxToken,
@@ -115,6 +117,8 @@ export function createParser(source: SourceFile): Parser {
         return parseIfStatement();
       case SyntaxKind.LoopKeyword:
         return parseLoopStatement();
+      case SyntaxKind.StopKeyword:
+        return parseStopStatement();
       case SyntaxKind.ReturnKeyword:
         return parseReturnStatement();
       case SyntaxKind.IdentifierLiteral:
@@ -197,6 +201,11 @@ export function createParser(source: SourceFile): Parser {
     const start = consume(SyntaxKind.LoopKeyword);
     const body = parseBlockStatement();
     return createLoopStatement(body, { pos: start.pos, end: body.end });
+  }
+
+  function parseStopStatement(): StopStatement {
+    const token = consume(SyntaxKind.StopKeyword);
+    return createStopStatement({ pos: token.pos, end: token.end });
   }
 
   function parseReturnStatement(): ReturnStatement | undefined {
