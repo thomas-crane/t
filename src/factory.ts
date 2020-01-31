@@ -17,6 +17,7 @@ import {
   ReturnStatement,
   SourceFile,
   StatementNode,
+  StopStatement,
   SyntaxKind,
   SyntaxNodeFlags,
   SyntaxToken,
@@ -183,6 +184,15 @@ export function createLoopStatement(
   return setTextRange({
     kind: SyntaxKind.LoopStatement,
     body,
+    flags: SyntaxNodeFlags.None,
+  }, location);
+}
+
+export function createStopStatement(
+  location?: TextRange,
+): StopStatement {
+  return setTextRange({
+    kind: SyntaxKind.StopStatement,
     flags: SyntaxNodeFlags.None,
   }, location);
 }

@@ -11,6 +11,7 @@ import {
   createParenExpression,
   createReturnStatement,
   createSourceFile,
+  createStopStatement,
   createToken,
 } from './factory';
 import { createLexer } from './lexer';
@@ -34,6 +35,7 @@ import {
   ReturnStatement,
   SourceFile,
   StatementNode,
+  StopStatement,
   SyntaxKind,
   SyntaxNodeFlags,
   SyntaxToken,
@@ -101,6 +103,7 @@ export function createParser(source: SourceFile): Parser {
       return token;
     }
   }
+
   function parseStatement(): StatementNode | undefined {
     switch (tokens[idx].kind) {
       case SyntaxKind.LeftCurlyToken:
@@ -114,6 +117,8 @@ export function createParser(source: SourceFile): Parser {
         return parseIfStatement();
       case SyntaxKind.LoopKeyword:
         return parseLoopStatement();
+      case SyntaxKind.StopKeyword:
+        return parseStopStatement();
       case SyntaxKind.ReturnKeyword:
         return parseReturnStatement();
       case SyntaxKind.IdentifierLiteral:
@@ -198,6 +203,11 @@ export function createParser(source: SourceFile): Parser {
     return createLoopStatement(body, { pos: start.pos, end: body.end });
   }
 
+  function parseStopStatement(): StopStatement {
+    const token = consume(SyntaxKind.StopKeyword);
+    return createStopStatement({ pos: token.pos, end: token.end });
+  }
+
   function parseReturnStatement(): ReturnStatement | undefined {
     const start = consume(SyntaxKind.ReturnKeyword);
     const value = parseExpression();
@@ -234,15 +244,6 @@ export function createParser(source: SourceFile): Parser {
       if (expr) {
         return expr;
       }
-      parsedSource.diagnostics.push({
-        kind: DiagnosticKind.Error,
-        source: DiagnosticSource.Parser,
-        code: DiagnosticCode.UnexpectedToken,
-        pos: tokens[idx].pos,
-        end: tokens[idx].end,
-        error: `Unexpected token ${SyntaxKind[tokens[idx].kind]}. Expected an expression.`,
-      });
-      idx++;
     }
     return undefined;
   }

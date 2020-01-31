@@ -30,7 +30,11 @@ test(
     factory.createToken(SyntaxKind.PlusToken),
     factory.createNumberLiteral(20),
   ),
-  '(BinaryExpression (NumberLiteral "10") + (NumberLiteral "20"))',
+  `(BinaryExpression
+  (NumberLiteral "10")
+  +
+  (NumberLiteral "20")
+)`,
 );
 
 test(
@@ -170,7 +174,11 @@ test(
   (IdentifierLiteral "x")
   (IdentifierLiteral "y")
   (BlockStatement
-    (ReturnStatement (BinaryExpression (IdentifierLiteral "x") + (IdentifierLiteral "y")))
+    (ReturnStatement (BinaryExpression
+      (IdentifierLiteral "x")
+      +
+      (IdentifierLiteral "y")
+    ))
   )
 )`,
 );

@@ -51,6 +51,8 @@ export function printNode(node: Node): string {
       return printReturnStatement(node);
     case SyntaxKind.LoopStatement:
       return printLoopStatement(node);
+    case SyntaxKind.StopStatement:
+      return printStopStatement();
     case SyntaxKind.ExpressionStatement:
       return printExpressionStatement(node);
 
@@ -71,7 +73,15 @@ function printBinaryExpression(node: BinaryExpression): string {
   const lhs = printNode(node.left);
   const rhs = printNode(node.right);
   const op = binaryOpToString(node.operator);
-  return `(BinaryExpression ${lhs} ${op} ${rhs})`;
+  return [
+    '(BinaryExpression',
+    ...indent([
+      lhs,
+      op,
+      rhs,
+    ], INDENT_SIZE),
+    ')',
+  ].join('\n');
 }
 function binaryOpToString(op: BinaryOperator): string {
   switch (op.kind) {
@@ -199,6 +209,10 @@ function printLoopStatement(node: LoopStatement): string {
     ...indent([body], 2),
     ')',
   ].join('\n');
+}
+
+function printStopStatement(): string {
+  return '(StopStatement)';
 }
 
 function printExpressionStatement(node: ExpressionStatement): string {
