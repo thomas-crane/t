@@ -51,6 +51,8 @@ export function printNode(node: Node): string {
       return printReturnStatement(node);
     case SyntaxKind.LoopStatement:
       return printLoopStatement(node);
+    case SyntaxKind.StopStatement:
+      return printStopStatement();
     case SyntaxKind.ExpressionStatement:
       return printExpressionStatement(node);
 
@@ -207,6 +209,10 @@ function printLoopStatement(node: LoopStatement): string {
     ...indent([body], 2),
     ')',
   ].join('\n');
+}
+
+function printStopStatement(): string {
+  return '(StopStatement)';
 }
 
 function printExpressionStatement(node: ExpressionStatement): string {
