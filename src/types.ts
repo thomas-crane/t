@@ -135,6 +135,46 @@ export type SymbolType
   ;
 
 /**
+ * Types of types.
+ */
+export enum TypeKind {
+  Number,
+  Function,
+}
+
+/**
+ * The base type of all specific forms of types.
+ */
+interface TypeInfo {
+  kind: TypeKind;
+  name: string;
+}
+
+/**
+ * The number type.
+ */
+export interface NumberType extends TypeInfo {
+  kind: TypeKind.Number;
+}
+
+/**
+ * The function type.
+ */
+export interface FunctionType extends TypeInfo {
+  kind: TypeKind.Function;
+
+  parameters: ParameterSymbol;
+}
+
+/**
+ * The set of all types.
+ */
+export type Type
+  = NumberType
+  | FunctionType
+  ;
+
+/**
  * A slice of text.
  */
 export interface TextRange {
@@ -216,6 +256,7 @@ interface SyntaxNode extends TextRange {
   flags: SyntaxNodeFlags;
 
   symbol?: SymbolType;
+  type?: Type;
 }
 
 export const enum SyntaxNodeFlags {
@@ -480,4 +521,13 @@ export interface Parser {
  */
 export interface Binder {
   bind(source: SourceFile): void;
+}
+
+/**
+ * An interface for taking an existing source file and annotating it
+ * with type information. The correctness of the types is checked
+ * at the same time.
+ */
+export interface TypeChecker {
+  check(source: SourceFile): void;
 }
