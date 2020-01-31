@@ -101,6 +101,7 @@ export function createParser(source: SourceFile): Parser {
       return token;
     }
   }
+
   function parseStatement(): StatementNode | undefined {
     switch (tokens[idx].kind) {
       case SyntaxKind.LeftCurlyToken:
@@ -234,15 +235,6 @@ export function createParser(source: SourceFile): Parser {
       if (expr) {
         return expr;
       }
-      parsedSource.diagnostics.push({
-        kind: DiagnosticKind.Error,
-        source: DiagnosticSource.Parser,
-        code: DiagnosticCode.UnexpectedToken,
-        pos: tokens[idx].pos,
-        end: tokens[idx].end,
-        error: `Unexpected token ${SyntaxKind[tokens[idx].kind]}. Expected an expression.`,
-      });
-      idx++;
     }
     return undefined;
   }
