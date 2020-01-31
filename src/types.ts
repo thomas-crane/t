@@ -202,6 +202,7 @@ export enum SyntaxKind {
   FnDeclarationStatement,
   ReturnStatement,
   LoopStatement,
+  StopStatement,
   ExpressionStatement,
 
   SourceFile,
@@ -406,6 +407,13 @@ export interface LoopStatement extends SyntaxNode {
 }
 
 /**
+ * A stop statement.
+ */
+export interface StopStatement extends SyntaxNode {
+  kind: SyntaxKind.StopStatement;
+}
+
+/**
  * An expression statement.
  */
 export interface ExpressionStatement extends SyntaxNode {
@@ -425,6 +433,7 @@ export type StatementNode
   | FnDeclarationStatement
   | ReturnStatement
   | LoopStatement
+  | StopStatement
   | ExpressionStatement
   ;
 
