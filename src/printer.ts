@@ -71,7 +71,15 @@ function printBinaryExpression(node: BinaryExpression): string {
   const lhs = printNode(node.left);
   const rhs = printNode(node.right);
   const op = binaryOpToString(node.operator);
-  return `(BinaryExpression ${lhs} ${op} ${rhs})`;
+  return [
+    '(BinaryExpression',
+    ...indent([
+      lhs,
+      op,
+      rhs,
+    ], INDENT_SIZE),
+    ')',
+  ].join('\n');
 }
 function binaryOpToString(op: BinaryOperator): string {
   switch (op.kind) {
