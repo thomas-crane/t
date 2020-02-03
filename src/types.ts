@@ -163,6 +163,9 @@ export interface NumberType extends TypeInfo {
   kind: TypeKind.Number;
 }
 
+/**
+ * The boolean type.
+ */
 export interface BooleanType extends TypeInfo {
   kind: TypeKind.Boolean;
 }
@@ -232,6 +235,13 @@ export enum SyntaxKind {
   ReturnKeyword,
   LoopKeyword,
   StopKeyword,
+  TrueKeyword,
+  FalseKeyword,
+
+  // type stuff
+  NumKeyword,
+  BoolKeyword,
+  TypeReference,
 
   // arithmetic
   PlusToken,
@@ -268,6 +278,7 @@ export enum SyntaxKind {
   // literals
   IdentifierLiteral,
   NumberLiteral,
+  BooleanLiteral,
 
   // statements
   BlockStatement,
@@ -310,6 +321,8 @@ export interface SyntaxToken<TokenKind extends TokenSyntaxKind> extends SyntaxNo
 export type TokenSyntaxKind
   = SyntaxKind.EndOfFileToken
   | SyntaxKind.UnknownToken
+  | SyntaxKind.NumKeyword
+  | SyntaxKind.BoolKeyword
   | SyntaxKind.PlusToken
   | SyntaxKind.MinusToken
   | SyntaxKind.StarToken
@@ -335,6 +348,8 @@ export type TokenSyntaxKind
   | SyntaxKind.ReturnKeyword
   | SyntaxKind.LoopKeyword
   | SyntaxKind.StopKeyword
+  | SyntaxKind.TrueKeyword
+  | SyntaxKind.FalseKeyword
   | SyntaxKind.NumberLiteral
   | SyntaxKind.IdentifierLiteral
   ;
@@ -354,6 +369,29 @@ export interface IdentifierLiteral extends SyntaxNode {
   kind: SyntaxKind.IdentifierLiteral;
   value: string;
 }
+
+/**
+ * A boolean literal expression.
+ */
+export interface BooleanLiteral extends SyntaxNode {
+  kind: SyntaxKind.BooleanLiteral;
+  value: boolean;
+}
+
+/**
+ * An identifier used in a context where it is
+ * referring to the name of a type.
+ */
+export interface TypeReference extends SyntaxNode {
+  kind: SyntaxKind.TypeReference;
+  name: IdentifierLiteral;
+}
+
+export type TypeNode
+  = SyntaxToken<SyntaxKind.NumKeyword>
+  | SyntaxToken<SyntaxKind.NumKeyword>
+  | TypeReference
+  ;
 
 /**
  * A binary expression such as `10 + 20`
@@ -406,6 +444,7 @@ export interface ParenExpression extends SyntaxNode {
 export type ExpressionNode
   = NumberLiteral
   | IdentifierLiteral
+  | BooleanLiteral
   | BinaryExpression
   | FnCallExpression
   | ParenExpression
@@ -532,6 +571,7 @@ export interface SourceFile extends SyntaxNode {
 export type Node
   = StatementNode
   | ExpressionNode
+  | TypeNode
   | SourceFile
   ;
 
