@@ -27,6 +27,11 @@ export enum DiagnosticCode {
 
   UnknownSymbol,
   DuplicateSymbol,
+
+  IncompatibleOperandTypes,
+  UnexpectedType,
+  TypeNotCallable,
+  WrongNumberOfArguments,
 }
 
 /**
@@ -139,6 +144,7 @@ export type SymbolType
  */
 export enum TypeKind {
   Number,
+  Boolean,
   Function,
 }
 
@@ -157,6 +163,10 @@ export interface NumberType extends TypeInfo {
   kind: TypeKind.Number;
 }
 
+export interface BooleanType extends TypeInfo {
+  kind: TypeKind.Boolean;
+}
+
 /**
  * The function type.
  */
@@ -164,6 +174,7 @@ export interface FunctionType extends TypeInfo {
   kind: TypeKind.Function;
 
   parameters: ParameterSymbol[];
+  returnType: Type;
 }
 
 /**
@@ -171,6 +182,7 @@ export interface FunctionType extends TypeInfo {
  */
 export type Type
   = NumberType
+  | BooleanType
   | FunctionType
   ;
 
