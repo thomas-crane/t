@@ -15,6 +15,12 @@ const keywords: Array<[string, SyntaxToken<TokenSyntaxKind>]> = [
 
   ['loop', createToken(SyntaxKind.LoopKeyword)],
   ['stop', createToken(SyntaxKind.StopKeyword)],
+
+  ['true', createToken(SyntaxKind.TrueKeyword)],
+  ['false', createToken(SyntaxKind.FalseKeyword)],
+
+  ['num', createToken(SyntaxKind.NumKeyword)],
+  ['bool', createToken(SyntaxKind.BoolKeyword)],
 ];
 
 function tokens(input: string) {
