@@ -49,6 +49,9 @@ const charMap: SyntaxKindMap = {
 };
 
 const keywordMap: SyntaxKindMap = {
+  num: SyntaxKind.NumKeyword,
+  bool: SyntaxKind.BoolKeyword,
+
   let: SyntaxKind.LetKeyword,
   mut: SyntaxKind.MutKeyword,
 
@@ -60,6 +63,9 @@ const keywordMap: SyntaxKindMap = {
 
   loop: SyntaxKind.LoopKeyword,
   stop: SyntaxKind.StopKeyword,
+
+  true: SyntaxKind.TrueKeyword,
+  false: SyntaxKind.FalseKeyword,
 };
 
 const whitespace = /\s/;
