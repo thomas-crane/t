@@ -13,11 +13,11 @@ import {
   FnCallExpression,
   FnDeclarationStatement,
   FunctionType,
-  IdentifierLiteral,
+  IdentifierNode,
   IfStatement,
   LoopStatement,
   Node,
-  NumberLiteral,
+  NumberNode,
   NumberType,
   ParameterSymbol,
   ParenExpression,
@@ -91,10 +91,10 @@ export function createTypeChecker(): TypeChecker {
         return checkFnCallExpression(node);
       case SyntaxKind.ParenExpression:
         return checkParenExpression(node);
-      case SyntaxKind.IdentifierLiteral:
-        return checkIdentifierLiteral(node);
-      case SyntaxKind.NumberLiteral:
-        return checkNumberLiteral(node);
+      case SyntaxKind.Identifier:
+        return checkIdentifierNode(node);
+      case SyntaxKind.Number:
+        return checkNumberNode(node);
       case SyntaxKind.BlockStatement:
         return checkBlockStatement(node);
       case SyntaxKind.IfStatement:
@@ -223,14 +223,14 @@ export function createTypeChecker(): TypeChecker {
     node.type = node.expr.type;
   }
 
-  function checkIdentifierLiteral(node: IdentifierLiteral) {
+  function checkIdentifierNode(node: IdentifierNode) {
     if (node.symbol === undefined) {
       return;
     }
     node.type = node.symbol.firstMention.type;
   }
 
-  function checkNumberLiteral(node: NumberLiteral) {
+  function checkNumberNode(node: NumberNode) {
     node.type = numType;
   }
 

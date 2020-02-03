@@ -6,8 +6,10 @@ import {
   createExpressionStatement,
   createFnCallExpression,
   createFnDeclarationStatement,
+  createIdentifierNode,
   createIfStatement,
   createLoopStatement,
+  createNumberNode,
   createParenExpression,
   createReturnStatement,
   createSourceFile,
@@ -27,9 +29,10 @@ import {
   ExpressionStatement,
   FnCallExpression,
   FnDeclarationStatement,
-  IdentifierLiteral,
+  IdentifierNode,
   IfStatement,
   LoopStatement,
+  NumberNode,
   ParenExpression,
   Parser,
   ReturnStatement,
@@ -121,7 +124,7 @@ export function createParser(source: SourceFile): Parser {
         return parseStopStatement();
       case SyntaxKind.ReturnKeyword:
         return parseReturnStatement();
-      case SyntaxKind.IdentifierLiteral:
+      case SyntaxKind.IdentifierToken:
         if (tokens[idx + 1] && tokens[idx + 1].kind === SyntaxKind.EqualsToken) {
           return parseAssignmentStatement();
         } else {
@@ -146,7 +149,7 @@ export function createParser(source: SourceFile): Parser {
 
   function parseDeclarationStatement(): DeclarationStatement | undefined {
     const declKeyword = consume(tokens[idx].kind);
-    const identifier = consume(SyntaxKind.IdentifierLiteral) as IdentifierLiteral;
+    const identifier = parseIdentifierNode();
     consume(SyntaxKind.EqualsToken);
     const value = parseExpression();
     if (!value) {
@@ -161,12 +164,12 @@ export function createParser(source: SourceFile): Parser {
 
   function parseFnDeclarationStatement(): FnDeclarationStatement | undefined {
     const start = consume(SyntaxKind.FnKeyword);
-    const fnName = consume(SyntaxKind.IdentifierLiteral) as IdentifierLiteral;
+    const fnName = parseIdentifierNode();
     consume(SyntaxKind.ColonToken);
     // params
-    const params: IdentifierLiteral[] = [];
+    const params: IdentifierNode[] = [];
     while (!atEnd() && tokens[idx].kind !== SyntaxKind.LeftCurlyToken) {
-      const param = consume(SyntaxKind.IdentifierLiteral) as IdentifierLiteral;
+      const param = parseIdentifierNode();
       params.push(param);
       if (tokens[idx].kind === SyntaxKind.CommaToken) {
         idx++;
@@ -218,7 +221,7 @@ export function createParser(source: SourceFile): Parser {
   }
 
   function parseAssignmentStatement(): AssignmentStatement | undefined {
-    const identifier = consume(SyntaxKind.IdentifierLiteral) as IdentifierLiteral;
+    const identifier = parseIdentifierNode();
     consume(SyntaxKind.EqualsToken);
     const value = parseExpression();
     if (value === undefined) {
@@ -274,17 +277,15 @@ export function createParser(source: SourceFile): Parser {
       switch (tokens[idx].kind) {
         case SyntaxKind.LeftParenToken:
           return parseParenExpression();
-        case SyntaxKind.IdentifierLiteral: {
+        case SyntaxKind.IdentifierToken: {
           if (tokens[idx + 1] && tokens[idx + 1].kind === SyntaxKind.LeftParenToken) {
             return parseFnCallExpression();
           } else {
-            const expr = consume(SyntaxKind.IdentifierLiteral) as ExpressionNode;
-            return expr;
+            return parseIdentifierNode();
           }
         }
-        case SyntaxKind.NumberLiteral: {
-          const expr = consume(SyntaxKind.NumberLiteral) as ExpressionNode;
-          return expr;
+        case SyntaxKind.NumberToken: {
+          return parseNumberNode();
         }
         default:
           parsedSource.diagnostics.push({
@@ -302,7 +303,7 @@ export function createParser(source: SourceFile): Parser {
   }
 
   function parseFnCallExpression(): FnCallExpression | undefined {
-    const fnName = consume(SyntaxKind.IdentifierLiteral) as IdentifierLiteral;
+    const fnName = parseIdentifierNode();
     consume(SyntaxKind.LeftParenToken);
     const args: ExpressionNode[] = [];
     while (!atEnd() && tokens[idx].kind !== SyntaxKind.RightParenToken) {
@@ -329,6 +330,18 @@ export function createParser(source: SourceFile): Parser {
     }
     const end = consume(SyntaxKind.RightParenToken);
     return createParenExpression(expr, { pos: start.pos, end: end.end });
+  }
+
+  function parseIdentifierNode(): IdentifierNode {
+    const token = consume(SyntaxKind.IdentifierToken);
+    const value = source.text.slice(token.pos, token.end);
+    return createIdentifierNode(value, { pos: token.pos, end: token.end });
+  }
+
+  function parseNumberNode(): NumberNode {
+    const token = consume(SyntaxKind.NumberToken);
+    const value = source.text.slice(token.pos, token.end);
+    return createNumberNode(parseInt(value, 10), { pos: token.pos, end: token.end });
   }
 
   return {

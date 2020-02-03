@@ -1,5 +1,5 @@
 import test, { ExecutionContext } from 'ava';
-import { createIdentifier, createNumberLiteral, createToken } from './factory';
+import { createToken } from './factory';
 import { createLexer } from './lexer';
 import { DiagnosticCode, DiagnosticKind, SyntaxKind, SyntaxToken, TokenSyntaxKind } from './types';
 
@@ -44,16 +44,16 @@ function allTokens(t: ExecutionContext, input: string, expected: SyntaxKind[]) {
   t.deepEqual(result, expected);
 }
 
-test('Lexer recognises numbers', nextToken, '10', createNumberLiteral(10, { pos: 0, end: 2 }));
-test('Lexer recognises identifiers', nextToken, 'hello', createIdentifier('hello', { pos: 0, end: 5 }));
+test('Lexer recognises numbers', nextToken, '10', createToken(SyntaxKind.NumberToken, { pos: 0, end: 2 }));
+test('Lexer recognises identifiers', nextToken, 'hello', createToken(SyntaxKind.IdentifierToken, { pos: 0, end: 5 }));
 
 for (const [keyword, kind] of keywords) {
   test(`Lexer recognises the keyword "${keyword}"`, nextToken, keyword, { ...kind, pos: 0, end: keyword.length });
 }
 
 test('Lexer recognises several tokens in a row', allTokens, 'hello 10 + - (  } )', [
-  SyntaxKind.IdentifierLiteral,
-  SyntaxKind.NumberLiteral,
+  SyntaxKind.IdentifierToken,
+  SyntaxKind.NumberToken,
   SyntaxKind.PlusToken,
   SyntaxKind.MinusToken,
   SyntaxKind.LeftParenToken,

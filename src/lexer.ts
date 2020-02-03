@@ -1,6 +1,4 @@
 import {
-  createIdentifier,
-  createNumberLiteral,
   createToken,
 } from './factory';
 import {
@@ -94,13 +92,11 @@ export function createLexer(src: string): Lexer {
       // numbers
       if (digit.test(src[pos])) {
         const start = pos;
-        let buf = '';
         do {
-          buf += src[pos];
           pos++;
         } while (!atEnd() && digit.test(src[pos]));
         // TODO(thomas.crane): support floating point numbers.
-        return createNumberLiteral(parseInt(buf, 10), { pos: start, end: pos });
+        return createToken(SyntaxKind.NumberToken, { pos: start, end: pos });
       }
 
       // identifiers
@@ -115,7 +111,7 @@ export function createLexer(src: string): Lexer {
         if (keywordMap[buf]) {
           return createToken(keywordMap[buf], { pos: start, end: pos });
         }
-        return createIdentifier(buf, { pos: start, end: pos });
+        return createToken(SyntaxKind.IdentifierToken, { pos: start, end: pos });
       }
 
       // misc stuff

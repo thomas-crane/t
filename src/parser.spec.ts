@@ -25,7 +25,7 @@ test(
   parse,
   'hello',
   `(SourceFile
-  (ExpressionStatement (IdentifierLiteral "hello"))
+  (ExpressionStatement (IdentifierNode "hello"))
 )`,
 );
 
@@ -34,7 +34,7 @@ test(
   parse,
   '123',
   `(SourceFile
-  (ExpressionStatement (NumberLiteral "123"))
+  (ExpressionStatement (NumberNode "123"))
 )`,
 );
 
@@ -45,8 +45,8 @@ test(
   `(SourceFile
   (DeclarationStatement
     LetKeyword
-    (IdentifierLiteral "a")
-    (NumberLiteral "10")
+    (IdentifierNode "a")
+    (NumberNode "10")
   )
 )`,
 );
@@ -58,8 +58,8 @@ test(
   `(SourceFile
   (DeclarationStatement
     MutKeyword
-    (IdentifierLiteral "hello")
-    (NumberLiteral "123")
+    (IdentifierNode "hello")
+    (NumberNode "123")
   )
 )`,
 );
@@ -72,14 +72,14 @@ test(
 }`,
   `(SourceFile
   (FnDeclarationStatement
-    (IdentifierLiteral "add")
-    (IdentifierLiteral "a")
-    (IdentifierLiteral "b")
+    (IdentifierNode "add")
+    (IdentifierNode "a")
+    (IdentifierNode "b")
     (BlockStatement
       (ReturnStatement (BinaryExpression
-        (IdentifierLiteral "a")
+        (IdentifierNode "a")
         +
-        (IdentifierLiteral "b")
+        (IdentifierNode "b")
       ))
     )
   )
@@ -93,12 +93,12 @@ test(
   `(SourceFile
   (IfStatement
     (BinaryExpression
-      (IdentifierLiteral "a")
+      (IdentifierNode "a")
       <
-      (IdentifierLiteral "b")
+      (IdentifierNode "b")
     )
     (BlockStatement
-      (ReturnStatement (IdentifierLiteral "a"))
+      (ReturnStatement (IdentifierNode "a"))
     )
   )
 )`,
@@ -123,8 +123,8 @@ test(
   'a = 10',
   `(SourceFile
   (AssignmentStatement
-    (IdentifierLiteral "a")
-    (NumberLiteral "10")
+    (IdentifierNode "a")
+    (NumberNode "10")
   )
 )`,
 );
@@ -134,7 +134,7 @@ test(
   parse,
   'return 10',
   `(SourceFile
-  (ReturnStatement (NumberLiteral "10"))
+  (ReturnStatement (NumberNode "10"))
 )`,
 );
 
@@ -143,7 +143,7 @@ test(
   parse,
   '10',
   `(SourceFile
-  (ExpressionStatement (NumberLiteral "10"))
+  (ExpressionStatement (NumberNode "10"))
 )`,
 );
 
@@ -153,9 +153,9 @@ test(
   'add(1, 2)',
   `(SourceFile
   (ExpressionStatement (FnCallExpression
-    (IdentifierLiteral "add")
-    (NumberLiteral "1")
-    (NumberLiteral "2")
+    (IdentifierNode "add")
+    (NumberNode "1")
+    (NumberNode "2")
   ))
 )`,
 );
@@ -166,9 +166,9 @@ test(
   '(1 + 2)',
   `(SourceFile
   (ExpressionStatement (ParenExpression (BinaryExpression
-    (NumberLiteral "1")
+    (NumberNode "1")
     +
-    (NumberLiteral "2")
+    (NumberNode "2")
   )))
 )`,
 );
@@ -181,16 +181,16 @@ test(
   `(SourceFile
   (ExpressionStatement (BinaryExpression
     (BinaryExpression
-      (NumberLiteral "1")
+      (NumberNode "1")
       +
       (BinaryExpression
-        (NumberLiteral "2")
+        (NumberNode "2")
         *
-        (NumberLiteral "3")
+        (NumberNode "3")
       )
     )
     -
-    (NumberLiteral "4")
+    (NumberNode "4")
   ))
 )`,
 );

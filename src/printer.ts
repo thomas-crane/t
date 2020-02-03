@@ -3,16 +3,16 @@ import {
   BinaryExpression,
   BinaryOperator,
   BlockStatement,
-  BooleanLiteral,
+  BooleanNode,
   DeclarationStatement,
   ExpressionStatement,
   FnCallExpression,
   FnDeclarationStatement,
-  IdentifierLiteral,
+  IdentifierNode,
   IfStatement,
   LoopStatement,
   Node,
-  NumberLiteral,
+  NumberNode,
   ParenExpression,
   ReturnStatement,
   SourceFile,
@@ -28,12 +28,12 @@ const INDENT_SIZE = 2;
  */
 export function printNode(node: Node): string {
   switch (node.kind) {
-    case SyntaxKind.IdentifierLiteral:
-      return printIdentifierLiteral(node);
-    case SyntaxKind.NumberLiteral:
-      return printNumberLiteral(node);
-    case SyntaxKind.BooleanLiteral:
-      return printBooleanLiteral(node);
+    case SyntaxKind.Identifier:
+      return printIdentifierNode(node);
+    case SyntaxKind.Number:
+      return printNumberNode(node);
+    case SyntaxKind.Boolean:
+      return printBooleanNode(node);
 
     case SyntaxKind.TypeReference:
       return printTypeReference(node);
@@ -72,16 +72,16 @@ export function printNode(node: Node): string {
   }
 }
 
-function printIdentifierLiteral(node: IdentifierLiteral): string {
-  return `(IdentifierLiteral "${node.value}")`;
+function printIdentifierNode(node: IdentifierNode): string {
+  return `(IdentifierNode "${node.value}")`;
 }
 
-function printNumberLiteral(node: NumberLiteral): string {
-  return `(NumberLiteral "${node.value}")`;
+function printNumberNode(node: NumberNode): string {
+  return `(NumberNode "${node.value}")`;
 }
 
-function printBooleanLiteral(node: BooleanLiteral): string {
-  return `(BooleanLiteral "${node.value}")`;
+function printBooleanNode(node: BooleanNode): string {
+  return `(BooleanNode "${node.value}")`;
 }
 
 function printTypeReference(node: TypeReference): string {

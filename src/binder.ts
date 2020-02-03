@@ -12,7 +12,7 @@ import {
   FnCallExpression,
   FnDeclarationStatement,
   FunctionSymbol,
-  IdentifierLiteral,
+  IdentifierNode,
   IfStatement,
   LoopStatement,
   Node,
@@ -75,8 +75,8 @@ export function createBinder(): Binder {
         return bindFnCallExpression(node);
       case SyntaxKind.ParenExpression:
         return bindParenExpression(node);
-      case SyntaxKind.IdentifierLiteral:
-        return bindIdentifierLiteral(node);
+      case SyntaxKind.Identifier:
+        return bindIdentifierNode(node);
       case SyntaxKind.BlockStatement:
         return bindBlockStatement(node);
       case SyntaxKind.IfStatement:
@@ -128,7 +128,7 @@ export function createBinder(): Binder {
     bind(node.expr);
     node.symbol = node.expr.symbol;
   }
-  function bindIdentifierLiteral(node: IdentifierLiteral) {
+  function bindIdentifierNode(node: IdentifierNode) {
     const varSymbol = findSymbol(node.value);
     if (varSymbol !== undefined) {
       varSymbol.references.push(node);

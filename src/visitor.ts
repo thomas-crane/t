@@ -14,7 +14,7 @@ import {
 import {
   BlockStatement,
   ExpressionNode,
-  IdentifierLiteral,
+  Identifier,
   Node,
   StatementNode,
   SyntaxKind,
@@ -74,7 +74,7 @@ export function traverse(node: Node, visitor: Visitor): Node {
       }
     case SyntaxKind.AssignmentStatement: {
 
-        const identifier = traverse(node.identifier, visitor) as IdentifierLiteral;
+        const identifier = traverse(node.identifier, visitor) as Identifier;
         const value = traverse(node.value, visitor) as ExpressionNode;
         if (identifier !== node.identifier || value !== node.value) {
           node = createAssignmentStatement(identifier, value);
@@ -83,7 +83,7 @@ export function traverse(node: Node, visitor: Visitor): Node {
         return visitor(node);
       }
     case SyntaxKind.DeclarationStatement: {
-        const identifier = traverse(node.identifier, visitor) as IdentifierLiteral;
+        const identifier = traverse(node.identifier, visitor) as Identifier;
         const value = traverse(node.value, visitor) as ExpressionNode;
         if (identifier !== node.identifier || value !== node.value) {
           node = createAssignmentStatement(identifier, value);
@@ -92,11 +92,11 @@ export function traverse(node: Node, visitor: Visitor): Node {
         return visitor(node);
       }
     case SyntaxKind.FnDeclarationStatement: {
-        const fnName = traverse(node.fnName, visitor) as IdentifierLiteral;
+        const fnName = traverse(node.fnName, visitor) as Identifier;
         let hasChanged = false;
-        const params: IdentifierLiteral[] = [];
+        const params: Identifier[] = [];
         for (const param of node.params) {
-          const result = traverse(param, visitor) as IdentifierLiteral;
+          const result = traverse(param, visitor) as Identifier;
           if (result !== param) {
             hasChanged = true;
           }
@@ -146,7 +146,7 @@ export function traverse(node: Node, visitor: Visitor): Node {
         return visitor(node);
       }
     case SyntaxKind.FnCallExpression: {
-        const fnName = traverse(node.fnName, visitor) as IdentifierLiteral;
+        const fnName = traverse(node.fnName, visitor) as Identifier;
         let hasChanged = false;
         const args: ExpressionNode[] = [];
         for (const arg of node.args) {
@@ -170,8 +170,8 @@ export function traverse(node: Node, visitor: Visitor): Node {
       }
       return visitor(node);
     }
-    case SyntaxKind.NumberLiteral:
-    case SyntaxKind.IdentifierLiteral: {
+    case SyntaxKind.Number:
+    case SyntaxKind.Identifier: {
         return visitor(node);
       }
   }

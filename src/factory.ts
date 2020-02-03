@@ -3,16 +3,17 @@ import {
   BinaryExpression,
   BinaryOperator,
   BlockStatement,
+  BooleanNode,
   DeclarationStatement,
   DiagnosticType,
   ExpressionNode,
   ExpressionStatement,
   FnCallExpression,
   FnDeclarationStatement,
-  IdentifierLiteral,
+  IdentifierNode,
   IfStatement,
   LoopStatement,
-  NumberLiteral,
+  NumberNode,
   ParenExpression,
   ReturnStatement,
   SourceFile,
@@ -36,23 +37,34 @@ export function createToken<T extends TokenSyntaxKind>(
   }, location);
 }
 
-export function createNumberLiteral(
+export function createNumberNode(
   value: number,
   location?: TextRange,
-): NumberLiteral {
+): NumberNode {
   return setTextRange({
-    kind: SyntaxKind.NumberLiteral,
+    kind: SyntaxKind.Number,
     value,
     flags: SyntaxNodeFlags.None,
   }, location);
 }
 
-export function createIdentifier(
+export function createIdentifierNode(
   value: string,
   location?: TextRange,
-): IdentifierLiteral {
+): IdentifierNode {
   return setTextRange({
-    kind: SyntaxKind.IdentifierLiteral,
+    kind: SyntaxKind.Identifier,
+    value,
+    flags: SyntaxNodeFlags.None,
+  }, location);
+}
+
+export function createBooleanNode(
+  value: boolean,
+  location?: TextRange,
+): BooleanNode {
+  return setTextRange({
+    kind: SyntaxKind.Boolean,
     value,
     flags: SyntaxNodeFlags.None,
   }, location);
@@ -74,7 +86,7 @@ export function createBinaryExpression(
 }
 
 export function createFnCallExpression(
-  fnName: IdentifierLiteral,
+  fnName: IdentifierNode,
   args: ExpressionNode[],
   location?: TextRange,
 ): FnCallExpression {
@@ -124,7 +136,7 @@ export function createIfStatement(
 }
 
 export function createAssignmentStatement(
-  identifier: IdentifierLiteral,
+  identifier: IdentifierNode,
   value: ExpressionNode,
   location?: TextRange,
 ): AssignmentStatement {
@@ -138,7 +150,7 @@ export function createAssignmentStatement(
 
 export function createDeclarationStatement(
   isConst: boolean,
-  identifier: IdentifierLiteral,
+  identifier: IdentifierNode,
   value: ExpressionNode,
   location?: TextRange,
 ): DeclarationStatement {
@@ -152,8 +164,8 @@ export function createDeclarationStatement(
 }
 
 export function createFnDeclarationStatement(
-  fnName: IdentifierLiteral,
-  params: IdentifierLiteral[],
+  fnName: IdentifierNode,
+  params: IdentifierNode[],
   body: BlockStatement,
   location?: TextRange,
 ): FnDeclarationStatement {

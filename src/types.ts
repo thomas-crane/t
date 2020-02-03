@@ -263,6 +263,8 @@ export enum SyntaxKind {
   EqualsToken,
   CommaToken,
   ColonToken,
+  NumberToken,
+  IdentifierToken,
 
   // brackets
   LeftCurlyToken,
@@ -276,9 +278,9 @@ export enum SyntaxKind {
   ParenExpression,
 
   // literals
-  IdentifierLiteral,
-  NumberLiteral,
-  BooleanLiteral,
+  Identifier,
+  Number,
+  Boolean,
 
   // statements
   BlockStatement,
@@ -350,31 +352,31 @@ export type TokenSyntaxKind
   | SyntaxKind.StopKeyword
   | SyntaxKind.TrueKeyword
   | SyntaxKind.FalseKeyword
-  | SyntaxKind.NumberLiteral
-  | SyntaxKind.IdentifierLiteral
+  | SyntaxKind.NumberToken
+  | SyntaxKind.IdentifierToken
   ;
 
 /**
  * A number literal expression.
  */
-export interface NumberLiteral extends SyntaxNode {
-  kind: SyntaxKind.NumberLiteral;
+export interface NumberNode extends SyntaxNode {
+  kind: SyntaxKind.Number;
   value: number;
 }
 
 /**
  * An identifier literal expression.
  */
-export interface IdentifierLiteral extends SyntaxNode {
-  kind: SyntaxKind.IdentifierLiteral;
+export interface IdentifierNode extends SyntaxNode {
+  kind: SyntaxKind.Identifier;
   value: string;
 }
 
 /**
  * A boolean literal expression.
  */
-export interface BooleanLiteral extends SyntaxNode {
-  kind: SyntaxKind.BooleanLiteral;
+export interface BooleanNode extends SyntaxNode {
+  kind: SyntaxKind.Boolean;
   value: boolean;
 }
 
@@ -384,7 +386,7 @@ export interface BooleanLiteral extends SyntaxNode {
  */
 export interface TypeReference extends SyntaxNode {
   kind: SyntaxKind.TypeReference;
-  name: IdentifierLiteral;
+  name: IdentifierNode;
 }
 
 export type TypeNode
@@ -425,7 +427,7 @@ export type BinaryOperator
 export interface FnCallExpression extends SyntaxNode {
   kind: SyntaxKind.FnCallExpression;
 
-  fnName: IdentifierLiteral;
+  fnName: IdentifierNode;
   args: ExpressionNode[];
 }
 
@@ -442,9 +444,9 @@ export interface ParenExpression extends SyntaxNode {
  * The set of all syntax items which are expressions.
  */
 export type ExpressionNode
-  = NumberLiteral
-  | IdentifierLiteral
-  | BooleanLiteral
+  = NumberNode
+  | IdentifierNode
+  | BooleanNode
   | BinaryExpression
   | FnCallExpression
   | ParenExpression
@@ -476,7 +478,7 @@ export interface IfStatement extends SyntaxNode {
 export interface AssignmentStatement extends SyntaxNode {
   kind: SyntaxKind.AssignmentStatement;
 
-  identifier: IdentifierLiteral;
+  identifier: IdentifierNode;
   value: ExpressionNode;
 }
 
@@ -488,7 +490,7 @@ export interface DeclarationStatement extends SyntaxNode {
   kind: SyntaxKind.DeclarationStatement;
 
   isConst: boolean;
-  identifier: IdentifierLiteral;
+  identifier: IdentifierNode;
   value: ExpressionNode;
 }
 
@@ -498,8 +500,8 @@ export interface DeclarationStatement extends SyntaxNode {
 export interface FnDeclarationStatement extends SyntaxNode {
   kind: SyntaxKind.FnDeclarationStatement;
 
-  fnName: IdentifierLiteral;
-  params: IdentifierLiteral[];
+  fnName: IdentifierNode;
+  params: IdentifierNode[];
   body: BlockStatement;
 }
 
