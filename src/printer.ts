@@ -3,6 +3,7 @@ import {
   BinaryExpression,
   BinaryOperator,
   BlockStatement,
+  BooleanLiteral,
   DeclarationStatement,
   ExpressionStatement,
   FnCallExpression,
@@ -16,6 +17,8 @@ import {
   ReturnStatement,
   SourceFile,
   SyntaxKind,
+  SyntaxToken,
+  TypeReference,
 } from './types';
 
 const INDENT_SIZE = 2;
@@ -29,6 +32,14 @@ export function printNode(node: Node): string {
       return printIdentifierLiteral(node);
     case SyntaxKind.NumberLiteral:
       return printNumberLiteral(node);
+    case SyntaxKind.BooleanLiteral:
+      return printBooleanLiteral(node);
+
+    case SyntaxKind.TypeReference:
+      return printTypeReference(node);
+    case SyntaxKind.NumKeyword:
+    case SyntaxKind.BoolKeyword:
+      return printTypeKeyword(node);
 
     case SyntaxKind.BinaryExpression:
       return printBinaryExpression(node);
@@ -67,6 +78,23 @@ function printIdentifierLiteral(node: IdentifierLiteral): string {
 
 function printNumberLiteral(node: NumberLiteral): string {
   return `(NumberLiteral "${node.value}")`;
+}
+
+function printBooleanLiteral(node: BooleanLiteral): string {
+  return `(BooleanLiteral "${node.value}")`;
+}
+
+function printTypeReference(node: TypeReference): string {
+  return `(TypeReference ${printNode(node.name)})`;
+}
+
+function printTypeKeyword(node: SyntaxToken<SyntaxKind.NumKeyword | SyntaxKind.BoolKeyword>) {
+  switch (node.kind) {
+    case SyntaxKind.NumKeyword:
+      return '(NumKeyword)';
+    case SyntaxKind.BoolKeyword:
+      return '(BoolKeyword)';
+  }
 }
 
 function printBinaryExpression(node: BinaryExpression): string {
