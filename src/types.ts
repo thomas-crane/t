@@ -389,7 +389,7 @@ export interface TypeReference extends SyntaxNode {
 
 export type TypeNode
   = SyntaxToken<SyntaxKind.NumKeyword>
-  | SyntaxToken<SyntaxKind.NumKeyword>
+  | SyntaxToken<SyntaxKind.BoolKeyword>
   | TypeReference
   ;
 
