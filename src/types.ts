@@ -287,6 +287,7 @@ export enum SyntaxKind {
   IfStatement,
   AssignmentStatement,
   DeclarationStatement,
+  FnParameter,
   FnDeclarationStatement,
   ReturnStatement,
   LoopStatement,
@@ -495,13 +496,22 @@ export interface DeclarationStatement extends SyntaxNode {
 }
 
 /**
+ * A function parameter.
+ */
+export interface FnParameter extends SyntaxNode {
+  kind: SyntaxKind.FnParameter;
+
+  name: IdentifierNode;
+}
+
+/**
  * A function declaration statement.
  */
 export interface FnDeclarationStatement extends SyntaxNode {
   kind: SyntaxKind.FnDeclarationStatement;
 
   fnName: IdentifierNode;
-  params: IdentifierNode[];
+  params: FnParameter[];
   body: BlockStatement;
 }
 
