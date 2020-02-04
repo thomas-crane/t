@@ -25,8 +25,8 @@ import {
   SyntaxToken,
   TextRange,
   TokenSyntaxKind,
-  TypeReference,
   TypeNode,
+  TypeReference,
 } from './types';
 import { setTextRange } from './utils';
 
