@@ -83,8 +83,8 @@ test(
   `(SourceFile
   (FnDeclarationStatement
     (IdentifierNode "add")
-    (IdentifierNode "a")
-    (IdentifierNode "b")
+    (FnParameter (IdentifierNode "a"))
+    (FnParameter (IdentifierNode "b"))
     (BlockStatement
       (ReturnStatement (BinaryExpression
         (IdentifierNode "a")
