@@ -156,8 +156,12 @@ test(
   factory.createFnDeclarationStatement(
     factory.createIdentifierNode('add'),
     [
-      factory.createIdentifierNode('x'),
-      factory.createIdentifierNode('y'),
+      factory.createFnParameter(
+        factory.createIdentifierNode('x'),
+      ),
+      factory.createFnParameter(
+        factory.createIdentifierNode('y'),
+      ),
     ],
     factory.createBlockStatement([
       factory.createReturnStatement(
@@ -171,8 +175,8 @@ test(
   ),
   `(FnDeclarationStatement
   (IdentifierNode "add")
-  (IdentifierNode "x")
-  (IdentifierNode "y")
+  (FnParameter (IdentifierNode "x"))
+  (FnParameter (IdentifierNode "y"))
   (BlockStatement
     (ReturnStatement (BinaryExpression
       (IdentifierNode "x")
