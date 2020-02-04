@@ -77,14 +77,18 @@ test(
 test(
   'Parser recognises fn declarations',
   parse,
-  `fn add: a, b {
+  `fn add(a, b) {
   return a + b
 }`,
   `(SourceFile
   (FnDeclarationStatement
     (IdentifierNode "add")
-    (FnParameter (IdentifierNode "a"))
-    (FnParameter (IdentifierNode "b"))
+    (FnParameter
+      (IdentifierNode "a")
+    )
+    (FnParameter
+      (IdentifierNode "b")
+    )
     (BlockStatement
       (ReturnStatement (BinaryExpression
         (IdentifierNode "a")
