@@ -17,6 +17,7 @@ import {
   createSourceFile,
   createStopStatement,
   createToken,
+  createTypeReference,
 } from './factory';
 import { createLexer } from './lexer';
 import {
@@ -47,6 +48,8 @@ import {
   SyntaxNodeFlags,
   SyntaxToken,
   TokenSyntaxKind,
+  TypeNode,
+  TypeReference,
 } from './types';
 
 export function createParser(source: SourceFile): Parser {
@@ -111,6 +114,24 @@ export function createParser(source: SourceFile): Parser {
     }
   }
 
+  function parseTypeAnnotation(): TypeNode {
+    consume(SyntaxKind.ColonToken);
+    switch (tokens[idx].kind) {
+      case SyntaxKind.NumKeyword:
+        return consume(SyntaxKind.NumKeyword);
+      case SyntaxKind.BoolKeyword:
+        return consume(SyntaxKind.BoolKeyword);
+      case SyntaxKind.IdentifierToken:
+        return parseTypeReference();
+    }
+    throw new Error('parseTypeReference should not have been called');
+  }
+
+  function parseTypeReference(): TypeReference {
+    const typeName = parseIdentifierNode();
+    return createTypeReference(typeName, { pos: typeName.pos, end: typeName.end });
+  }
+
   function parseStatement(): StatementNode | undefined {
     switch (tokens[idx].kind) {
       case SyntaxKind.LeftCurlyToken:
@@ -154,13 +175,17 @@ export function createParser(source: SourceFile): Parser {
   function parseDeclarationStatement(): DeclarationStatement | undefined {
     const declKeyword = consume(tokens[idx].kind);
     const identifier = parseIdentifierNode();
+    let typeNode: TypeNode | undefined;
+    if (tokens[idx].kind === SyntaxKind.ColonToken) {
+      typeNode = parseTypeAnnotation();
+    }
     consume(SyntaxKind.EqualsToken);
     const value = parseExpression();
     if (!value) {
       return undefined;
     }
     const isConst = declKeyword.kind === SyntaxKind.LetKeyword;
-    return createDeclarationStatement(isConst, identifier, value, {
+    return createDeclarationStatement(isConst, identifier, typeNode, value, {
       pos: declKeyword.pos,
       end: value.end,
     });
@@ -168,24 +193,33 @@ export function createParser(source: SourceFile): Parser {
 
   function parseFnParameter(): FnParameter {
     const name = parseIdentifierNode();
-    return createFnParameter(name, { pos: name.pos, end: name.end });
+    let typeNode: TypeNode | undefined;
+    if (tokens[idx].kind === SyntaxKind.ColonToken) {
+      typeNode = parseTypeAnnotation();
+    }
+    return createFnParameter(name, typeNode, { pos: name.pos, end: name.end });
   }
 
   function parseFnDeclarationStatement(): FnDeclarationStatement | undefined {
     const start = consume(SyntaxKind.FnKeyword);
     const fnName = parseIdentifierNode();
-    consume(SyntaxKind.ColonToken);
+    let returnTypeNode: TypeNode | undefined;
+    consume(SyntaxKind.LeftParenToken);
     // params
     const params: FnParameter[] = [];
-    while (!atEnd() && tokens[idx].kind !== SyntaxKind.LeftCurlyToken) {
+    while (!atEnd() && tokens[idx].kind !== SyntaxKind.RightParenToken) {
       const param = parseFnParameter();
       params.push(param);
       if (tokens[idx].kind === SyntaxKind.CommaToken) {
         idx++;
       }
     }
+    consume(SyntaxKind.RightParenToken);
+    if (tokens[idx].kind === SyntaxKind.ColonToken) {
+      returnTypeNode = parseTypeAnnotation();
+    }
     const body = parseBlockStatement();
-    return createFnDeclarationStatement(fnName, params, body, {
+    return createFnDeclarationStatement(fnName, params, returnTypeNode, body, {
       pos: start.pos,
       end: body.end,
     });
