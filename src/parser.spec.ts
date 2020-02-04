@@ -39,6 +39,16 @@ test(
 );
 
 test(
+  'Parser recognises boolean literals',
+  parse,
+  'true false',
+  `(SourceFile
+  (ExpressionStatement (BooleanNode "true"))
+  (ExpressionStatement (BooleanNode "false"))
+)`,
+);
+
+test(
   'Parser recognises const declarations',
   parse,
   'let a = 10',
