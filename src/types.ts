@@ -30,6 +30,7 @@ export enum DiagnosticCode {
 
   IncompatibleOperandTypes,
   UnexpectedType,
+  CannotInferType,
   TypeNotCallable,
   WrongNumberOfArguments,
 }
@@ -177,7 +178,7 @@ export interface FunctionType extends TypeInfo {
   kind: TypeKind.Function;
 
   parameters: ParameterSymbol[];
-  returnType: Type;
+  returnType: Type | undefined;
 }
 
 /**
