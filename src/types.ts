@@ -584,6 +584,7 @@ export type Node
   = StatementNode
   | ExpressionNode
   | TypeNode
+  | FnParameter
   | SourceFile
   ;
 
