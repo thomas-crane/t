@@ -492,6 +492,7 @@ export interface DeclarationStatement extends SyntaxNode {
 
   isConst: boolean;
   identifier: IdentifierNode;
+  typeNode?: TypeNode;
   value: ExpressionNode;
 }
 
@@ -502,6 +503,7 @@ export interface FnParameter extends SyntaxNode {
   kind: SyntaxKind.FnParameter;
 
   name: IdentifierNode;
+  typeNode?: TypeNode;
 }
 
 /**
@@ -512,6 +514,7 @@ export interface FnDeclarationStatement extends SyntaxNode {
 
   fnName: IdentifierNode;
   params: FnParameter[];
+  returnTypeNode?: TypeNode;
   body: BlockStatement;
 }
 
