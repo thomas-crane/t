@@ -2,6 +2,7 @@ import {
   createAssignmentStatement,
   createBinaryExpression,
   createBlockStatement,
+  createBooleanNode,
   createDeclarationStatement,
   createExpressionStatement,
   createFnCallExpression,
@@ -21,6 +22,7 @@ import {
   AssignmentStatement,
   BinaryOperator,
   BlockStatement,
+  BooleanNode,
   DeclarationStatement,
   DiagnosticCode,
   DiagnosticKind,
@@ -277,16 +279,17 @@ export function createParser(source: SourceFile): Parser {
       switch (tokens[idx].kind) {
         case SyntaxKind.LeftParenToken:
           return parseParenExpression();
-        case SyntaxKind.IdentifierToken: {
+        case SyntaxKind.IdentifierToken:
           if (tokens[idx + 1] && tokens[idx + 1].kind === SyntaxKind.LeftParenToken) {
             return parseFnCallExpression();
           } else {
             return parseIdentifierNode();
           }
-        }
-        case SyntaxKind.NumberToken: {
+        case SyntaxKind.NumberToken:
           return parseNumberNode();
-        }
+        case SyntaxKind.TrueKeyword:
+        case SyntaxKind.FalseKeyword:
+          return parseBooleanNode();
         default:
           parsedSource.diagnostics.push({
             kind: DiagnosticKind.Error,
@@ -342,6 +345,21 @@ export function createParser(source: SourceFile): Parser {
     const token = consume(SyntaxKind.NumberToken);
     const value = source.text.slice(token.pos, token.end);
     return createNumberNode(parseInt(value, 10), { pos: token.pos, end: token.end });
+  }
+
+  function parseBooleanNode(): BooleanNode {
+    let token: SyntaxToken<SyntaxKind.TrueKeyword | SyntaxKind.FalseKeyword>;
+    switch (tokens[idx].kind) {
+      case SyntaxKind.TrueKeyword:
+        token = consume(SyntaxKind.TrueKeyword);
+        break;
+      case SyntaxKind.FalseKeyword:
+        token = consume(SyntaxKind.FalseKeyword);
+        break;
+      default:
+        throw new Error('parseBooleanNode should not have been called.');
+    }
+    return createBooleanNode(token.kind === SyntaxKind.TrueKeyword, { pos: token.pos, end: token.end });
   }
 
   return {
