@@ -141,12 +141,30 @@ test(
   factory.createDeclarationStatement(
     false,
     factory.createIdentifierNode('test'),
+    undefined,
     factory.createNumberNode(20),
   ),
   `(DeclarationStatement
   MutKeyword
   (IdentifierNode "test")
   (NumberNode "20")
+)`,
+);
+
+test(
+  'Printer works for declaration statements with type annotations',
+  testPrint,
+  factory.createDeclarationStatement(
+    true,
+    factory.createIdentifierNode('some_condition'),
+    factory.createToken(SyntaxKind.BoolKeyword),
+    factory.createBooleanNode(true),
+  ),
+  `(DeclarationStatement
+  LetKeyword
+  (IdentifierNode "some_condition")
+  (BoolKeyword)
+  (BooleanNode "true")
 )`,
 );
 
@@ -158,11 +176,14 @@ test(
     [
       factory.createFnParameter(
         factory.createIdentifierNode('x'),
+        undefined,
       ),
       factory.createFnParameter(
         factory.createIdentifierNode('y'),
+        undefined,
       ),
     ],
+    undefined,
     factory.createBlockStatement([
       factory.createReturnStatement(
         factory.createBinaryExpression(
@@ -175,13 +196,64 @@ test(
   ),
   `(FnDeclarationStatement
   (IdentifierNode "add")
-  (FnParameter (IdentifierNode "x"))
-  (FnParameter (IdentifierNode "y"))
+  (FnParameter
+    (IdentifierNode "x")
+  )
+  (FnParameter
+    (IdentifierNode "y")
+  )
   (BlockStatement
     (ReturnStatement (BinaryExpression
       (IdentifierNode "x")
       +
       (IdentifierNode "y")
+    ))
+  )
+)`,
+);
+
+test(
+  'Printer works for fn declaration statements with type annotations',
+  testPrint,
+  factory.createFnDeclarationStatement(
+    factory.createIdentifierNode('add'),
+    [
+      factory.createFnParameter(
+        factory.createIdentifierNode('a'),
+        factory.createToken(SyntaxKind.NumKeyword),
+      ),
+      factory.createFnParameter(
+        factory.createIdentifierNode('b'),
+        factory.createToken(SyntaxKind.NumKeyword),
+      ),
+    ],
+    factory.createToken(SyntaxKind.NumKeyword),
+    factory.createBlockStatement([
+      factory.createReturnStatement(
+        factory.createBinaryExpression(
+          factory.createIdentifierNode('a'),
+          factory.createToken(SyntaxKind.PlusToken),
+          factory.createIdentifierNode('b'),
+        ),
+      ),
+    ]),
+  ),
+  `(FnDeclarationStatement
+  (IdentifierNode "add")
+  (FnParameter
+    (IdentifierNode "a")
+    (NumKeyword)
+  )
+  (FnParameter
+    (IdentifierNode "b")
+    (NumKeyword)
+  )
+  (NumKeyword)
+  (BlockStatement
+    (ReturnStatement (BinaryExpression
+      (IdentifierNode "a")
+      +
+      (IdentifierNode "b")
     ))
   )
 )`,
