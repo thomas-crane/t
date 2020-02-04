@@ -25,6 +25,8 @@ import {
   SyntaxToken,
   TextRange,
   TokenSyntaxKind,
+  TypeReference,
+  TypeNode,
 } from './types';
 import { setTextRange } from './utils';
 
@@ -67,6 +69,17 @@ export function createBooleanNode(
   return setTextRange({
     kind: SyntaxKind.Boolean,
     value,
+    flags: SyntaxNodeFlags.None,
+  }, location);
+}
+
+export function createTypeReference(
+  name: IdentifierNode,
+  location?: TextRange,
+): TypeReference {
+  return setTextRange({
+    kind: SyntaxKind.TypeReference,
+    name,
     flags: SyntaxNodeFlags.None,
   }, location);
 }
@@ -152,6 +165,7 @@ export function createAssignmentStatement(
 export function createDeclarationStatement(
   isConst: boolean,
   identifier: IdentifierNode,
+  typeNode: TypeNode | undefined,
   value: ExpressionNode,
   location?: TextRange,
 ): DeclarationStatement {
@@ -159,6 +173,7 @@ export function createDeclarationStatement(
     kind: SyntaxKind.DeclarationStatement,
     isConst,
     identifier,
+    typeNode,
     value,
     flags: SyntaxNodeFlags.None,
   }, location);
@@ -166,11 +181,13 @@ export function createDeclarationStatement(
 
 export function createFnParameter(
   name: IdentifierNode,
+  typeNode: TypeNode | undefined,
   location?: TextRange,
 ): FnParameter {
   return setTextRange({
     kind: SyntaxKind.FnParameter,
     name,
+    typeNode,
     flags: SyntaxNodeFlags.None,
   }, location);
 }
@@ -178,6 +195,7 @@ export function createFnParameter(
 export function createFnDeclarationStatement(
   fnName: IdentifierNode,
   params: FnParameter[],
+  returnTypeNode: TypeNode | undefined,
   body: BlockStatement,
   location?: TextRange,
 ): FnDeclarationStatement {
@@ -185,6 +203,7 @@ export function createFnDeclarationStatement(
     kind: SyntaxKind.FnDeclarationStatement,
     fnName,
     params,
+    returnTypeNode,
     body,
     flags: SyntaxNodeFlags.None,
   }, location);
