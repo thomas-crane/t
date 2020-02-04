@@ -24,11 +24,14 @@ import {
   ParenExpression,
   ReturnStatement,
   SyntaxKind,
+  SyntaxToken,
   TextRange,
   Type,
   TypeChecker,
   TypeKind,
   TypeMatch,
+  TypeNode,
+  TypeReference,
 } from './types';
 import { typeMatch } from './utils';
 
@@ -44,6 +47,17 @@ const boolType: BooleanType = {
   name: 'bool',
 };
 
+function typeName(type: TypeNode) {
+  switch (type.kind) {
+    case SyntaxKind.NumKeyword:
+      return numType.name;
+    case SyntaxKind.BoolKeyword:
+      return boolType.name;
+    case SyntaxKind.TypeReference:
+      return type.name.value;
+  }
+}
+
 export function createTypeChecker(): TypeChecker {
   const typeEnvs: TypeEnv[] = [
     getGlobalTypeEnvironment(),
@@ -57,13 +71,20 @@ export function createTypeChecker(): TypeChecker {
     typeEnvs.shift();
   }
 
-  function findType(name: string): Type | undefined {
-    for (const env of typeEnvs) {
-      if (env.has(name)) {
-        return env.get(name)!;
-      }
+  function findType(type: TypeNode): Type | undefined {
+    switch (type.kind) {
+      case SyntaxKind.NumKeyword:
+        return numType;
+      case SyntaxKind.BoolKeyword:
+        return boolType;
+      case SyntaxKind.TypeReference:
+        for (const env of typeEnvs) {
+          if (env.has(type.name.value)) {
+            return env.get(type.name.value)!;
+          }
+        }
+        return undefined;
     }
-    return undefined;
   }
 
   function addType(type: Type) {
@@ -86,6 +107,12 @@ export function createTypeChecker(): TypeChecker {
 
   function check(node: Node) {
     switch (node.kind) {
+      case SyntaxKind.NumKeyword:
+        return checkNumKeyword(node);
+      case SyntaxKind.BoolKeyword:
+        return checkBoolKeyword(node);
+      case SyntaxKind.TypeReference:
+        return checkTypeReference(node);
       case SyntaxKind.BinaryExpression:
         return checkBinaryExpression(node);
       case SyntaxKind.FnCallExpression:
@@ -121,6 +148,19 @@ export function createTypeChecker(): TypeChecker {
     for (const node of nodes) {
       check(node);
     }
+  }
+
+  function checkNumKeyword(node: SyntaxToken<SyntaxKind.NumKeyword>) {
+    node.type = numType;
+  }
+
+  function checkBoolKeyword(node: SyntaxToken<SyntaxKind.BoolKeyword>) {
+    node.type = numType;
+  }
+
+  function checkTypeReference(node: TypeReference) {
+    check(node.name);
+    node.type = node.name.type;
   }
 
   function checkBinaryExpression(node: BinaryExpression) {
@@ -284,7 +324,31 @@ export function createTypeChecker(): TypeChecker {
 
   function checkDeclarationStatement(node: DeclarationStatement) {
     check(node.value);
-    node.type = node.value.type;
+    // check for type annotations.
+    if (node.typeNode) {
+      check(node.typeNode);
+      const annotatedType = findType(node.typeNode);
+      if (annotatedType === undefined) {
+        createDiagnostic(
+          `Cannot find name ${typeName(node.typeNode)}`,
+          DiagnosticCode.UnknownSymbol,
+          { pos: node.typeNode.pos, end: node.typeNode.end },
+        );
+        node.type = node.value.type;
+      } else {
+        const valueMatch = typeMatch(annotatedType, node.value.type);
+        if (valueMatch !== TypeMatch.Equal) {
+          createDiagnostic(
+            `Expected a value of type ${annotatedType.name}`,
+            DiagnosticCode.UnexpectedType,
+            { pos: node.value.pos, end: node.value.end },
+          );
+        }
+        node.type = node.typeNode.type;
+      }
+    } else {
+      node.type = node.value.type;
+    }
   }
 
   function checkFnDeclarationStatement(node: FnDeclarationStatement) {
