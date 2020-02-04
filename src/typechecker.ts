@@ -3,6 +3,7 @@ import {
   BinaryExpression,
   BinaryOperator,
   BlockStatement,
+  BooleanNode,
   BooleanType,
   DeclarationStatement,
   DiagnosticCode,
@@ -95,6 +96,8 @@ export function createTypeChecker(): TypeChecker {
         return checkIdentifierNode(node);
       case SyntaxKind.Number:
         return checkNumberNode(node);
+      case SyntaxKind.Boolean:
+        return checkBooleanNode(node);
       case SyntaxKind.BlockStatement:
         return checkBlockStatement(node);
       case SyntaxKind.IfStatement:
@@ -232,6 +235,10 @@ export function createTypeChecker(): TypeChecker {
 
   function checkNumberNode(node: NumberNode) {
     node.type = numType;
+  }
+
+  function checkBooleanNode(node: BooleanNode) {
+    node.type = boolType;
   }
 
   function checkBlockStatement(node: BlockStatement) {
