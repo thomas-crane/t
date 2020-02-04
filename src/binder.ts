@@ -11,6 +11,7 @@ import {
   ExpressionStatement,
   FnCallExpression,
   FnDeclarationStatement,
+  FnParameter,
   FunctionSymbol,
   IdentifierNode,
   IfStatement,
@@ -85,6 +86,8 @@ export function createBinder(): Binder {
         return bindAssignmentStatement(node);
       case SyntaxKind.DeclarationStatement:
         return bindDeclarationStatement(node);
+      case SyntaxKind.FnParameter:
+        return bindFnParameter(node);
       case SyntaxKind.FnDeclarationStatement:
         return bindFnDeclarationStatement(node);
       case SyntaxKind.ReturnStatement:
@@ -188,6 +191,16 @@ export function createBinder(): Binder {
       addSymbol(varSymbol);
     }
   }
+  function bindFnParameter(node: FnParameter) {
+    const paramSymbol: ParameterSymbol = {
+      kind: SymbolKind.Parameter,
+      name: node.name.value,
+      firstMention: node,
+      references: [],
+    };
+    node.symbol = paramSymbol;
+    node.name.symbol = paramSymbol;
+  }
   function bindFnDeclarationStatement(node: FnDeclarationStatement) {
     // check for redeclaration again
     const existingSymbol = findSymbol(node.fnName.value);
@@ -202,30 +215,20 @@ export function createBinder(): Binder {
       );
       node.flags |= SyntaxNodeFlags.HasErrors;
     } else {
-      // bind each param as a parameter symbol.
-      const paramSymbols: ParameterSymbol[] = [];
-      for (const param of node.params) {
-        const paramSymbol: ParameterSymbol = {
-          kind: SymbolKind.Parameter,
-          name: param.value,
-          firstMention: param,
-          references: [],
-        };
-        param.symbol = paramSymbol;
-        paramSymbols.push(paramSymbol);
-      }
+      // bind params.
+      bindChildren(node.params);
       const fnSymbol: FunctionSymbol = {
         kind: SymbolKind.Function,
         name: node.fnName.value,
         firstMention: node,
         references: [],
-        parameters: paramSymbols,
+        parameters: node.params.map((param) => param.symbol as ParameterSymbol),
       };
       addSymbol(fnSymbol);
       // add the parameters to the function body scope before binding it.
       pushScope();
-      for (const symbol of paramSymbols) {
-        addSymbol(symbol);
+      for (const param of node.params) {
+        addSymbol(param.symbol!);
       }
       bindChildren(node.body.statements);
       popScope();
