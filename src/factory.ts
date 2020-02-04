@@ -10,6 +10,7 @@ import {
   ExpressionStatement,
   FnCallExpression,
   FnDeclarationStatement,
+  FnParameter,
   IdentifierNode,
   IfStatement,
   LoopStatement,
@@ -163,9 +164,20 @@ export function createDeclarationStatement(
   }, location);
 }
 
+export function createFnParameter(
+  name: IdentifierNode,
+  location?: TextRange,
+): FnParameter {
+  return setTextRange({
+    kind: SyntaxKind.FnParameter,
+    name,
+    flags: SyntaxNodeFlags.None,
+  }, location);
+}
+
 export function createFnDeclarationStatement(
   fnName: IdentifierNode,
-  params: IdentifierNode[],
+  params: FnParameter[],
   body: BlockStatement,
   location?: TextRange,
 ): FnDeclarationStatement {
