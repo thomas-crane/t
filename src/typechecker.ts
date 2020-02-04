@@ -13,6 +13,7 @@ import {
   ExpressionStatement,
   FnCallExpression,
   FnDeclarationStatement,
+  FnParameter,
   FunctionType,
   IdentifierNode,
   IfStatement,
@@ -133,6 +134,8 @@ export function createTypeChecker(): TypeChecker {
         return checkAssignmentStatement(node);
       case SyntaxKind.DeclarationStatement:
         return checkDeclarationStatement(node);
+      case SyntaxKind.FnParameter:
+        return checkFnParameter(node);
       case SyntaxKind.FnDeclarationStatement:
         return checkFnDeclarationStatement(node);
       case SyntaxKind.ReturnStatement:
@@ -351,24 +354,54 @@ export function createTypeChecker(): TypeChecker {
     }
   }
 
-  function checkFnDeclarationStatement(node: FnDeclarationStatement) {
-    // TODO(thomas.crane): Until type annotations are implemented,
-    // knowing the type of function arguments is not possible. Getting
-    // the function return type could be done, but for now just use
-    // numbers for everything.
-
-    // for now just give each param the number type.
-    for (const param of node.params) {
-      param.type = numType;
+  function checkFnParameter(node: FnParameter) {
+    if (node.typeNode === undefined) {
+      createDiagnostic(
+        'Function parameter types cannot be inferred',
+        DiagnosticCode.CannotInferType,
+        { pos: node.pos, end: node.end },
+      );
+    } else {
+      const paramType = findType(node.typeNode);
+      if (paramType === undefined) {
+        createDiagnostic(
+          `Cannot find name ${typeName(node.typeNode)}`,
+          DiagnosticCode.UnknownSymbol,
+          { pos: node.typeNode.pos, end: node.typeNode.end },
+        );
+      } else {
+        node.type = paramType;
+      }
     }
+  }
+
+  function checkFnDeclarationStatement(node: FnDeclarationStatement) {
+    checkChildren(node.params);
     check(node.body);
+    let fnReturnType: Type | undefined;
+    if (node.returnTypeNode === undefined) {
+      createDiagnostic(
+        'Function return types cannot be inferred',
+        DiagnosticCode.CannotInferType,
+        { pos: node.pos, end: node.end },
+      );
+    } else {
+      const returnType = findType(node.returnTypeNode);
+      if (returnType === undefined) {
+        createDiagnostic(
+          `Cannot find name ${typeName(node.returnTypeNode)}`,
+          DiagnosticCode.UnknownSymbol,
+          { pos: node.returnTypeNode.pos, end: node.returnTypeNode.end },
+        );
+      }
+      fnReturnType = returnType;
+    }
     const fnType: FunctionType = {
       kind: TypeKind.Function,
       name: `fn ${node.fnName.value}`,
 
       parameters: node.params.map((p) => p.symbol as ParameterSymbol),
-      // fow now just give the function a return type of num.
-      returnType: numType,
+      returnType: fnReturnType,
     };
     node.type = fnType;
   }
