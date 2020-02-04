@@ -8,6 +8,7 @@ import {
   ExpressionStatement,
   FnCallExpression,
   FnDeclarationStatement,
+  FnParameter,
   IdentifierNode,
   IfStatement,
   LoopStatement,
@@ -56,6 +57,8 @@ export function printNode(node: Node): string {
       return printAssignmentStatement(node);
     case SyntaxKind.DeclarationStatement:
       return printDeclarationStatement(node);
+    case SyntaxKind.FnParameter:
+      return printFnParameter(node);
     case SyntaxKind.FnDeclarationStatement:
       return printFnDeclarationStatement(node);
     case SyntaxKind.ReturnStatement:
@@ -208,6 +211,10 @@ function printDeclarationStatement(node: DeclarationStatement): string {
     ], INDENT_SIZE),
     ')',
   ].join('\n');
+}
+
+function printFnParameter(node: FnParameter): string {
+  return `(FnParameter ${printNode(node.name)})`;
 }
 
 function printFnDeclarationStatement(node: FnDeclarationStatement): string {
