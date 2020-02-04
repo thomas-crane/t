@@ -20,10 +20,22 @@ let x = 10
 mut x = 10
 ```
 
+### Type annotations
+
+Variables can optionally be annotated with a type.
+
+```
+let x: num = 10
+let y: bool = true
+```
+
+In some cases type annotations are not necessary because the type can be inferred, however
+in function declarations they are always required.
+
 ### Functions
 
 ```
-fn add: a, b {
+fn add(a: num, b: num): num {
   return a + b
 }
 
