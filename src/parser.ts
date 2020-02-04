@@ -7,6 +7,7 @@ import {
   createExpressionStatement,
   createFnCallExpression,
   createFnDeclarationStatement,
+  createFnParameter,
   createIdentifierNode,
   createIfStatement,
   createLoopStatement,
@@ -31,6 +32,7 @@ import {
   ExpressionStatement,
   FnCallExpression,
   FnDeclarationStatement,
+  FnParameter,
   IdentifierNode,
   IfStatement,
   LoopStatement,
@@ -164,14 +166,19 @@ export function createParser(source: SourceFile): Parser {
     });
   }
 
+  function parseFnParameter(): FnParameter {
+    const name = parseIdentifierNode();
+    return createFnParameter(name, { pos: name.pos, end: name.end });
+  }
+
   function parseFnDeclarationStatement(): FnDeclarationStatement | undefined {
     const start = consume(SyntaxKind.FnKeyword);
     const fnName = parseIdentifierNode();
     consume(SyntaxKind.ColonToken);
     // params
-    const params: IdentifierNode[] = [];
+    const params: FnParameter[] = [];
     while (!atEnd() && tokens[idx].kind !== SyntaxKind.LeftCurlyToken) {
-      const param = parseIdentifierNode();
+      const param = parseFnParameter();
       params.push(param);
       if (tokens[idx].kind === SyntaxKind.CommaToken) {
         idx++;
