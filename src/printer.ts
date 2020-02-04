@@ -202,32 +202,52 @@ function printDeclarationStatement(node: DeclarationStatement): string {
   const identifier = printNode(node.identifier);
   const value = printNode(node.value);
   const declType = node.isConst ? 'LetKeyword' : 'MutKeyword';
+  const result = [
+    declType,
+    identifier,
+  ];
+  if (node.typeNode) {
+    const typeNode = printNode(node.typeNode);
+    result.push(typeNode);
+  }
+  result.push(value);
   return [
     '(DeclarationStatement',
-    ...indent([
-      declType,
-      identifier,
-      value,
-    ], INDENT_SIZE),
+    ...indent(result, INDENT_SIZE),
     ')',
   ].join('\n');
 }
 
 function printFnParameter(node: FnParameter): string {
-  return `(FnParameter ${printNode(node.name)})`;
+  const identifier = printNode(node.name);
+  const result = [identifier];
+  if (node.typeNode) {
+    const typeNode = printNode(node.typeNode);
+    result.push(typeNode);
+  }
+  return [
+    '(FnParameter',
+    ...indent(result, INDENT_SIZE),
+    ')',
+  ].join('\n');
 }
 
 function printFnDeclarationStatement(node: FnDeclarationStatement): string {
   const fnName = printNode(node.fnName);
   const params = node.params.map((param) => printNode(param));
   const body = printNode(node.body);
+  const result = [
+    fnName,
+    ...params,
+  ];
+  if (node.returnTypeNode) {
+    const typeNode = printNode(node.returnTypeNode);
+    result.push(typeNode);
+  }
+  result.push(body);
   return [
     '(FnDeclarationStatement',
-    ...indent([
-      fnName,
-      ...params,
-      body,
-    ], INDENT_SIZE),
+    ...indent(result, INDENT_SIZE),
     ')',
   ].join('\n');
 }
