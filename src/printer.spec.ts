@@ -260,6 +260,25 @@ test(
 );
 
 test(
+  'Printer works for array type annotations',
+  testPrint,
+  factory.createDeclarationStatement(
+    true,
+    factory.createIdentifierNode('test'),
+    factory.createArrayTypeNode(
+      factory.createToken(SyntaxKind.NumKeyword),
+    ),
+    factory.createNumberNode(10),
+  ),
+  `(DeclarationStatement
+  LetKeyword
+  (IdentifierNode "test")
+  (ArrayType (NumKeyword))
+  (NumberNode "10")
+)`,
+);
+
+test(
   'Printer works for return statements',
   testPrint,
   factory.createReturnStatement(
@@ -292,6 +311,21 @@ test(
     factory.createIdentifierNode('hello'),
   ),
   '(ExpressionStatement (IdentifierNode "hello"))',
+);
+
+test(
+  'Printer works for array expressions.',
+  testPrint,
+  factory.createArrayExpression([
+    factory.createNumberNode(10),
+    factory.createIdentifierNode('hello'),
+    factory.createBooleanNode(true),
+  ]),
+  `(ArrayExpression
+  (NumberNode "10")
+  (IdentifierNode "hello")
+  (BooleanNode "true")
+)`,
 );
 
 test(
