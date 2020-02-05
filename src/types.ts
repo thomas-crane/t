@@ -146,6 +146,7 @@ export type SymbolType
 export enum TypeKind {
   Number,
   Boolean,
+  Array,
   Function,
 }
 
@@ -172,6 +173,15 @@ export interface BooleanType extends TypeInfo {
 }
 
 /**
+ * The array type.
+ */
+export interface ArrayType extends TypeInfo {
+  kind: TypeKind.Array;
+
+  itemType: Type;
+}
+
+/**
  * The function type.
  */
 export interface FunctionType extends TypeInfo {
@@ -188,6 +198,7 @@ export type Type
   = NumberType
   | BooleanType
   | FunctionType
+  | ArrayType
   ;
 
 /**
@@ -243,6 +254,7 @@ export enum SyntaxKind {
   NumKeyword,
   BoolKeyword,
   TypeReference,
+  ArrayType,
 
   // arithmetic
   PlusToken,
@@ -272,11 +284,14 @@ export enum SyntaxKind {
   RightCurlyToken,
   LeftParenToken,
   RightParenToken,
+  LeftBracketToken,
+  RightBracketToken,
 
   // expressions
   BinaryExpression,
   FnCallExpression,
   ParenExpression,
+  ArrayExpression,
 
   // literals
   Identifier,
@@ -338,6 +353,8 @@ export type TokenSyntaxKind
   | SyntaxKind.RightCurlyToken
   | SyntaxKind.LeftParenToken
   | SyntaxKind.RightParenToken
+  | SyntaxKind.LeftBracketToken
+  | SyntaxKind.RightBracketToken
   | SyntaxKind.LessThan
   | SyntaxKind.GreaterThan
   | SyntaxKind.EqualTo
@@ -391,10 +408,20 @@ export interface TypeReference extends SyntaxNode {
   name: IdentifierNode;
 }
 
+/**
+ * An array type node.
+ */
+export interface ArrayTypeNode extends SyntaxNode {
+  kind: SyntaxKind.ArrayType;
+
+  itemType: TypeNode;
+}
+
 export type TypeNode
   = SyntaxToken<SyntaxKind.NumKeyword>
   | SyntaxToken<SyntaxKind.BoolKeyword>
   | TypeReference
+  | ArrayTypeNode
   ;
 
 /**
@@ -443,6 +470,15 @@ export interface ParenExpression extends SyntaxNode {
 }
 
 /**
+ * A list of expressions surrounded by square brackets.
+ */
+export interface ArrayExpression extends SyntaxNode {
+  kind: SyntaxKind.ArrayExpression;
+
+  items: ExpressionNode[];
+}
+
+/**
  * The set of all syntax items which are expressions.
  */
 export type ExpressionNode
@@ -452,6 +488,7 @@ export type ExpressionNode
   | BinaryExpression
   | FnCallExpression
   | ParenExpression
+  | ArrayExpression
   ;
 
 /**
