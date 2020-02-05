@@ -18,6 +18,8 @@ import {
   createStopStatement,
   createToken,
   createTypeReference,
+  createArrayTypeNode,
+  createArrayExpression,
 } from './factory';
 import { createLexer } from './lexer';
 import {
@@ -50,6 +52,7 @@ import {
   TokenSyntaxKind,
   TypeNode,
   TypeReference,
+  ArrayExpression,
 } from './types';
 
 export function createParser(source: SourceFile): Parser {
@@ -116,15 +119,34 @@ export function createParser(source: SourceFile): Parser {
 
   function parseTypeAnnotation(): TypeNode {
     consume(SyntaxKind.ColonToken);
+    return parseType();
+  }
+
+  function parseType(): TypeNode {
+    let type: TypeNode;
     switch (tokens[idx].kind) {
       case SyntaxKind.NumKeyword:
-        return consume(SyntaxKind.NumKeyword);
+        type = consume(SyntaxKind.NumKeyword);
+        break;
       case SyntaxKind.BoolKeyword:
-        return consume(SyntaxKind.BoolKeyword);
+        type = consume(SyntaxKind.BoolKeyword);
+        break;
       case SyntaxKind.IdentifierToken:
-        return parseTypeReference();
+        type = parseTypeReference();
+        break;
+      default:
+        throw new Error('parseType should not have been called');
     }
-    throw new Error('parseTypeReference should not have been called');
+    while (true) {
+      if (tokens[idx].kind === SyntaxKind.LeftBracketToken) {
+        consume(SyntaxKind.LeftBracketToken);
+        const closingBrace = consume(SyntaxKind.RightBracketToken);
+        type = createArrayTypeNode(type, { pos: type.pos, end: closingBrace.end });
+      } else {
+        break;
+      }
+    }
+    return type;
   }
 
   function parseTypeReference(): TypeReference {
@@ -320,6 +342,8 @@ export function createParser(source: SourceFile): Parser {
       switch (tokens[idx].kind) {
         case SyntaxKind.LeftParenToken:
           return parseParenExpression();
+        case SyntaxKind.LeftBracketToken:
+          return parseArrayExpression();
         case SyntaxKind.IdentifierToken:
           if (tokens[idx + 1] && tokens[idx + 1].kind === SyntaxKind.LeftParenToken) {
             return parseFnCallExpression();
@@ -374,6 +398,23 @@ export function createParser(source: SourceFile): Parser {
     }
     const end = consume(SyntaxKind.RightParenToken);
     return createParenExpression(expr, { pos: start.pos, end: end.end });
+  }
+
+  function parseArrayExpression(): ArrayExpression | undefined {
+    const start = consume(SyntaxKind.LeftBracketToken);
+    const items: ExpressionNode[] = [];
+    while (!atEnd() && tokens[idx].kind !== SyntaxKind.RightBracketToken) {
+      const item = parseExpression();
+      if (item === undefined) {
+        return undefined;
+      }
+      items.push(item);
+      if (tokens[idx].kind === SyntaxKind.CommaToken) {
+        consume(SyntaxKind.CommaToken);
+      }
+    }
+    const end = consume(SyntaxKind.RightBracketToken);
+    return createArrayExpression(items, { pos: start.pos, end: end.end });
   }
 
   function parseIdentifierNode(): IdentifierNode {
