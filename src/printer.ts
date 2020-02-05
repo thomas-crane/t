@@ -20,6 +20,8 @@ import {
   SyntaxKind,
   SyntaxToken,
   TypeReference,
+  ArrayTypeNode,
+  ArrayExpression,
 } from './types';
 
 const INDENT_SIZE = 2;
@@ -38,6 +40,8 @@ export function printNode(node: Node): string {
 
     case SyntaxKind.TypeReference:
       return printTypeReference(node);
+    case SyntaxKind.ArrayType:
+      return printArrayType(node);
     case SyntaxKind.NumKeyword:
     case SyntaxKind.BoolKeyword:
       return printTypeKeyword(node);
@@ -48,6 +52,8 @@ export function printNode(node: Node): string {
       return printFnCallExpression(node);
     case SyntaxKind.ParenExpression:
       return printParenExpression(node);
+    case SyntaxKind.ArrayExpression:
+      return printArrayExpression(node);
 
     case SyntaxKind.BlockStatement:
       return printBlockStatement(node);
@@ -89,6 +95,10 @@ function printBooleanNode(node: BooleanNode): string {
 
 function printTypeReference(node: TypeReference): string {
   return `(TypeReference ${printNode(node.name)})`;
+}
+
+function printArrayType(node: ArrayTypeNode): string {
+  return `(ArrayType ${printNode(node.itemType)})`;
 }
 
 function printTypeKeyword(node: SyntaxToken<SyntaxKind.NumKeyword | SyntaxKind.BoolKeyword>) {
@@ -155,6 +165,15 @@ function printFnCallExpression(node: FnCallExpression): string {
 function printParenExpression(node: ParenExpression): string {
   const expr = printNode(node.expr);
   return `(ParenExpression ${expr})`;
+}
+
+function printArrayExpression(node: ArrayExpression): string {
+  const printedItems = node.items.map((item) => printNode(item));
+  return [
+    '(ArrayExpression',
+    ...indent(printedItems, INDENT_SIZE),
+    ')',
+  ].join('\n');
 }
 
 function printBlockStatement(node: BlockStatement): string {
