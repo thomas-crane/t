@@ -27,6 +27,8 @@ import {
   TokenSyntaxKind,
   TypeNode,
   TypeReference,
+  ArrayTypeNode,
+  ArrayExpression,
 } from './types';
 import { setTextRange } from './utils';
 
@@ -84,6 +86,17 @@ export function createTypeReference(
   }, location);
 }
 
+export function createArrayTypeNode(
+  itemType: TypeNode,
+  location?: TextRange,
+): ArrayTypeNode {
+  return setTextRange({
+    kind: SyntaxKind.ArrayType,
+    itemType,
+    flags: SyntaxNodeFlags.None,
+  }, location);
+}
+
 export function createBinaryExpression(
   left: ExpressionNode,
   operator: BinaryOperator,
@@ -119,6 +132,17 @@ export function createParenExpression(
   return setTextRange({
     kind: SyntaxKind.ParenExpression,
     expr,
+    flags: SyntaxNodeFlags.None,
+  }, location);
+}
+
+export function createArrayExpression(
+  items: ExpressionNode[],
+  location?: TextRange,
+): ArrayExpression {
+  return setTextRange({
+    kind: SyntaxKind.ArrayExpression,
+    items,
     flags: SyntaxNodeFlags.None,
   }, location);
 }
