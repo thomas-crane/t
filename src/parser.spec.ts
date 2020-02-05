@@ -49,6 +49,31 @@ test(
 );
 
 test(
+  'Parser recognises array expressions',
+  parse,
+  '[1, 2, 3]',
+  `(SourceFile
+  (ExpressionStatement (ArrayExpression
+    (NumberNode "1")
+    (NumberNode "2")
+    (NumberNode "3")
+  ))
+)`,
+);
+
+test(
+  'Parser recognises array expressions with trailing commas',
+  parse,
+  '[true, false,]',
+  `(SourceFile
+  (ExpressionStatement (ArrayExpression
+    (BooleanNode "true")
+    (BooleanNode "false")
+  ))
+)`,
+);
+
+test(
   'Parser recognises const declarations',
   parse,
   'let a = 10',
