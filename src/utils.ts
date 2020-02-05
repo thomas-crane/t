@@ -1,4 +1,4 @@
-import { FunctionType, TextRange, Type, TypeKind, TypeMatch } from './types';
+import { ArrayType, FunctionType, TextRange, Type, TypeKind, TypeMatch } from './types';
 
 /**
  * Sets the text range on the given target.
@@ -35,6 +35,8 @@ export function typeMatch(fromType: Type | undefined, toType: Type | undefined):
       return TypeMatch.Equal;
     case TypeKind.Function:
       return typeMatchFunction(fromType, toType as FunctionType);
+    case TypeKind.Array:
+      return typeMatchArray(fromType, toType as ArrayType);
   }
 }
 
@@ -59,4 +61,8 @@ function typeMatchFunction(fromType: FunctionType, toType: FunctionType): TypeMa
     return TypeMatch.NoMatch;
   }
   return TypeMatch.Equal;
+}
+
+function typeMatchArray(fromType: ArrayType, toType: ArrayType): TypeMatch {
+  return typeMatch(fromType.itemType, toType.itemType);
 }
