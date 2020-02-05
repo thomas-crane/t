@@ -44,6 +44,8 @@ const charMap: SyntaxKindMap = {
   '}': SyntaxKind.RightCurlyToken,
   '(': SyntaxKind.LeftParenToken,
   ')': SyntaxKind.RightParenToken,
+  '[': SyntaxKind.LeftBracketToken,
+  ']': SyntaxKind.RightBracketToken,
 };
 
 const keywordMap: SyntaxKindMap = {
