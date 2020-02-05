@@ -1,4 +1,6 @@
 import {
+  ArrayExpression,
+  ArrayType,
   AssignmentStatement,
   BinaryExpression,
   BinaryOperator,
@@ -24,6 +26,7 @@ import {
   ParameterSymbol,
   ParenExpression,
   ReturnStatement,
+  SymbolKind,
   SyntaxKind,
   SyntaxToken,
   TextRange,
@@ -48,7 +51,7 @@ const boolType: BooleanType = {
   name: 'bool',
 };
 
-function typeName(type: TypeNode) {
+function typeName(type: TypeNode): string {
   switch (type.kind) {
     case SyntaxKind.NumKeyword:
       return numType.name;
@@ -56,6 +59,8 @@ function typeName(type: TypeNode) {
       return boolType.name;
     case SyntaxKind.TypeReference:
       return type.name.value;
+    case SyntaxKind.ArrayType:
+      return `${typeName(type.itemType)}[]`;
   }
 }
 
@@ -78,6 +83,17 @@ export function createTypeChecker(): TypeChecker {
         return numType;
       case SyntaxKind.BoolKeyword:
         return boolType;
+      case SyntaxKind.ArrayType:
+        const itemType = findType(type.itemType);
+        if (itemType === undefined) {
+          return undefined;
+        }
+        const arrayType: ArrayType = {
+          kind: TypeKind.Array,
+          name: `${itemType.name}[]`,
+          itemType,
+        };
+        return arrayType;
       case SyntaxKind.TypeReference:
         for (const env of typeEnvs) {
           if (env.has(type.name.value)) {
@@ -120,6 +136,8 @@ export function createTypeChecker(): TypeChecker {
         return checkFnCallExpression(node);
       case SyntaxKind.ParenExpression:
         return checkParenExpression(node);
+      case SyntaxKind.ArrayExpression:
+        return checkArrayExpression(node);
       case SyntaxKind.Identifier:
         return checkIdentifierNode(node);
       case SyntaxKind.Number:
@@ -214,7 +232,7 @@ export function createTypeChecker(): TypeChecker {
 
   function checkFnCallExpression(node: FnCallExpression) {
     // if there is no function symbol we cannot know the parameter types.
-    if (node.symbol === undefined) {
+    if (node.symbol === undefined || node.symbol.kind !== SymbolKind.Function) {
       return;
     }
     const fnType = node.symbol.firstMention.type;
@@ -231,7 +249,15 @@ export function createTypeChecker(): TypeChecker {
       return;
     }
     // check each arg type.
-    checkChildren(node.args);
+    for (let i = 0; i < node.args.length; i++) {
+      const arg = node.args[i];
+      const paramSymbol = node.symbol.parameters[i];
+      // give the arg node the expected type before checking it.
+      if (paramSymbol?.firstMention.type !== undefined) {
+        arg.type = paramSymbol.firstMention.type;
+      }
+      check(arg);
+    }
     if (node.args.length !== fnType.parameters.length) {
       const argWord = fnType.parameters.length === 1 ? 'argument' : 'arguments';
       createDiagnostic(
@@ -267,6 +293,62 @@ export function createTypeChecker(): TypeChecker {
   function checkParenExpression(node: ParenExpression) {
     check(node.expr);
     node.type = node.expr.type;
+  }
+
+  function checkArrayExpression(node: ArrayExpression) {
+    checkChildren(node.items);
+    if (node.items.length === 0 && node.type === undefined) {
+      // if there are no items and there is no expected type,
+      // it is impossible to infer the type.
+      createDiagnostic(
+        'Cannot infer the type of an empty array.',
+        DiagnosticCode.CannotInferType,
+        { pos: node.pos, end: node.end },
+      );
+      return;
+    }
+    let expectedItemType: Type;
+    // if there is already an expected type, make sure each item matches it
+    if (node.type !== undefined && node.type.kind === TypeKind.Array) {
+      expectedItemType = node.type.itemType;
+    } else {
+      // otherwise, get the first item type that we can find.
+      const firstType = node.items
+        .map((item) => item.type)
+        .filter((type) => type !== undefined)[0];
+
+      if (firstType === undefined) {
+        // if none of the item types had a type, then bail.
+        createDiagnostic(
+          'Cannot infer the type of this array because none of the array item\'s types are known.',
+          DiagnosticCode.CannotInferType,
+          { pos: node.pos, end: node.end },
+        );
+        return;
+      } else {
+        expectedItemType = firstType;
+      }
+    }
+    // make sure each item matches the expected type.
+    for (const item of node.items) {
+      const itemMatch = typeMatch(expectedItemType, item.type);
+      if (itemMatch !== TypeMatch.Equal) {
+        createDiagnostic(
+          `Expected a value of type ${expectedItemType.name}`,
+          DiagnosticCode.UnexpectedType,
+          { pos: item.pos, end: item.end },
+        );
+      }
+    }
+    // add the type if there is not already an expected one.
+    if (node.type === undefined) {
+      const arrayType: ArrayType = {
+        kind: TypeKind.Array,
+        name: `${expectedItemType.name}[]`,
+        itemType: expectedItemType,
+      };
+      node.type = arrayType;
+    }
   }
 
   function checkIdentifierNode(node: IdentifierNode) {
@@ -326,7 +408,6 @@ export function createTypeChecker(): TypeChecker {
   }
 
   function checkDeclarationStatement(node: DeclarationStatement) {
-    check(node.value);
     // check for type annotations.
     if (node.typeNode) {
       check(node.typeNode);
@@ -337,8 +418,12 @@ export function createTypeChecker(): TypeChecker {
           DiagnosticCode.UnknownSymbol,
           { pos: node.typeNode.pos, end: node.typeNode.end },
         );
+        check(node.value);
         node.type = node.value.type;
       } else {
+        // give the value node the expected type before checking it.
+        node.value.type = annotatedType;
+        check(node.value);
         const valueMatch = typeMatch(annotatedType, node.value.type);
         if (valueMatch !== TypeMatch.Equal) {
           createDiagnostic(
