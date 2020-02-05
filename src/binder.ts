@@ -26,6 +26,7 @@ import {
   SyntaxNodeFlags,
   TextRange,
   VariableSymbol,
+  ArrayExpression,
 } from './types';
 
 type SymbolTable = Map<string, SymbolType>;
@@ -76,6 +77,8 @@ export function createBinder(): Binder {
         return bindFnCallExpression(node);
       case SyntaxKind.ParenExpression:
         return bindParenExpression(node);
+      case SyntaxKind.ArrayExpression:
+        return bindArrayExpression(node);
       case SyntaxKind.Identifier:
         return bindIdentifierNode(node);
       case SyntaxKind.BlockStatement:
@@ -130,6 +133,9 @@ export function createBinder(): Binder {
   function bindParenExpression(node: ParenExpression) {
     bind(node.expr);
     node.symbol = node.expr.symbol;
+  }
+  function bindArrayExpression(node: ArrayExpression) {
+    bindChildren(node.items);
   }
   function bindIdentifierNode(node: IdentifierNode) {
     const varSymbol = findSymbol(node.value);
