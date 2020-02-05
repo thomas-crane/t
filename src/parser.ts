@@ -1,4 +1,6 @@
 import {
+  createArrayExpression,
+  createArrayTypeNode,
   createAssignmentStatement,
   createBinaryExpression,
   createBlockStatement,
@@ -18,11 +20,10 @@ import {
   createStopStatement,
   createToken,
   createTypeReference,
-  createArrayTypeNode,
-  createArrayExpression,
 } from './factory';
 import { createLexer } from './lexer';
 import {
+  ArrayExpression,
   AssignmentStatement,
   BinaryOperator,
   BlockStatement,
@@ -52,7 +53,6 @@ import {
   TokenSyntaxKind,
   TypeNode,
   TypeReference,
-  ArrayExpression,
 } from './types';
 
 export function createParser(source: SourceFile): Parser {

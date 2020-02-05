@@ -1,4 +1,5 @@
 import {
+  ArrayExpression,
   AssignmentStatement,
   BinaryExpression,
   Binder,
@@ -26,7 +27,6 @@ import {
   SyntaxNodeFlags,
   TextRange,
   VariableSymbol,
-  ArrayExpression,
 } from './types';
 
 type SymbolTable = Map<string, SymbolType>;

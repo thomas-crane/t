@@ -1,4 +1,6 @@
 import {
+  ArrayExpression,
+  ArrayTypeNode,
   AssignmentStatement,
   BinaryExpression,
   BinaryOperator,
@@ -27,8 +29,6 @@ import {
   TokenSyntaxKind,
   TypeNode,
   TypeReference,
-  ArrayTypeNode,
-  ArrayExpression,
 } from './types';
 import { setTextRange } from './utils';
 

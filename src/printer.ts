@@ -1,4 +1,6 @@
 import {
+  ArrayExpression,
+  ArrayTypeNode,
   AssignmentStatement,
   BinaryExpression,
   BinaryOperator,
@@ -20,8 +22,6 @@ import {
   SyntaxKind,
   SyntaxToken,
   TypeReference,
-  ArrayTypeNode,
-  ArrayExpression,
 } from './types';
 
 const INDENT_SIZE = 2;
