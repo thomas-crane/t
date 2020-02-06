@@ -249,6 +249,7 @@ export enum SyntaxKind {
   StopKeyword,
   TrueKeyword,
   FalseKeyword,
+  StructKeyword,
 
   // type stuff
   NumKeyword,
@@ -292,6 +293,8 @@ export enum SyntaxKind {
   FnCallExpression,
   ParenExpression,
   ArrayExpression,
+  StructMemberExpression,
+  StructExpression,
 
   // literals
   Identifier,
@@ -309,6 +312,8 @@ export enum SyntaxKind {
   LoopStatement,
   StopStatement,
   ExpressionStatement,
+  StructMember,
+  StructDeclStatement,
 
   SourceFile,
 }
@@ -489,6 +494,7 @@ export type ExpressionNode
   | FnCallExpression
   | ParenExpression
   | ArrayExpression
+  | StructExpression
   ;
 
 /**
@@ -590,6 +596,35 @@ export interface ExpressionStatement extends SyntaxNode {
   expr: ExpressionNode;
 }
 
+export interface StructMember extends SyntaxNode {
+  kind: SyntaxKind.StructMember;
+
+  isMut: boolean;
+  name: IdentifierNode;
+  typeNode: TypeNode;
+}
+
+export interface StructDeclStatement extends SyntaxNode {
+  kind: SyntaxKind.StructDeclStatement;
+
+  name: IdentifierNode;
+  members: Record<string, StructMember>;
+}
+
+export interface StructMemberExpression extends SyntaxNode {
+  kind: SyntaxKind.StructMemberExpression;
+
+  name: IdentifierNode;
+  value: ExpressionNode;
+}
+
+export interface StructExpression extends SyntaxNode {
+  kind: SyntaxKind.StructExpression;
+
+  name: IdentifierNode;
+  members: Record<string, StructMemberExpression>;
+}
+
 /**
  * The set of all syntax items which are statements.
  */
@@ -603,6 +638,7 @@ export type StatementNode
   | LoopStatement
   | StopStatement
   | ExpressionStatement
+  | StructDeclStatement
   ;
 
 /**
@@ -626,6 +662,7 @@ export type Node
   | ExpressionNode
   | TypeNode
   | FnParameter
+  | StructMember
   | SourceFile
   ;
 
