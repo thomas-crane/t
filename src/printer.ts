@@ -19,6 +19,10 @@ import {
   ParenExpression,
   ReturnStatement,
   SourceFile,
+  StructDeclStatement,
+  StructExpression,
+  StructMember,
+  StructMemberExpression,
   SyntaxKind,
   SyntaxToken,
   TypeReference,
@@ -54,6 +58,10 @@ export function printNode(node: Node): string {
       return printParenExpression(node);
     case SyntaxKind.ArrayExpression:
       return printArrayExpression(node);
+    case SyntaxKind.StructExpression:
+      return printStructExpression(node);
+    case SyntaxKind.StructMemberExpression:
+      return printStructMemberExpression(node);
 
     case SyntaxKind.BlockStatement:
       return printBlockStatement(node);
@@ -75,6 +83,10 @@ export function printNode(node: Node): string {
       return printStopStatement();
     case SyntaxKind.ExpressionStatement:
       return printExpressionStatement(node);
+    case SyntaxKind.StructDeclStatement:
+      return printStructDeclStatement(node);
+    case SyntaxKind.StructMember:
+      return printStructMember(node);
 
     case SyntaxKind.SourceFile:
       return printSourceFile(node);
@@ -172,6 +184,30 @@ function printArrayExpression(node: ArrayExpression): string {
   return [
     '(ArrayExpression',
     ...indent(printedItems, INDENT_SIZE),
+    ')',
+  ].join('\n');
+}
+
+function printStructExpression(node: StructExpression): string {
+  const members: string[] = [];
+  // tslint:disable-next-line: forin
+  for (const name in node.members) {
+    members.push(printNode(node.members[name]));
+  }
+  return [
+    '(StructExpression',
+    ...indent(members, INDENT_SIZE),
+    ')',
+  ].join('\n');
+}
+
+function printStructMemberExpression(node: StructMemberExpression): string {
+  return [
+    '(StructMemberExpression',
+    ...indent([
+      printNode(node.name),
+      printNode(node.value),
+    ], INDENT_SIZE),
     ')',
   ].join('\n');
 }
@@ -292,6 +328,38 @@ function printStopStatement(): string {
 function printExpressionStatement(node: ExpressionStatement): string {
   const expr = printNode(node.expr);
   return `(ExpressionStatement ${expr})`;
+}
+
+function printStructDeclStatement(node: StructDeclStatement): string {
+  const members: string[] = [];
+  // tslint:disable-next-line: forin
+  for (const name in node.members) {
+    members.push(printNode(node.members[name]));
+  }
+  return [
+    '(StructDeclStatement',
+    ...indent([
+      printNode(node.name),
+      ...members,
+    ], INDENT_SIZE),
+    ')',
+  ].join('\n');
+}
+
+function printStructMember(node: StructMember): string {
+  const result: string[] = [];
+  if (node.isConst) {
+    result.push('MutKeyword');
+  }
+  result.push(printNode(node.name));
+  if (node.typeNode) {
+    result.push(printNode(node.typeNode));
+  }
+  return [
+    '(StructMember',
+    ...indent(result, INDENT_SIZE),
+    ')',
+  ].join('\n');
 }
 
 function printSourceFile(node: SourceFile): string {
