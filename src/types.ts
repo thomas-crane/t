@@ -96,6 +96,8 @@ export enum SymbolKind {
   Variable,
   Function,
   Parameter,
+  Struct,
+  StructMember,
 }
 
 /**
@@ -131,6 +133,19 @@ export interface ParameterSymbol extends Symbol {
   kind: SymbolKind.Parameter;
 }
 
+export interface StructSymbol extends Symbol {
+  kind: SymbolKind.Struct;
+
+  members: Record<string, StructMemberSymbol>;
+}
+
+export interface StructMemberSymbol extends Symbol {
+  kind: SymbolKind.StructMember;
+
+  isConst: boolean;
+  struct: StructSymbol;
+}
+
 /**
  * The set of all symbol types.
  */
@@ -138,6 +153,8 @@ export type SymbolType
   = VariableSymbol
   | FunctionSymbol
   | ParameterSymbol
+  | StructSymbol
+  | StructMemberSymbol
   ;
 
 /**
@@ -378,6 +395,7 @@ export type TokenSyntaxKind
   | SyntaxKind.FalseKeyword
   | SyntaxKind.NumberToken
   | SyntaxKind.IdentifierToken
+  | SyntaxKind.StructKeyword
   ;
 
 /**
@@ -599,9 +617,9 @@ export interface ExpressionStatement extends SyntaxNode {
 export interface StructMember extends SyntaxNode {
   kind: SyntaxKind.StructMember;
 
-  isMut: boolean;
+  isConst: boolean;
   name: IdentifierNode;
-  typeNode: TypeNode;
+  typeNode?: TypeNode;
 }
 
 export interface StructDeclStatement extends SyntaxNode {
@@ -663,6 +681,7 @@ export type Node
   | TypeNode
   | FnParameter
   | StructMember
+  | StructMemberExpression
   | SourceFile
   ;
 
