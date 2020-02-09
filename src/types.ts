@@ -24,6 +24,7 @@ export const enum DiagnosticSource {
 export enum DiagnosticCode {
   UnknownToken,
   UnexpectedToken,
+  UnterminatedStringLiteral,
 
   UnknownSymbol,
   DuplicateSymbol,
@@ -166,6 +167,7 @@ export type SymbolType
 export enum TypeKind {
   Number,
   Boolean,
+  String,
   Array,
   Function,
   Struct,
@@ -191,6 +193,13 @@ export interface NumberType extends TypeInfo {
  */
 export interface BooleanType extends TypeInfo {
   kind: TypeKind.Boolean;
+}
+
+/**
+ * The string type.
+ */
+export interface StringType extends TypeInfo {
+  kind: TypeKind.String;
 }
 
 /**
@@ -224,6 +233,7 @@ export interface StructType extends TypeInfo {
 export type Type
   = NumberType
   | BooleanType
+  | StringType
   | FunctionType
   | ArrayType
   | StructType
@@ -283,6 +293,7 @@ export enum SyntaxKind {
   // type stuff
   NumKeyword,
   BoolKeyword,
+  StrKeyword,
   TypeReference,
   ArrayType,
 
@@ -308,6 +319,7 @@ export enum SyntaxKind {
   ColonToken,
   NumberToken,
   IdentifierToken,
+  StringToken,
 
   // brackets
   LeftCurlyToken,
@@ -329,6 +341,7 @@ export enum SyntaxKind {
   Identifier,
   Number,
   Boolean,
+  String,
 
   // statements
   BlockStatement,
@@ -376,6 +389,8 @@ export type TokenSyntaxKind
   | SyntaxKind.UnknownToken
   | SyntaxKind.NumKeyword
   | SyntaxKind.BoolKeyword
+  | SyntaxKind.StrKeyword
+  | SyntaxKind.StructKeyword
   | SyntaxKind.PlusToken
   | SyntaxKind.MinusToken
   | SyntaxKind.StarToken
@@ -407,6 +422,7 @@ export type TokenSyntaxKind
   | SyntaxKind.FalseKeyword
   | SyntaxKind.NumberToken
   | SyntaxKind.IdentifierToken
+  | SyntaxKind.StringToken
   | SyntaxKind.StructKeyword
   | SyntaxKind.NewKeyword
   ;
@@ -435,6 +451,11 @@ export interface BooleanNode extends SyntaxNode {
   value: boolean;
 }
 
+export interface StringNode extends SyntaxNode {
+  kind: SyntaxKind.String;
+  value: string;
+}
+
 /**
  * An identifier used in a context where it is
  * referring to the name of a type.
@@ -456,6 +477,7 @@ export interface ArrayTypeNode extends SyntaxNode {
 export type TypeNode
   = SyntaxToken<SyntaxKind.NumKeyword>
   | SyntaxToken<SyntaxKind.BoolKeyword>
+  | SyntaxToken<SyntaxKind.StrKeyword>
   | TypeReference
   | ArrayTypeNode
   ;
@@ -521,6 +543,7 @@ export type ExpressionNode
   = NumberNode
   | IdentifierNode
   | BooleanNode
+  | StringNode
   | BinaryExpression
   | FnCallExpression
   | ParenExpression
