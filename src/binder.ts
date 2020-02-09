@@ -23,7 +23,6 @@ import {
   ReturnStatement,
   StructDeclStatement,
   StructExpression,
-  StructMember,
   StructMemberExpression,
   StructMemberSymbol,
   StructSymbol,
