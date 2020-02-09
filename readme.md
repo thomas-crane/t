@@ -66,6 +66,32 @@ loop {
 }
 ```
 
+### Custom types
+
+#### Defining structs
+
+Custom types can be created using the `struct` keyword.
+
+```
+struct Point {
+  x: num,
+  y: num,
+}
+```
+
+Each member of the struct must have a type annotation.
+
+#### Instantiating structs
+
+New instances of structs can be created by using the `new` keyword and the structs name followed by a block that initialises each of the struct's members.
+
+```
+let p = new Point {
+  x: 10,
+  y: 20,
+}
+```
+
 ### Operators
 
 + `+`
