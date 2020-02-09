@@ -22,6 +22,7 @@ const keywords: Array<[string, SyntaxToken<TokenSyntaxKind>]> = [
   ['num', createToken(SyntaxKind.NumKeyword)],
   ['bool', createToken(SyntaxKind.BoolKeyword)],
   ['str', createToken(SyntaxKind.StrKeyword)],
+  ['nil', createToken(SyntaxKind.NilKeyword)],
 
   ['struct', createToken(SyntaxKind.StructKeyword)],
   ['new', createToken(SyntaxKind.NewKeyword)],

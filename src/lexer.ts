@@ -39,6 +39,7 @@ const charMap: SyntaxKindMap = {
   '=': SyntaxKind.EqualsToken,
   ',': SyntaxKind.CommaToken,
   ':': SyntaxKind.ColonToken,
+  '?': SyntaxKind.QuestionToken,
 
   '{': SyntaxKind.LeftCurlyToken,
   '}': SyntaxKind.RightCurlyToken,
@@ -52,6 +53,7 @@ const keywordMap: SyntaxKindMap = {
   num: SyntaxKind.NumKeyword,
   bool: SyntaxKind.BoolKeyword,
   str: SyntaxKind.StrKeyword,
+  nil: SyntaxKind.NilKeyword,
 
   let: SyntaxKind.LetKeyword,
   mut: SyntaxKind.MutKeyword,
