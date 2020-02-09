@@ -19,6 +19,7 @@ import {
   ParenExpression,
   ReturnStatement,
   SourceFile,
+  StringNode,
   StructDeclStatement,
   StructExpression,
   StructMember,
@@ -41,6 +42,8 @@ export function printNode(node: Node): string {
       return printNumberNode(node);
     case SyntaxKind.Boolean:
       return printBooleanNode(node);
+    case SyntaxKind.String:
+      return printStringNode(node);
 
     case SyntaxKind.TypeReference:
       return printTypeReference(node);
@@ -48,6 +51,7 @@ export function printNode(node: Node): string {
       return printArrayType(node);
     case SyntaxKind.NumKeyword:
     case SyntaxKind.BoolKeyword:
+    case SyntaxKind.StrKeyword:
       return printTypeKeyword(node);
 
     case SyntaxKind.BinaryExpression:
@@ -105,6 +109,10 @@ function printBooleanNode(node: BooleanNode): string {
   return `(BooleanNode "${node.value}")`;
 }
 
+function printStringNode(node: StringNode): string {
+  return `(StringNode "${node.value}")`;
+}
+
 function printTypeReference(node: TypeReference): string {
   return `(TypeReference ${printNode(node.name)})`;
 }
@@ -113,12 +121,14 @@ function printArrayType(node: ArrayTypeNode): string {
   return `(ArrayType ${printNode(node.itemType)})`;
 }
 
-function printTypeKeyword(node: SyntaxToken<SyntaxKind.NumKeyword | SyntaxKind.BoolKeyword>) {
+function printTypeKeyword(node: SyntaxToken<SyntaxKind.NumKeyword | SyntaxKind.BoolKeyword | SyntaxKind.StrKeyword>) {
   switch (node.kind) {
     case SyntaxKind.NumKeyword:
       return '(NumKeyword)';
     case SyntaxKind.BoolKeyword:
       return '(BoolKeyword)';
+    case SyntaxKind.StrKeyword:
+      return '(StrKeyword)';
   }
 }
 
