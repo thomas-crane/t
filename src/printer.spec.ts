@@ -64,6 +64,35 @@ test(
 );
 
 test(
+  'Printer works for struct expressions',
+  testPrint,
+  factory.createStructExpression(
+    factory.createIdentifierNode('Point'),
+    {
+      x: factory.createStructMemberExpression(
+        factory.createIdentifierNode('x'),
+        factory.createNumberNode(10),
+      ),
+      y: factory.createStructMemberExpression(
+        factory.createIdentifierNode('y'),
+        factory.createNumberNode(20),
+      ),
+    },
+  ),
+  `(StructExpression
+  (IdentifierNode "Point")
+  (StructMemberExpression
+    (IdentifierNode "x")
+    (NumberNode "10")
+  )
+  (StructMemberExpression
+    (IdentifierNode "y")
+    (NumberNode "20")
+  )
+)`,
+);
+
+test(
   'Printer works for block statements',
   testPrint,
   factory.createBlockStatement([
@@ -325,6 +354,38 @@ test(
   (NumberNode "10")
   (IdentifierNode "hello")
   (BooleanNode "true")
+)`,
+);
+
+test(
+  'Printer works for struct declarations',
+  testPrint,
+  factory.createStructDeclStatement(
+    factory.createIdentifierNode('Point'),
+    {
+      x: factory.createStructMember(
+        true,
+        factory.createIdentifierNode('x'),
+        factory.createToken(SyntaxKind.NumKeyword),
+      ),
+      y: factory.createStructMember(
+        false,
+        factory.createIdentifierNode('y'),
+        factory.createToken(SyntaxKind.NumKeyword),
+      ),
+    },
+  ),
+  `(StructDeclStatement
+  (IdentifierNode "Point")
+  (StructMember
+    (IdentifierNode "x")
+    (NumKeyword)
+  )
+  (StructMember
+    MutKeyword
+    (IdentifierNode "y")
+    (NumKeyword)
+  )
 )`,
 );
 
