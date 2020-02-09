@@ -189,7 +189,9 @@ function printArrayExpression(node: ArrayExpression): string {
 }
 
 function printStructExpression(node: StructExpression): string {
-  const members: string[] = [];
+  const members: string[] = [
+    printNode(node.name),
+  ];
   // tslint:disable-next-line: forin
   for (const name in node.members) {
     members.push(printNode(node.members[name]));
@@ -348,7 +350,7 @@ function printStructDeclStatement(node: StructDeclStatement): string {
 
 function printStructMember(node: StructMember): string {
   const result: string[] = [];
-  if (node.isConst) {
+  if (!node.isConst) {
     result.push('MutKeyword');
   }
   result.push(printNode(node.name));
