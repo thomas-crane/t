@@ -26,6 +26,11 @@ import {
   ParameterSymbol,
   ParenExpression,
   ReturnStatement,
+  StructDeclStatement,
+  StructExpression,
+  StructMember,
+  StructSymbol,
+  StructType,
   SymbolKind,
   SyntaxKind,
   SyntaxToken,
@@ -95,13 +100,17 @@ export function createTypeChecker(): TypeChecker {
         };
         return arrayType;
       case SyntaxKind.TypeReference:
-        for (const env of typeEnvs) {
-          if (env.has(type.name.value)) {
-            return env.get(type.name.value)!;
-          }
-        }
-        return undefined;
+        return findTypeByName(type.name.value);
     }
+  }
+
+  function findTypeByName(name: string): Type | undefined {
+    for (const env of typeEnvs) {
+      if (env.has(name)) {
+        return env.get(name)!;
+      }
+    }
+    return undefined;
   }
 
   function addType(type: Type) {
@@ -138,6 +147,8 @@ export function createTypeChecker(): TypeChecker {
         return checkParenExpression(node);
       case SyntaxKind.ArrayExpression:
         return checkArrayExpression(node);
+      case SyntaxKind.StructExpression:
+        return checkStructExpression(node);
       case SyntaxKind.Identifier:
         return checkIdentifierNode(node);
       case SyntaxKind.Number:
@@ -162,6 +173,10 @@ export function createTypeChecker(): TypeChecker {
         return checkLoopStatement(node);
       case SyntaxKind.ExpressionStatement:
         return checkExpressionStatement(node);
+      case SyntaxKind.StructDeclStatement:
+        return checkStructDeclStatement(node);
+      case SyntaxKind.StructMember:
+        return checkStructMember(node);
     }
   }
 
@@ -351,6 +366,44 @@ export function createTypeChecker(): TypeChecker {
     }
   }
 
+  function checkStructExpression(node: StructExpression) {
+    // make sure the type exists. If it doesn't it will be
+    // reported by the binder so there is no need to report again.
+    const structType = findTypeByName(node.name.value);
+    if (structType === undefined || structType.kind !== TypeKind.Struct) {
+      return;
+    }
+    // tslint:disable-next-line: forin
+    for (const name in node.members) {
+      // report any excess properties
+      if (!structType.members.hasOwnProperty(name)) {
+        createDiagnostic(
+          `Struct "${structType.name}" has no member "${name}"`,
+          DiagnosticCode.UnknownMember,
+          { pos: node.members[name].pos, end: node.members[name].end },
+        );
+        continue;
+      }
+      const expectedMemberType = structType.members[name];
+      if (expectedMemberType !== undefined) {
+        node.members[name].type = expectedMemberType;
+      }
+      check(node.members[name]);
+    }
+    // check if any properties were not initialised.
+    const structMembers = node.symbol as StructSymbol;
+    for (const name in structMembers.members) {
+      if (!node.members.hasOwnProperty(name)) {
+        createDiagnostic(
+          `No initialiser for struct member "${name}"`,
+          DiagnosticCode.UninitialisedMember,
+          { pos: node.pos, end: node.end },
+        );
+      }
+    }
+    node.type = structType;
+  }
+
   function checkIdentifierNode(node: IdentifierNode) {
     if (node.symbol === undefined) {
       return;
@@ -435,6 +488,7 @@ export function createTypeChecker(): TypeChecker {
         node.type = node.typeNode.type;
       }
     } else {
+      check(node.value);
       node.type = node.value.type;
     }
   }
@@ -503,6 +557,43 @@ export function createTypeChecker(): TypeChecker {
   function checkExpressionStatement(node: ExpressionStatement) {
     check(node.expr);
     node.type = node.expr.type;
+  }
+
+  function checkStructDeclStatement(node: StructDeclStatement) {
+    const memberTypes: StructType['members'] = {};
+    // tslint:disable-next-line: forin
+    for (const name in node.members) {
+      check(node.members[name]);
+      memberTypes[name] = node.members[name].type;
+    }
+    const structType: StructType = {
+      kind: TypeKind.Struct,
+      name: node.name.value,
+      members: memberTypes,
+    };
+    node.type = structType;
+    addType(node.type);
+  }
+
+  function checkStructMember(node: StructMember) {
+    if (node.typeNode === undefined) {
+      createDiagnostic(
+        'Cannot infer the type of a struct member.',
+        DiagnosticCode.CannotInferType,
+        { pos: node.pos, end: node.end },
+      );
+    } else {
+      const expectedType = findType(node.typeNode);
+      if (expectedType === undefined) {
+        createDiagnostic(
+          `Cannot find name ${typeName(node.typeNode)}`,
+          DiagnosticCode.UnknownSymbol,
+          { pos: node.typeNode.pos, end: node.typeNode.end },
+        );
+      } else {
+        node.type = expectedType;
+      }
+    }
   }
 
   return {
