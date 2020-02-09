@@ -26,6 +26,8 @@ import {
   ParameterSymbol,
   ParenExpression,
   ReturnStatement,
+  StringNode,
+  StringType,
   StructDeclStatement,
   StructExpression,
   StructMember,
@@ -56,12 +58,19 @@ const boolType: BooleanType = {
   name: 'bool',
 };
 
+const strType: StringType = {
+  kind: TypeKind.String,
+  name: 'str',
+};
+
 function typeName(type: TypeNode): string {
   switch (type.kind) {
     case SyntaxKind.NumKeyword:
       return numType.name;
     case SyntaxKind.BoolKeyword:
       return boolType.name;
+    case SyntaxKind.StrKeyword:
+      return strType.name;
     case SyntaxKind.TypeReference:
       return type.name.value;
     case SyntaxKind.ArrayType:
@@ -88,6 +97,8 @@ export function createTypeChecker(): TypeChecker {
         return numType;
       case SyntaxKind.BoolKeyword:
         return boolType;
+      case SyntaxKind.StrKeyword:
+        return strType;
       case SyntaxKind.ArrayType:
         const itemType = findType(type.itemType);
         if (itemType === undefined) {
@@ -155,6 +166,8 @@ export function createTypeChecker(): TypeChecker {
         return checkNumberNode(node);
       case SyntaxKind.Boolean:
         return checkBooleanNode(node);
+      case SyntaxKind.String:
+        return checkStringNode(node);
       case SyntaxKind.BlockStatement:
         return checkBlockStatement(node);
       case SyntaxKind.IfStatement:
@@ -419,6 +432,10 @@ export function createTypeChecker(): TypeChecker {
     node.type = boolType;
   }
 
+  function checkStringNode(node: StringNode) {
+    node.type = strType;
+  }
+
   function checkBlockStatement(node: BlockStatement) {
     pushEnv();
     checkChildren(node.statements);
@@ -608,6 +625,7 @@ function getGlobalTypeEnvironment(): TypeEnv {
   const typeEnv: TypeEnv = new Map();
   typeEnv.set(numType.name, numType);
   typeEnv.set(boolType.name, boolType);
+  typeEnv.set(strType.name, strType);
   return typeEnv;
 }
 
