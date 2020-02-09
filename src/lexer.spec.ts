@@ -21,6 +21,7 @@ const keywords: Array<[string, SyntaxToken<TokenSyntaxKind>]> = [
 
   ['num', createToken(SyntaxKind.NumKeyword)],
   ['bool', createToken(SyntaxKind.BoolKeyword)],
+  ['str', createToken(SyntaxKind.StrKeyword)],
 
   ['struct', createToken(SyntaxKind.StructKeyword)],
   ['new', createToken(SyntaxKind.NewKeyword)],
@@ -49,6 +50,12 @@ function allTokens(t: ExecutionContext, input: string, expected: SyntaxKind[]) {
 
 test('Lexer recognises numbers', nextToken, '10', createToken(SyntaxKind.NumberToken, { pos: 0, end: 2 }));
 test('Lexer recognises identifiers', nextToken, 'hello', createToken(SyntaxKind.IdentifierToken, { pos: 0, end: 5 }));
+test(
+  'Lexer recognises string literals',
+  nextToken,
+  `'hello, world!'`,
+  createToken(SyntaxKind.StringToken, { pos: 0, end: 15 }),
+);
 
 for (const [keyword, kind] of keywords) {
   test(`Lexer recognises the keyword "${keyword}"`, nextToken, keyword, { ...kind, pos: 0, end: keyword.length });
@@ -76,6 +83,20 @@ test('Lexer reports diagnostics for unknown tokens', (t) => {
   const [diagnostic] = lexer.getDiagnostics();
   t.is(diagnostic.kind, DiagnosticKind.Error);
   t.is(diagnostic.code, DiagnosticCode.UnknownToken);
+});
+test('Lexer reports a diagnostic for string literals that span multiple lines.', (t) => {
+  const lexer = createLexer(`'hello\nworld`);
+  lexer.nextToken();
+  const [diagnostic] = lexer.getDiagnostics();
+  t.is(diagnostic.kind, DiagnosticKind.Error);
+  t.is(diagnostic.code, DiagnosticCode.UnterminatedStringLiteral);
+});
+test('Lexer reports a diagnostic for string literals that are unterminated.', (t) => {
+  const lexer = createLexer(`'hello world`);
+  lexer.nextToken();
+  const [diagnostic] = lexer.getDiagnostics();
+  t.is(diagnostic.kind, DiagnosticKind.Error);
+  t.is(diagnostic.code, DiagnosticCode.UnterminatedStringLiteral);
 });
 
 test('Lexer recognises multi character tokens.', allTokens, '== != && ||', [

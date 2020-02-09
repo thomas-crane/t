@@ -51,6 +51,7 @@ const charMap: SyntaxKindMap = {
 const keywordMap: SyntaxKindMap = {
   num: SyntaxKind.NumKeyword,
   bool: SyntaxKind.BoolKeyword,
+  str: SyntaxKind.StrKeyword,
 
   let: SyntaxKind.LetKeyword,
   mut: SyntaxKind.MutKeyword,
@@ -117,6 +118,34 @@ export function createLexer(src: string): Lexer {
           return createToken(keywordMap[buf], { pos: start, end: pos });
         }
         return createToken(SyntaxKind.IdentifierToken, { pos: start, end: pos });
+      }
+
+      // strings
+      if (src[pos] === `'`) {
+        const start = pos;
+        let hadError = false;
+        let tokenKind = SyntaxKind.StringToken;
+        do {
+          pos++;
+          if (src[pos] === '\n' || atEnd()) {
+            diagnostics.push({
+              kind: DiagnosticKind.Error,
+              error: 'Unterminated string literal.',
+              pos: start,
+              end: pos,
+              source: DiagnosticSource.Lexer,
+              code: DiagnosticCode.UnterminatedStringLiteral,
+            });
+            hadError = true;
+            tokenKind = SyntaxKind.UnknownToken;
+            break;
+          }
+        } while (!atEnd() && src[pos] !== `'`);
+        if (!hadError) {
+          pos++; // skip closing quote.
+        }
+        const end = pos;
+        return createToken(tokenKind, { pos: start, end });
       }
 
       // misc stuff
