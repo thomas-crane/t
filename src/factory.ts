@@ -22,6 +22,7 @@ import {
   SourceFile,
   StatementNode,
   StopStatement,
+  StringNode,
   StructDeclStatement,
   StructExpression,
   StructMember,
@@ -74,6 +75,17 @@ export function createBooleanNode(
 ): BooleanNode {
   return setTextRange({
     kind: SyntaxKind.Boolean,
+    value,
+    flags: SyntaxNodeFlags.None,
+  }, location);
+}
+
+export function createStringNode(
+  value: string,
+  location?: TextRange,
+): StringNode {
+  return setTextRange({
+    kind: SyntaxKind.String,
     value,
     flags: SyntaxNodeFlags.None,
   }, location);
