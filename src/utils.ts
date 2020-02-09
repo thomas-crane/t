@@ -32,6 +32,7 @@ export function typeMatch(fromType: Type | undefined, toType: Type | undefined):
     // these primitives are always equal.
     case TypeKind.Number:
     case TypeKind.Boolean:
+    case TypeKind.String:
       return TypeMatch.Equal;
     case TypeKind.Function:
       return typeMatchFunction(fromType, toType as FunctionType);
