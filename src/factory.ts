@@ -22,6 +22,10 @@ import {
   SourceFile,
   StatementNode,
   StopStatement,
+  StructDeclStatement,
+  StructExpression,
+  StructMember,
+  StructMemberExpression,
   SyntaxKind,
   SyntaxNodeFlags,
   SyntaxToken,
@@ -143,6 +147,32 @@ export function createArrayExpression(
   return setTextRange({
     kind: SyntaxKind.ArrayExpression,
     items,
+    flags: SyntaxNodeFlags.None,
+  }, location);
+}
+
+export function createStructExpression(
+  name: IdentifierNode,
+  members: StructExpression['members'],
+  location?: TextRange,
+): StructExpression {
+  return setTextRange({
+    kind: SyntaxKind.StructExpression,
+    name,
+    members,
+    flags: SyntaxNodeFlags.None,
+  }, location);
+}
+
+export function createStructMemberExpression(
+  name: IdentifierNode,
+  value: ExpressionNode,
+  location?: TextRange,
+): StructMemberExpression {
+  return setTextRange({
+    kind: SyntaxKind.StructMemberExpression,
+    name,
+    value,
     flags: SyntaxNodeFlags.None,
   }, location);
 }
@@ -271,6 +301,34 @@ export function createExpressionStatement(
   return setTextRange({
     kind: SyntaxKind.ExpressionStatement,
     expr,
+    flags: SyntaxNodeFlags.None,
+  }, location);
+}
+
+export function createStructDeclStatement(
+  name: IdentifierNode,
+  members: StructDeclStatement['members'],
+  location?: TextRange,
+): StructDeclStatement {
+  return setTextRange({
+    kind: SyntaxKind.StructDeclStatement,
+    name,
+    members,
+    flags: SyntaxNodeFlags.None,
+  }, location);
+}
+
+export function createStructMember(
+  isConst: boolean,
+  name: IdentifierNode,
+  typeNode: TypeNode | undefined,
+  location?: TextRange,
+): StructMember {
+  return setTextRange({
+    kind: SyntaxKind.StructMember,
+    isConst,
+    name,
+    typeNode,
     flags: SyntaxNodeFlags.None,
   }, location);
 }
