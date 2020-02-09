@@ -18,6 +18,7 @@ import {
   createReturnStatement,
   createSourceFile,
   createStopStatement,
+  createStringNode,
   createStructDeclStatement,
   createStructExpression,
   createStructMember,
@@ -52,6 +53,7 @@ import {
   SourceFile,
   StatementNode,
   StopStatement,
+  StringNode,
   StructDeclStatement,
   StructExpression,
   StructMember,
@@ -154,6 +156,9 @@ export function createParser(source: SourceFile): Parser {
         break;
       case SyntaxKind.BoolKeyword:
         type = consume(SyntaxKind.BoolKeyword);
+        break;
+      case SyntaxKind.StrKeyword:
+        type = consume(SyntaxKind.StrKeyword);
         break;
       case SyntaxKind.IdentifierToken:
         type = parseTypeReference();
@@ -442,6 +447,8 @@ export function createParser(source: SourceFile): Parser {
         case SyntaxKind.TrueKeyword:
         case SyntaxKind.FalseKeyword:
           return parseBooleanNode();
+        case SyntaxKind.StringToken:
+          return parseStringNode();
         default:
           createDiagnostic(
             'Expected an expression.',
@@ -527,6 +534,12 @@ export function createParser(source: SourceFile): Parser {
         throw new Error('parseBooleanNode should not have been called.');
     }
     return createBooleanNode(token.kind === SyntaxKind.TrueKeyword, { pos: token.pos, end: token.end });
+  }
+
+  function parseStringNode(): StringNode {
+    const token = consume(SyntaxKind.StringToken);
+    const value = source.text.slice(token.pos + 1, token.end - 1); // cut off quotemarks.
+    return createStringNode(value, { pos: token.pos, end: token.end });
   }
 
   function parseStructExpression(): StructExpression | undefined {
