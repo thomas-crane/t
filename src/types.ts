@@ -33,6 +33,9 @@ export enum DiagnosticCode {
   CannotInferType,
   TypeNotCallable,
   WrongNumberOfArguments,
+
+  UnknownMember,
+  UninitialisedMember,
 }
 
 /**
@@ -165,6 +168,7 @@ export enum TypeKind {
   Boolean,
   Array,
   Function,
+  Struct,
 }
 
 /**
@@ -208,6 +212,12 @@ export interface FunctionType extends TypeInfo {
   returnType: Type | undefined;
 }
 
+export interface StructType extends TypeInfo {
+  kind: TypeKind.Struct;
+
+  members: Record<string, Type | undefined>;
+}
+
 /**
  * The set of all types.
  */
@@ -216,6 +226,7 @@ export type Type
   | BooleanType
   | FunctionType
   | ArrayType
+  | StructType
   ;
 
 /**
@@ -267,6 +278,7 @@ export enum SyntaxKind {
   TrueKeyword,
   FalseKeyword,
   StructKeyword,
+  NewKeyword,
 
   // type stuff
   NumKeyword,
@@ -396,6 +408,7 @@ export type TokenSyntaxKind
   | SyntaxKind.NumberToken
   | SyntaxKind.IdentifierToken
   | SyntaxKind.StructKeyword
+  | SyntaxKind.NewKeyword
   ;
 
 /**
