@@ -1,4 +1,4 @@
-import { ArrayType, FunctionType, TextRange, Type, TypeKind, TypeMatch } from './types';
+import { ArrayType, FunctionType, StructType, TextRange, Type, TypeKind, TypeMatch } from './types';
 
 /**
  * Sets the text range on the given target.
@@ -37,6 +37,8 @@ export function typeMatch(fromType: Type | undefined, toType: Type | undefined):
       return typeMatchFunction(fromType, toType as FunctionType);
     case TypeKind.Array:
       return typeMatchArray(fromType, toType as ArrayType);
+    case TypeKind.Struct:
+      return typeMatchStruct(fromType, toType as StructType);
   }
 }
 
@@ -65,4 +67,22 @@ function typeMatchFunction(fromType: FunctionType, toType: FunctionType): TypeMa
 
 function typeMatchArray(fromType: ArrayType, toType: ArrayType): TypeMatch {
   return typeMatch(fromType.itemType, toType.itemType);
+}
+
+function typeMatchStruct(fromType: StructType, toType: StructType): TypeMatch {
+  // TODO(thomas.crane): work out sub/super types. For
+  // now just check for exact matches.
+  // tslint:disable-next-line: forin
+  for (const name in fromType.members) {
+    if (!toType.members.hasOwnProperty(name)) {
+      return TypeMatch.NoMatch;
+    }
+    const fromMember = fromType.members[name];
+    // make sure the member types match.
+    if (typeMatch(fromMember, toType.members[name]) !== TypeMatch.Equal) {
+      return TypeMatch.NoMatch;
+    }
+  }
+
+  return TypeMatch.Equal;
 }
