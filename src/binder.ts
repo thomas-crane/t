@@ -1,4 +1,5 @@
 import {
+  ArrayExpression,
   AssignmentStatement,
   BinaryExpression,
   Binder,
@@ -11,14 +12,20 @@ import {
   ExpressionStatement,
   FnCallExpression,
   FnDeclarationStatement,
+  FnParameter,
   FunctionSymbol,
-  IdentifierLiteral,
+  IdentifierNode,
   IfStatement,
   LoopStatement,
   Node,
   ParameterSymbol,
   ParenExpression,
   ReturnStatement,
+  StructDeclStatement,
+  StructExpression,
+  StructMemberExpression,
+  StructMemberSymbol,
+  StructSymbol,
   SymbolKind,
   SymbolType,
   SyntaxKind,
@@ -38,9 +45,11 @@ export function createBinder(): Binder {
   function pushScope() {
     symbolTables.unshift(new Map());
   }
+
   function popScope() {
     symbolTables.shift();
   }
+
   function findSymbol(name: string): SymbolType | undefined {
     for (const table of symbolTables) {
       if (table.has(name)) {
@@ -49,6 +58,7 @@ export function createBinder(): Binder {
     }
     return undefined;
   }
+
   function addSymbol(symbol: SymbolType) {
     symbolTables[0].set(symbol.name, symbol);
   }
@@ -75,8 +85,14 @@ export function createBinder(): Binder {
         return bindFnCallExpression(node);
       case SyntaxKind.ParenExpression:
         return bindParenExpression(node);
-      case SyntaxKind.IdentifierLiteral:
-        return bindIdentifierLiteral(node);
+      case SyntaxKind.ArrayExpression:
+        return bindArrayExpression(node);
+      case SyntaxKind.StructExpression:
+        return bindStructExpression(node);
+      case SyntaxKind.StructMemberExpression:
+        return bindStructMemberExpression(node);
+      case SyntaxKind.Identifier:
+        return bindIdentifierNode(node);
       case SyntaxKind.BlockStatement:
         return bindBlockStatement(node);
       case SyntaxKind.IfStatement:
@@ -85,6 +101,8 @@ export function createBinder(): Binder {
         return bindAssignmentStatement(node);
       case SyntaxKind.DeclarationStatement:
         return bindDeclarationStatement(node);
+      case SyntaxKind.FnParameter:
+        return bindFnParameter(node);
       case SyntaxKind.FnDeclarationStatement:
         return bindFnDeclarationStatement(node);
       case SyntaxKind.ReturnStatement:
@@ -93,6 +111,8 @@ export function createBinder(): Binder {
         return bindLoopStatement(node);
       case SyntaxKind.ExpressionStatement:
         return bindExpressionStatement(node);
+      case SyntaxKind.StructDeclStatement:
+        return bindStructDeclStatement(node);
     }
   }
 
@@ -106,6 +126,7 @@ export function createBinder(): Binder {
     bind(node.left);
     bind(node.right);
   }
+
   function bindFnCallExpression(node: FnCallExpression) {
     const fnSymbol = findSymbol(node.fnName.value);
     if (fnSymbol !== undefined) {
@@ -124,11 +145,55 @@ export function createBinder(): Binder {
     }
     bindChildren(node.args);
   }
+
   function bindParenExpression(node: ParenExpression) {
     bind(node.expr);
     node.symbol = node.expr.symbol;
   }
-  function bindIdentifierLiteral(node: IdentifierLiteral) {
+
+  function bindArrayExpression(node: ArrayExpression) {
+    bindChildren(node.items);
+  }
+
+  function bindStructExpression(node: StructExpression) {
+    const structSymbol = findSymbol(node.name.value);
+    if (structSymbol === undefined || structSymbol.kind !== SymbolKind.Struct) {
+      createDiagnostic(
+        `Cannot find struct "${node.name.value}"`,
+        DiagnosticCode.UnknownSymbol,
+        {
+          pos: node.name.pos,
+          end: node.name.end,
+        },
+      );
+      node.flags |= SyntaxNodeFlags.HasErrors;
+    } else {
+      node.symbol = structSymbol;
+      structSymbol.references.push(node);
+      // add each of the expected members to the scope
+      pushScope();
+      // tslint:disable-next-line: forin
+      for (const name in structSymbol.members) {
+        addSymbol(structSymbol.members[name]);
+      }
+      // tslint:disable-next-line: forin
+      for (const name in node.members) {
+        // only bind members that are part of the struct.
+        if (structSymbol.members.hasOwnProperty(name)) {
+          bind(node.members[name]);
+        }
+      }
+      popScope();
+    }
+  }
+
+  function bindStructMemberExpression(node: StructMemberExpression) {
+    bind(node.value);
+    bind(node.name);
+    node.symbol = node.name.symbol;
+  }
+
+  function bindIdentifierNode(node: IdentifierNode) {
     const varSymbol = findSymbol(node.value);
     if (varSymbol !== undefined) {
       varSymbol.references.push(node);
@@ -145,11 +210,13 @@ export function createBinder(): Binder {
       node.flags |= SyntaxNodeFlags.HasErrors;
     }
   }
+
   function bindBlockStatement(node: BlockStatement) {
     pushScope();
     bindChildren(node.statements);
     popScope();
   }
+
   function bindIfStatement(node: IfStatement) {
     bind(node.condition);
     bind(node.body);
@@ -157,11 +224,13 @@ export function createBinder(): Binder {
       bind(node.elseBody);
     }
   }
+
   function bindAssignmentStatement(node: AssignmentStatement) {
     bind(node.identifier);
     bind(node.value);
     node.symbol = node.identifier.symbol;
   }
+
   function bindDeclarationStatement(node: DeclarationStatement) {
     bind(node.value);
     // make sure we're not redeclaring an existing variable.
@@ -188,6 +257,18 @@ export function createBinder(): Binder {
       addSymbol(varSymbol);
     }
   }
+
+  function bindFnParameter(node: FnParameter) {
+    const paramSymbol: ParameterSymbol = {
+      kind: SymbolKind.Parameter,
+      name: node.name.value,
+      firstMention: node,
+      references: [],
+    };
+    node.symbol = paramSymbol;
+    node.name.symbol = paramSymbol;
+  }
+
   function bindFnDeclarationStatement(node: FnDeclarationStatement) {
     // check for redeclaration again
     const existingSymbol = findSymbol(node.fnName.value);
@@ -202,45 +283,82 @@ export function createBinder(): Binder {
       );
       node.flags |= SyntaxNodeFlags.HasErrors;
     } else {
-      // bind each param as a parameter symbol.
-      const paramSymbols: ParameterSymbol[] = [];
-      for (const param of node.params) {
-        const paramSymbol: ParameterSymbol = {
-          kind: SymbolKind.Parameter,
-          name: param.value,
-          firstMention: param,
-          references: [],
-        };
-        param.symbol = paramSymbol;
-        paramSymbols.push(paramSymbol);
-      }
+      // bind params.
+      bindChildren(node.params);
       const fnSymbol: FunctionSymbol = {
         kind: SymbolKind.Function,
         name: node.fnName.value,
         firstMention: node,
         references: [],
-        parameters: paramSymbols,
+        parameters: node.params.map((param) => param.symbol as ParameterSymbol),
       };
       addSymbol(fnSymbol);
       // add the parameters to the function body scope before binding it.
       pushScope();
-      for (const symbol of paramSymbols) {
-        addSymbol(symbol);
+      for (const param of node.params) {
+        addSymbol(param.symbol!);
       }
       bindChildren(node.body.statements);
       popScope();
     }
   }
+
   function bindReturnStatement(node: ReturnStatement) {
     bind(node.value);
     node.symbol = node.value.symbol;
   }
+
   function bindLoopStatement(node: LoopStatement) {
     bind(node.body);
   }
+
   function bindExpressionStatement(node: ExpressionStatement) {
     bind(node.expr);
     node.symbol = node.expr.symbol;
+  }
+
+  function bindStructDeclStatement(node: StructDeclStatement) {
+    // make sure we're not redeclaring an existing struct.
+    const existingSymbol = findSymbol(node.name.value);
+    if (existingSymbol !== undefined) {
+      createDiagnostic(
+        `Duplicate struct name "${existingSymbol.name}"`,
+        DiagnosticCode.DuplicateSymbol,
+        {
+          pos: node.name.pos,
+          end: node.name.end,
+        },
+      );
+      node.flags |= SyntaxNodeFlags.HasErrors;
+    } else {
+      const members: Record<string, StructMemberSymbol> = {};
+      const structSymbol: StructSymbol = {
+        kind: SymbolKind.Struct,
+        name: node.name.value,
+        members,
+        firstMention: node,
+        references: [],
+      };
+      // tslint:disable-next-line: forin
+      for (const name in node.members) {
+        const memberNode = node.members[name];
+        if (memberNode.typeNode) {
+          bind(memberNode.typeNode);
+        }
+        const memberSymbol: StructMemberSymbol = {
+          kind: SymbolKind.StructMember,
+          name: memberNode.name.value,
+          isConst: memberNode.isConst,
+          struct: structSymbol,
+          firstMention: memberNode,
+          references: [],
+        };
+        memberNode.symbol = memberSymbol;
+        members[name] = memberSymbol;
+      }
+      node.symbol = structSymbol;
+      addSymbol(structSymbol);
+    }
   }
 
   return {

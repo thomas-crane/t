@@ -1,28 +1,39 @@
 import {
+  ArrayExpression,
+  ArrayTypeNode,
   AssignmentStatement,
   BinaryExpression,
   BinaryOperator,
   BlockStatement,
+  BooleanNode,
   DeclarationStatement,
   DiagnosticType,
   ExpressionNode,
   ExpressionStatement,
   FnCallExpression,
   FnDeclarationStatement,
-  IdentifierLiteral,
+  FnParameter,
+  IdentifierNode,
   IfStatement,
   LoopStatement,
-  NumberLiteral,
+  NumberNode,
   ParenExpression,
   ReturnStatement,
   SourceFile,
   StatementNode,
   StopStatement,
+  StringNode,
+  StructDeclStatement,
+  StructExpression,
+  StructMember,
+  StructMemberExpression,
   SyntaxKind,
   SyntaxNodeFlags,
   SyntaxToken,
   TextRange,
   TokenSyntaxKind,
+  TypeNode,
+  TypeReference,
 } from './types';
 import { setTextRange } from './utils';
 
@@ -36,24 +47,68 @@ export function createToken<T extends TokenSyntaxKind>(
   }, location);
 }
 
-export function createNumberLiteral(
+export function createNumberNode(
   value: number,
   location?: TextRange,
-): NumberLiteral {
+): NumberNode {
   return setTextRange({
-    kind: SyntaxKind.NumberLiteral,
+    kind: SyntaxKind.Number,
     value,
     flags: SyntaxNodeFlags.None,
   }, location);
 }
 
-export function createIdentifier(
+export function createIdentifierNode(
   value: string,
   location?: TextRange,
-): IdentifierLiteral {
+): IdentifierNode {
   return setTextRange({
-    kind: SyntaxKind.IdentifierLiteral,
+    kind: SyntaxKind.Identifier,
     value,
+    flags: SyntaxNodeFlags.None,
+  }, location);
+}
+
+export function createBooleanNode(
+  value: boolean,
+  location?: TextRange,
+): BooleanNode {
+  return setTextRange({
+    kind: SyntaxKind.Boolean,
+    value,
+    flags: SyntaxNodeFlags.None,
+  }, location);
+}
+
+export function createStringNode(
+  value: string,
+  location?: TextRange,
+): StringNode {
+  return setTextRange({
+    kind: SyntaxKind.String,
+    value,
+    flags: SyntaxNodeFlags.None,
+  }, location);
+}
+
+export function createTypeReference(
+  name: IdentifierNode,
+  location?: TextRange,
+): TypeReference {
+  return setTextRange({
+    kind: SyntaxKind.TypeReference,
+    name,
+    flags: SyntaxNodeFlags.None,
+  }, location);
+}
+
+export function createArrayTypeNode(
+  itemType: TypeNode,
+  location?: TextRange,
+): ArrayTypeNode {
+  return setTextRange({
+    kind: SyntaxKind.ArrayType,
+    itemType,
     flags: SyntaxNodeFlags.None,
   }, location);
 }
@@ -74,7 +129,7 @@ export function createBinaryExpression(
 }
 
 export function createFnCallExpression(
-  fnName: IdentifierLiteral,
+  fnName: IdentifierNode,
   args: ExpressionNode[],
   location?: TextRange,
 ): FnCallExpression {
@@ -93,6 +148,43 @@ export function createParenExpression(
   return setTextRange({
     kind: SyntaxKind.ParenExpression,
     expr,
+    flags: SyntaxNodeFlags.None,
+  }, location);
+}
+
+export function createArrayExpression(
+  items: ExpressionNode[],
+  location?: TextRange,
+): ArrayExpression {
+  return setTextRange({
+    kind: SyntaxKind.ArrayExpression,
+    items,
+    flags: SyntaxNodeFlags.None,
+  }, location);
+}
+
+export function createStructExpression(
+  name: IdentifierNode,
+  members: StructExpression['members'],
+  location?: TextRange,
+): StructExpression {
+  return setTextRange({
+    kind: SyntaxKind.StructExpression,
+    name,
+    members,
+    flags: SyntaxNodeFlags.None,
+  }, location);
+}
+
+export function createStructMemberExpression(
+  name: IdentifierNode,
+  value: ExpressionNode,
+  location?: TextRange,
+): StructMemberExpression {
+  return setTextRange({
+    kind: SyntaxKind.StructMemberExpression,
+    name,
+    value,
     flags: SyntaxNodeFlags.None,
   }, location);
 }
@@ -124,7 +216,7 @@ export function createIfStatement(
 }
 
 export function createAssignmentStatement(
-  identifier: IdentifierLiteral,
+  identifier: IdentifierNode,
   value: ExpressionNode,
   location?: TextRange,
 ): AssignmentStatement {
@@ -138,7 +230,8 @@ export function createAssignmentStatement(
 
 export function createDeclarationStatement(
   isConst: boolean,
-  identifier: IdentifierLiteral,
+  identifier: IdentifierNode,
+  typeNode: TypeNode | undefined,
   value: ExpressionNode,
   location?: TextRange,
 ): DeclarationStatement {
@@ -146,14 +239,29 @@ export function createDeclarationStatement(
     kind: SyntaxKind.DeclarationStatement,
     isConst,
     identifier,
+    typeNode,
     value,
     flags: SyntaxNodeFlags.None,
   }, location);
 }
 
+export function createFnParameter(
+  name: IdentifierNode,
+  typeNode: TypeNode | undefined,
+  location?: TextRange,
+): FnParameter {
+  return setTextRange({
+    kind: SyntaxKind.FnParameter,
+    name,
+    typeNode,
+    flags: SyntaxNodeFlags.None,
+  }, location);
+}
+
 export function createFnDeclarationStatement(
-  fnName: IdentifierLiteral,
-  params: IdentifierLiteral[],
+  fnName: IdentifierNode,
+  params: FnParameter[],
+  returnTypeNode: TypeNode | undefined,
   body: BlockStatement,
   location?: TextRange,
 ): FnDeclarationStatement {
@@ -161,6 +269,7 @@ export function createFnDeclarationStatement(
     kind: SyntaxKind.FnDeclarationStatement,
     fnName,
     params,
+    returnTypeNode,
     body,
     flags: SyntaxNodeFlags.None,
   }, location);
@@ -204,6 +313,34 @@ export function createExpressionStatement(
   return setTextRange({
     kind: SyntaxKind.ExpressionStatement,
     expr,
+    flags: SyntaxNodeFlags.None,
+  }, location);
+}
+
+export function createStructDeclStatement(
+  name: IdentifierNode,
+  members: StructDeclStatement['members'],
+  location?: TextRange,
+): StructDeclStatement {
+  return setTextRange({
+    kind: SyntaxKind.StructDeclStatement,
+    name,
+    members,
+    flags: SyntaxNodeFlags.None,
+  }, location);
+}
+
+export function createStructMember(
+  isConst: boolean,
+  name: IdentifierNode,
+  typeNode: TypeNode | undefined,
+  location?: TextRange,
+): StructMember {
+  return setTextRange({
+    kind: SyntaxKind.StructMember,
+    isConst,
+    name,
+    typeNode,
     flags: SyntaxNodeFlags.None,
   }, location);
 }

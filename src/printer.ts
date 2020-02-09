@@ -1,21 +1,32 @@
 import {
+  ArrayExpression,
+  ArrayTypeNode,
   AssignmentStatement,
   BinaryExpression,
   BinaryOperator,
   BlockStatement,
+  BooleanNode,
   DeclarationStatement,
   ExpressionStatement,
   FnCallExpression,
   FnDeclarationStatement,
-  IdentifierLiteral,
+  FnParameter,
+  IdentifierNode,
   IfStatement,
   LoopStatement,
   Node,
-  NumberLiteral,
+  NumberNode,
   ParenExpression,
   ReturnStatement,
   SourceFile,
+  StringNode,
+  StructDeclStatement,
+  StructExpression,
+  StructMember,
+  StructMemberExpression,
   SyntaxKind,
+  SyntaxToken,
+  TypeReference,
 } from './types';
 
 const INDENT_SIZE = 2;
@@ -25,10 +36,23 @@ const INDENT_SIZE = 2;
  */
 export function printNode(node: Node): string {
   switch (node.kind) {
-    case SyntaxKind.IdentifierLiteral:
-      return printIdentifierLiteral(node);
-    case SyntaxKind.NumberLiteral:
-      return printNumberLiteral(node);
+    case SyntaxKind.Identifier:
+      return printIdentifierNode(node);
+    case SyntaxKind.Number:
+      return printNumberNode(node);
+    case SyntaxKind.Boolean:
+      return printBooleanNode(node);
+    case SyntaxKind.String:
+      return printStringNode(node);
+
+    case SyntaxKind.TypeReference:
+      return printTypeReference(node);
+    case SyntaxKind.ArrayType:
+      return printArrayType(node);
+    case SyntaxKind.NumKeyword:
+    case SyntaxKind.BoolKeyword:
+    case SyntaxKind.StrKeyword:
+      return printTypeKeyword(node);
 
     case SyntaxKind.BinaryExpression:
       return printBinaryExpression(node);
@@ -36,6 +60,12 @@ export function printNode(node: Node): string {
       return printFnCallExpression(node);
     case SyntaxKind.ParenExpression:
       return printParenExpression(node);
+    case SyntaxKind.ArrayExpression:
+      return printArrayExpression(node);
+    case SyntaxKind.StructExpression:
+      return printStructExpression(node);
+    case SyntaxKind.StructMemberExpression:
+      return printStructMemberExpression(node);
 
     case SyntaxKind.BlockStatement:
       return printBlockStatement(node);
@@ -45,6 +75,8 @@ export function printNode(node: Node): string {
       return printAssignmentStatement(node);
     case SyntaxKind.DeclarationStatement:
       return printDeclarationStatement(node);
+    case SyntaxKind.FnParameter:
+      return printFnParameter(node);
     case SyntaxKind.FnDeclarationStatement:
       return printFnDeclarationStatement(node);
     case SyntaxKind.ReturnStatement:
@@ -55,18 +87,49 @@ export function printNode(node: Node): string {
       return printStopStatement();
     case SyntaxKind.ExpressionStatement:
       return printExpressionStatement(node);
+    case SyntaxKind.StructDeclStatement:
+      return printStructDeclStatement(node);
+    case SyntaxKind.StructMember:
+      return printStructMember(node);
 
     case SyntaxKind.SourceFile:
       return printSourceFile(node);
   }
 }
 
-function printIdentifierLiteral(node: IdentifierLiteral): string {
-  return `(IdentifierLiteral "${node.value}")`;
+function printIdentifierNode(node: IdentifierNode): string {
+  return `(IdentifierNode "${node.value}")`;
 }
 
-function printNumberLiteral(node: NumberLiteral): string {
-  return `(NumberLiteral "${node.value}")`;
+function printNumberNode(node: NumberNode): string {
+  return `(NumberNode "${node.value}")`;
+}
+
+function printBooleanNode(node: BooleanNode): string {
+  return `(BooleanNode "${node.value}")`;
+}
+
+function printStringNode(node: StringNode): string {
+  return `(StringNode "${node.value}")`;
+}
+
+function printTypeReference(node: TypeReference): string {
+  return `(TypeReference ${printNode(node.name)})`;
+}
+
+function printArrayType(node: ArrayTypeNode): string {
+  return `(ArrayType ${printNode(node.itemType)})`;
+}
+
+function printTypeKeyword(node: SyntaxToken<SyntaxKind.NumKeyword | SyntaxKind.BoolKeyword | SyntaxKind.StrKeyword>) {
+  switch (node.kind) {
+    case SyntaxKind.NumKeyword:
+      return '(NumKeyword)';
+    case SyntaxKind.BoolKeyword:
+      return '(BoolKeyword)';
+    case SyntaxKind.StrKeyword:
+      return '(StrKeyword)';
+  }
 }
 
 function printBinaryExpression(node: BinaryExpression): string {
@@ -126,6 +189,41 @@ function printParenExpression(node: ParenExpression): string {
   return `(ParenExpression ${expr})`;
 }
 
+function printArrayExpression(node: ArrayExpression): string {
+  const printedItems = node.items.map((item) => printNode(item));
+  return [
+    '(ArrayExpression',
+    ...indent(printedItems, INDENT_SIZE),
+    ')',
+  ].join('\n');
+}
+
+function printStructExpression(node: StructExpression): string {
+  const members: string[] = [
+    printNode(node.name),
+  ];
+  // tslint:disable-next-line: forin
+  for (const name in node.members) {
+    members.push(printNode(node.members[name]));
+  }
+  return [
+    '(StructExpression',
+    ...indent(members, INDENT_SIZE),
+    ')',
+  ].join('\n');
+}
+
+function printStructMemberExpression(node: StructMemberExpression): string {
+  return [
+    '(StructMemberExpression',
+    ...indent([
+      printNode(node.name),
+      printNode(node.value),
+    ], INDENT_SIZE),
+    ')',
+  ].join('\n');
+}
+
 function printBlockStatement(node: BlockStatement): string {
   const statements = node.statements.map((stmt) => printNode(stmt));
   const indented = indent(statements, 2);
@@ -171,13 +269,32 @@ function printDeclarationStatement(node: DeclarationStatement): string {
   const identifier = printNode(node.identifier);
   const value = printNode(node.value);
   const declType = node.isConst ? 'LetKeyword' : 'MutKeyword';
+  const result = [
+    declType,
+    identifier,
+  ];
+  if (node.typeNode) {
+    const typeNode = printNode(node.typeNode);
+    result.push(typeNode);
+  }
+  result.push(value);
   return [
     '(DeclarationStatement',
-    ...indent([
-      declType,
-      identifier,
-      value,
-    ], INDENT_SIZE),
+    ...indent(result, INDENT_SIZE),
+    ')',
+  ].join('\n');
+}
+
+function printFnParameter(node: FnParameter): string {
+  const identifier = printNode(node.name);
+  const result = [identifier];
+  if (node.typeNode) {
+    const typeNode = printNode(node.typeNode);
+    result.push(typeNode);
+  }
+  return [
+    '(FnParameter',
+    ...indent(result, INDENT_SIZE),
     ')',
   ].join('\n');
 }
@@ -186,13 +303,18 @@ function printFnDeclarationStatement(node: FnDeclarationStatement): string {
   const fnName = printNode(node.fnName);
   const params = node.params.map((param) => printNode(param));
   const body = printNode(node.body);
+  const result = [
+    fnName,
+    ...params,
+  ];
+  if (node.returnTypeNode) {
+    const typeNode = printNode(node.returnTypeNode);
+    result.push(typeNode);
+  }
+  result.push(body);
   return [
     '(FnDeclarationStatement',
-    ...indent([
-      fnName,
-      ...params,
-      body,
-    ], INDENT_SIZE),
+    ...indent(result, INDENT_SIZE),
     ')',
   ].join('\n');
 }
@@ -218,6 +340,38 @@ function printStopStatement(): string {
 function printExpressionStatement(node: ExpressionStatement): string {
   const expr = printNode(node.expr);
   return `(ExpressionStatement ${expr})`;
+}
+
+function printStructDeclStatement(node: StructDeclStatement): string {
+  const members: string[] = [];
+  // tslint:disable-next-line: forin
+  for (const name in node.members) {
+    members.push(printNode(node.members[name]));
+  }
+  return [
+    '(StructDeclStatement',
+    ...indent([
+      printNode(node.name),
+      ...members,
+    ], INDENT_SIZE),
+    ')',
+  ].join('\n');
+}
+
+function printStructMember(node: StructMember): string {
+  const result: string[] = [];
+  if (!node.isConst) {
+    result.push('MutKeyword');
+  }
+  result.push(printNode(node.name));
+  if (node.typeNode) {
+    result.push(printNode(node.typeNode));
+  }
+  return [
+    '(StructMember',
+    ...indent(result, INDENT_SIZE),
+    ')',
+  ].join('\n');
 }
 
 function printSourceFile(node: SourceFile): string {

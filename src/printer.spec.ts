@@ -11,29 +11,29 @@ function testPrint(t: ExecutionContext, node: Node, expected: string) {
 test(
   'Printer works for identifiers',
   testPrint,
-  factory.createIdentifier('hello'),
-  '(IdentifierLiteral "hello")',
+  factory.createIdentifierNode('hello'),
+  '(IdentifierNode "hello")',
 );
 
 test(
   'Printer works for number literals',
   testPrint,
-  factory.createNumberLiteral(10),
-  '(NumberLiteral "10")',
+  factory.createNumberNode(10),
+  '(NumberNode "10")',
 );
 
 test(
   'Printer works for binary expressions',
   testPrint,
   factory.createBinaryExpression(
-    factory.createNumberLiteral(10),
+    factory.createNumberNode(10),
     factory.createToken(SyntaxKind.PlusToken),
-    factory.createNumberLiteral(20),
+    factory.createNumberNode(20),
   ),
   `(BinaryExpression
-  (NumberLiteral "10")
+  (NumberNode "10")
   +
-  (NumberLiteral "20")
+  (NumberNode "20")
 )`,
 );
 
@@ -41,16 +41,16 @@ test(
   'Printer works for function calls.',
   testPrint,
   factory.createFnCallExpression(
-    factory.createIdentifier('add'),
+    factory.createIdentifierNode('add'),
     [
-      factory.createNumberLiteral(10),
-      factory.createNumberLiteral(20),
+      factory.createNumberNode(10),
+      factory.createNumberNode(20),
     ],
   ),
   `(FnCallExpression
-  (IdentifierLiteral "add")
-  (NumberLiteral "10")
-  (NumberLiteral "20")
+  (IdentifierNode "add")
+  (NumberNode "10")
+  (NumberNode "20")
 )`,
 );
 
@@ -58,9 +58,38 @@ test(
   'Printer works for paren expressions',
   testPrint,
   factory.createParenExpression(
-    factory.createIdentifier('test'),
+    factory.createIdentifierNode('test'),
   ),
-  '(ParenExpression (IdentifierLiteral "test"))',
+  '(ParenExpression (IdentifierNode "test"))',
+);
+
+test(
+  'Printer works for struct expressions',
+  testPrint,
+  factory.createStructExpression(
+    factory.createIdentifierNode('Point'),
+    {
+      x: factory.createStructMemberExpression(
+        factory.createIdentifierNode('x'),
+        factory.createNumberNode(10),
+      ),
+      y: factory.createStructMemberExpression(
+        factory.createIdentifierNode('y'),
+        factory.createNumberNode(20),
+      ),
+    },
+  ),
+  `(StructExpression
+  (IdentifierNode "Point")
+  (StructMemberExpression
+    (IdentifierNode "x")
+    (NumberNode "10")
+  )
+  (StructMemberExpression
+    (IdentifierNode "y")
+    (NumberNode "20")
+  )
+)`,
 );
 
 test(
@@ -68,11 +97,11 @@ test(
   testPrint,
   factory.createBlockStatement([
     factory.createExpressionStatement(
-      factory.createNumberLiteral(10),
+      factory.createNumberNode(10),
     ),
   ]),
   `(BlockStatement
-  (ExpressionStatement (NumberLiteral "10"))
+  (ExpressionStatement (NumberNode "10"))
 )`,
 );
 
@@ -80,17 +109,17 @@ test(
   'Printer works for if statements without an else',
   testPrint,
   factory.createIfStatement(
-    factory.createNumberLiteral(1),
+    factory.createNumberNode(1),
     factory.createBlockStatement([
       factory.createExpressionStatement(
-        factory.createNumberLiteral(10),
+        factory.createNumberNode(10),
       ),
     ]),
   ),
   `(IfStatement
-  (NumberLiteral "1")
+  (NumberNode "1")
   (BlockStatement
-    (ExpressionStatement (NumberLiteral "10"))
+    (ExpressionStatement (NumberNode "10"))
   )
 )`,
 );
@@ -99,25 +128,25 @@ test(
   'Printer works for if statements with an else',
   testPrint,
   factory.createIfStatement(
-    factory.createNumberLiteral(1),
+    factory.createNumberNode(1),
     factory.createBlockStatement([
       factory.createExpressionStatement(
-        factory.createNumberLiteral(10),
+        factory.createNumberNode(10),
       ),
     ]),
     factory.createBlockStatement([
       factory.createExpressionStatement(
-        factory.createNumberLiteral(20),
+        factory.createNumberNode(20),
       ),
     ]),
   ),
   `(IfStatement
-  (NumberLiteral "1")
+  (NumberNode "1")
   (BlockStatement
-    (ExpressionStatement (NumberLiteral "10"))
+    (ExpressionStatement (NumberNode "10"))
   )
   (BlockStatement
-    (ExpressionStatement (NumberLiteral "20"))
+    (ExpressionStatement (NumberNode "20"))
   )
 )`,
 );
@@ -126,12 +155,12 @@ test(
   'Printer works for assignment statements',
   testPrint,
   factory.createAssignmentStatement(
-    factory.createIdentifier('a'),
-    factory.createNumberLiteral(10),
+    factory.createIdentifierNode('a'),
+    factory.createNumberNode(10),
   ),
   `(AssignmentStatement
-  (IdentifierLiteral "a")
-  (NumberLiteral "10")
+  (IdentifierNode "a")
+  (NumberNode "10")
 )`,
 );
 
@@ -140,13 +169,31 @@ test(
   testPrint,
   factory.createDeclarationStatement(
     false,
-    factory.createIdentifier('test'),
-    factory.createNumberLiteral(20),
+    factory.createIdentifierNode('test'),
+    undefined,
+    factory.createNumberNode(20),
   ),
   `(DeclarationStatement
   MutKeyword
-  (IdentifierLiteral "test")
-  (NumberLiteral "20")
+  (IdentifierNode "test")
+  (NumberNode "20")
+)`,
+);
+
+test(
+  'Printer works for declaration statements with type annotations',
+  testPrint,
+  factory.createDeclarationStatement(
+    true,
+    factory.createIdentifierNode('some_condition'),
+    factory.createToken(SyntaxKind.BoolKeyword),
+    factory.createBooleanNode(true),
+  ),
+  `(DeclarationStatement
+  LetKeyword
+  (IdentifierNode "some_condition")
+  (BoolKeyword)
+  (BooleanNode "true")
 )`,
 );
 
@@ -154,32 +201,109 @@ test(
   'Printer works for fn declaration statements',
   testPrint,
   factory.createFnDeclarationStatement(
-    factory.createIdentifier('add'),
+    factory.createIdentifierNode('add'),
     [
-      factory.createIdentifier('x'),
-      factory.createIdentifier('y'),
+      factory.createFnParameter(
+        factory.createIdentifierNode('x'),
+        undefined,
+      ),
+      factory.createFnParameter(
+        factory.createIdentifierNode('y'),
+        undefined,
+      ),
     ],
+    undefined,
     factory.createBlockStatement([
       factory.createReturnStatement(
         factory.createBinaryExpression(
-          factory.createIdentifier('x'),
+          factory.createIdentifierNode('x'),
           factory.createToken(SyntaxKind.PlusToken),
-          factory.createIdentifier('y'),
+          factory.createIdentifierNode('y'),
         ),
       ),
     ]),
   ),
   `(FnDeclarationStatement
-  (IdentifierLiteral "add")
-  (IdentifierLiteral "x")
-  (IdentifierLiteral "y")
+  (IdentifierNode "add")
+  (FnParameter
+    (IdentifierNode "x")
+  )
+  (FnParameter
+    (IdentifierNode "y")
+  )
   (BlockStatement
     (ReturnStatement (BinaryExpression
-      (IdentifierLiteral "x")
+      (IdentifierNode "x")
       +
-      (IdentifierLiteral "y")
+      (IdentifierNode "y")
     ))
   )
+)`,
+);
+
+test(
+  'Printer works for fn declaration statements with type annotations',
+  testPrint,
+  factory.createFnDeclarationStatement(
+    factory.createIdentifierNode('add'),
+    [
+      factory.createFnParameter(
+        factory.createIdentifierNode('a'),
+        factory.createToken(SyntaxKind.NumKeyword),
+      ),
+      factory.createFnParameter(
+        factory.createIdentifierNode('b'),
+        factory.createToken(SyntaxKind.NumKeyword),
+      ),
+    ],
+    factory.createToken(SyntaxKind.NumKeyword),
+    factory.createBlockStatement([
+      factory.createReturnStatement(
+        factory.createBinaryExpression(
+          factory.createIdentifierNode('a'),
+          factory.createToken(SyntaxKind.PlusToken),
+          factory.createIdentifierNode('b'),
+        ),
+      ),
+    ]),
+  ),
+  `(FnDeclarationStatement
+  (IdentifierNode "add")
+  (FnParameter
+    (IdentifierNode "a")
+    (NumKeyword)
+  )
+  (FnParameter
+    (IdentifierNode "b")
+    (NumKeyword)
+  )
+  (NumKeyword)
+  (BlockStatement
+    (ReturnStatement (BinaryExpression
+      (IdentifierNode "a")
+      +
+      (IdentifierNode "b")
+    ))
+  )
+)`,
+);
+
+test(
+  'Printer works for array type annotations',
+  testPrint,
+  factory.createDeclarationStatement(
+    true,
+    factory.createIdentifierNode('test'),
+    factory.createArrayTypeNode(
+      factory.createToken(SyntaxKind.NumKeyword),
+    ),
+    factory.createNumberNode(10),
+  ),
+  `(DeclarationStatement
+  LetKeyword
+  (IdentifierNode "test")
+  (ArrayType (NumKeyword))
+  (NumberNode "10")
 )`,
 );
 
@@ -187,9 +311,9 @@ test(
   'Printer works for return statements',
   testPrint,
   factory.createReturnStatement(
-    factory.createNumberLiteral(10),
+    factory.createNumberNode(10),
   ),
-  '(ReturnStatement (NumberLiteral "10"))',
+  '(ReturnStatement (NumberNode "10"))',
 );
 
 test(
@@ -198,13 +322,13 @@ test(
   factory.createLoopStatement(
     factory.createBlockStatement([
       factory.createExpressionStatement(
-        factory.createNumberLiteral(100),
+        factory.createNumberNode(100),
       ),
     ]),
   ),
   `(LoopStatement
   (BlockStatement
-    (ExpressionStatement (NumberLiteral "100"))
+    (ExpressionStatement (NumberNode "100"))
   )
 )`,
 );
@@ -213,9 +337,56 @@ test(
   'Printer works for expression statements',
   testPrint,
   factory.createExpressionStatement(
-    factory.createIdentifier('hello'),
+    factory.createIdentifierNode('hello'),
   ),
-  '(ExpressionStatement (IdentifierLiteral "hello"))',
+  '(ExpressionStatement (IdentifierNode "hello"))',
+);
+
+test(
+  'Printer works for array expressions.',
+  testPrint,
+  factory.createArrayExpression([
+    factory.createNumberNode(10),
+    factory.createIdentifierNode('hello'),
+    factory.createBooleanNode(true),
+  ]),
+  `(ArrayExpression
+  (NumberNode "10")
+  (IdentifierNode "hello")
+  (BooleanNode "true")
+)`,
+);
+
+test(
+  'Printer works for struct declarations',
+  testPrint,
+  factory.createStructDeclStatement(
+    factory.createIdentifierNode('Point'),
+    {
+      x: factory.createStructMember(
+        true,
+        factory.createIdentifierNode('x'),
+        factory.createToken(SyntaxKind.NumKeyword),
+      ),
+      y: factory.createStructMember(
+        false,
+        factory.createIdentifierNode('y'),
+        factory.createToken(SyntaxKind.NumKeyword),
+      ),
+    },
+  ),
+  `(StructDeclStatement
+  (IdentifierNode "Point")
+  (StructMember
+    (IdentifierNode "x")
+    (NumKeyword)
+  )
+  (StructMember
+    MutKeyword
+    (IdentifierNode "y")
+    (NumKeyword)
+  )
+)`,
 );
 
 test(
@@ -223,10 +394,10 @@ test(
   testPrint,
   factory.createSourceFile([
     factory.createExpressionStatement(
-      factory.createNumberLiteral(100),
+      factory.createNumberNode(100),
     ),
   ], '100', 'testfile'),
   `(SourceFile
-  (ExpressionStatement (NumberLiteral "100"))
+  (ExpressionStatement (NumberNode "100"))
 )`,
 );

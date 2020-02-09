@@ -20,10 +20,22 @@ let x = 10
 mut x = 10
 ```
 
+### Type annotations
+
+Variables can optionally be annotated with a type.
+
+```
+let x: num = 10
+let y: bool = true
+```
+
+In some cases type annotations are not necessary because the type can be inferred, however
+in function declarations they are always required.
+
 ### Functions
 
 ```
-fn add: a, b {
+fn add(a: num, b: num): num {
   return a + b
 }
 
@@ -51,6 +63,32 @@ loop {
   if i > 10 {
     stop
   }
+}
+```
+
+### Custom types
+
+#### Defining structs
+
+Custom types can be created using the `struct` keyword.
+
+```
+struct Point {
+  x: num,
+  y: num,
+}
+```
+
+Each member of the struct must have a type annotation.
+
+#### Instantiating structs
+
+New instances of structs can be created by using the `new` keyword and the structs name followed by a block that initialises each of the struct's members.
+
+```
+let p = new Point {
+  x: 10,
+  y: 20,
 }
 ```
 
