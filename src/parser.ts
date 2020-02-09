@@ -18,6 +18,10 @@ import {
   createReturnStatement,
   createSourceFile,
   createStopStatement,
+  createStructDeclStatement,
+  createStructExpression,
+  createStructMember,
+  createStructMemberExpression,
   createToken,
   createTypeReference,
 } from './factory';
@@ -32,6 +36,7 @@ import {
   DiagnosticCode,
   DiagnosticKind,
   DiagnosticSource,
+  DiagnosticType,
   ExpressionNode,
   ExpressionStatement,
   FnCallExpression,
@@ -47,9 +52,14 @@ import {
   SourceFile,
   StatementNode,
   StopStatement,
+  StructDeclStatement,
+  StructExpression,
+  StructMember,
+  StructMemberExpression,
   SyntaxKind,
   SyntaxNodeFlags,
   SyntaxToken,
+  TextRange,
   TokenSyntaxKind,
   TypeNode,
   TypeReference,
@@ -73,9 +83,25 @@ export function createParser(source: SourceFile): Parser {
   parsedSource.diagnostics.push(...lexer.getDiagnostics());
   let idx = 0;
 
+  const diagnostics: DiagnosticType[] = [];
+  function createDiagnostic(
+    error: string,
+    code: DiagnosticCode,
+    location: TextRange,
+  ) {
+    diagnostics.push({
+      kind: DiagnosticKind.Error,
+      source: DiagnosticSource.Parser,
+      code,
+      error,
+      ...location,
+    });
+  }
+
   function atEnd() {
     return idx === tokens.length;
   }
+
   function getBinaryPrecedence(kind: SyntaxKind): number {
     switch (kind) {
       case SyntaxKind.SlashToken:
@@ -97,16 +123,14 @@ export function createParser(source: SourceFile): Parser {
         return 0;
     }
   }
+
   function consume<T extends TokenSyntaxKind>(expected: T): SyntaxToken<T> {
     if (tokens[idx].kind !== expected) {
-      parsedSource.diagnostics.push({
-        kind: DiagnosticKind.Error,
-        source: DiagnosticSource.Parser,
-        code: DiagnosticCode.UnexpectedToken,
-        pos: tokens[idx].pos,
-        end: tokens[idx].end,
-        error: `Unexpected token ${SyntaxKind[tokens[idx].kind]}. Expected ${SyntaxKind[expected]}`,
-      });
+      createDiagnostic(
+        `Unexpected token ${SyntaxKind[tokens[idx].kind]}. Expected ${SyntaxKind[expected]}`,
+        DiagnosticCode.UnexpectedToken,
+        { pos: tokens[idx].pos, end: tokens[idx].end },
+      );
       const token = createToken(expected);
       token.flags |= SyntaxNodeFlags.Synthetic;
       return token;
@@ -177,6 +201,8 @@ export function createParser(source: SourceFile): Parser {
         } else {
           return parseExpressionStatement();
         }
+      case SyntaxKind.StructKeyword:
+        return parseStructDeclStatement();
       default:
         return parseExpressionStatement();
     }
@@ -306,6 +332,62 @@ export function createParser(source: SourceFile): Parser {
     return createExpressionStatement(expr, { pos: expr.pos, end: expr.end });
   }
 
+  function parseStructDeclStatement(): StructDeclStatement {
+    const start = consume(SyntaxKind.StructKeyword);
+    const name = parseIdentifierNode();
+    consume(SyntaxKind.LeftCurlyToken);
+    const members: StructDeclStatement['members'] = {};
+    while (!atEnd() && tokens[idx].kind !== SyntaxKind.RightCurlyToken) {
+      const member = parseStructMember();
+      if (members[member.name.value] !== undefined) {
+        createDiagnostic(
+          `Duplicate struct member "${member.name.value}"`,
+          DiagnosticCode.DuplicateSymbol,
+          { pos: member.pos, end: member.end },
+        );
+      } else {
+        members[member.name.value] = member;
+      }
+      const nextTokenKind = tokens[idx]?.kind;
+      if (nextTokenKind !== SyntaxKind.RightCurlyToken as SyntaxKind) {
+        consume(SyntaxKind.CommaToken);
+      }
+    }
+    const end = consume(SyntaxKind.RightCurlyToken);
+    return createStructDeclStatement(
+      name,
+      members,
+      { pos: start.pos, end: end.end },
+    );
+  }
+
+  function parseStructMember(): StructMember {
+    let isConst = true;
+    let start: TextRange | undefined;
+    let end: TextRange;
+    if (tokens[idx].kind === SyntaxKind.MutKeyword) {
+      start = consume(SyntaxKind.MutKeyword);
+      isConst = false;
+    }
+    const name = parseIdentifierNode();
+    if (start === undefined) {
+      start = name;
+    }
+    let typeNode: TypeNode | undefined;
+    if (tokens[idx].kind === SyntaxKind.ColonToken) {
+      typeNode = parseTypeAnnotation();
+      end = typeNode;
+    } else {
+      end = name;
+    }
+    return createStructMember(
+      isConst,
+      name,
+      typeNode,
+      { pos: start.pos, end: end.end },
+    );
+  }
+
   function parseExpression(): ExpressionNode | undefined {
     while (!atEnd()) {
       const expr = parseBinaryExpression();
@@ -344,26 +426,28 @@ export function createParser(source: SourceFile): Parser {
           return parseParenExpression();
         case SyntaxKind.LeftBracketToken:
           return parseArrayExpression();
+        case SyntaxKind.NewKeyword:
+          return parseStructExpression();
         case SyntaxKind.IdentifierToken:
-          if (tokens[idx + 1] && tokens[idx + 1].kind === SyntaxKind.LeftParenToken) {
-            return parseFnCallExpression();
-          } else {
-            return parseIdentifierNode();
+          if (tokens[idx + 1] !== undefined) {
+            switch (tokens[idx + 1].kind) {
+              case SyntaxKind.LeftParenToken:
+                return parseFnCallExpression();
+              default: break;
+            }
           }
+          return parseIdentifierNode();
         case SyntaxKind.NumberToken:
           return parseNumberNode();
         case SyntaxKind.TrueKeyword:
         case SyntaxKind.FalseKeyword:
           return parseBooleanNode();
         default:
-          parsedSource.diagnostics.push({
-            kind: DiagnosticKind.Error,
-            source: DiagnosticSource.Parser,
-            code: DiagnosticCode.UnexpectedToken,
-            pos: tokens[idx].pos,
-            end: tokens[idx].end,
-            error: `Unexpected token ${SyntaxKind[tokens[idx].kind]}. Expected an expression.`,
-          });
+          createDiagnostic(
+            'Expected an expression.',
+            DiagnosticCode.UnexpectedToken,
+            { pos: tokens[idx].pos, end: tokens[idx].end },
+          );
           idx++;
       }
     }
@@ -409,7 +493,8 @@ export function createParser(source: SourceFile): Parser {
         return undefined;
       }
       items.push(item);
-      if (tokens[idx].kind === SyntaxKind.CommaToken) {
+      const nextTokenKind = tokens[idx]?.kind;
+      if (nextTokenKind !== SyntaxKind.RightBracketToken as SyntaxKind) {
         consume(SyntaxKind.CommaToken);
       }
     }
@@ -444,6 +529,52 @@ export function createParser(source: SourceFile): Parser {
     return createBooleanNode(token.kind === SyntaxKind.TrueKeyword, { pos: token.pos, end: token.end });
   }
 
+  function parseStructExpression(): StructExpression | undefined {
+    const start = consume(SyntaxKind.NewKeyword);
+    const name = parseIdentifierNode();
+    consume(SyntaxKind.LeftCurlyToken);
+    const members: StructExpression['members'] = {};
+    while (!atEnd() && tokens[idx].kind !== SyntaxKind.RightCurlyToken) {
+      const member = parseStructMemberExpression();
+      if (member === undefined) {
+        return undefined;
+      }
+      if (members[member.name.value] !== undefined) {
+        createDiagnostic(
+          `Duplicate struct member "${member.name.value}"`,
+          DiagnosticCode.DuplicateSymbol,
+          { pos: member.pos, end: member.end },
+        );
+      } else {
+        members[member.name.value] = member;
+      }
+      const nextTokenKind = tokens[idx]?.kind;
+      if (nextTokenKind !== SyntaxKind.RightCurlyToken as SyntaxKind) {
+        consume(SyntaxKind.CommaToken);
+      }
+    }
+    const end = consume(SyntaxKind.RightCurlyToken);
+    return createStructExpression(
+      name,
+      members,
+      { pos: start.pos, end: end.end },
+    );
+  }
+
+  function parseStructMemberExpression(): StructMemberExpression | undefined {
+    const name = parseIdentifierNode();
+    consume(SyntaxKind.ColonToken);
+    const value = parseExpression();
+    if (value === undefined) {
+      return undefined;
+    }
+    return createStructMemberExpression(
+      name,
+      value,
+      { pos: name.pos, end: value.end },
+    );
+  }
+
   return {
     parse() {
       while (!atEnd() && tokens[idx].kind !== SyntaxKind.EndOfFileToken) {
@@ -452,6 +583,7 @@ export function createParser(source: SourceFile): Parser {
           parsedSource.statements.push(statement);
         }
       }
+      parsedSource.diagnostics.push(...diagnostics);
       return parsedSource;
     },
   };
