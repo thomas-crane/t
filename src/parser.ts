@@ -418,7 +418,7 @@ export function createParser(source: SourceFile): Parser {
         if (right === undefined) {
           return undefined;
         }
-        left = createBinaryExpression(left, operator, right);
+        left = createBinaryExpression(left, operator, right, { pos: left.pos, end: right.end });
       }
     }
     return left;
