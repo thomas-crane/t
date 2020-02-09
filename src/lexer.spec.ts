@@ -21,6 +21,9 @@ const keywords: Array<[string, SyntaxToken<TokenSyntaxKind>]> = [
 
   ['num', createToken(SyntaxKind.NumKeyword)],
   ['bool', createToken(SyntaxKind.BoolKeyword)],
+
+  ['struct', createToken(SyntaxKind.StructKeyword)],
+  ['new', createToken(SyntaxKind.NewKeyword)],
 ];
 
 function tokens(input: string) {

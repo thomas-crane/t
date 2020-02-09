@@ -66,6 +66,9 @@ const keywordMap: SyntaxKindMap = {
 
   true: SyntaxKind.TrueKeyword,
   false: SyntaxKind.FalseKeyword,
+
+  struct: SyntaxKind.StructKeyword,
+  new: SyntaxKind.NewKeyword,
 };
 
 const whitespace = /\s/;
