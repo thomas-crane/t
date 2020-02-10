@@ -232,7 +232,7 @@ export interface StructType extends TypeInfo {
 export interface OptionalType extends TypeInfo {
   kind: TypeKind.Optional;
 
-  type: Type;
+  valueType: Type;
 }
 
 export interface NilType extends TypeInfo {
@@ -311,6 +311,7 @@ export enum SyntaxKind {
   NilKeyword,
   TypeReference,
   ArrayType,
+  OptionalType,
 
   // arithmetic
   PlusToken,
@@ -493,6 +494,12 @@ export interface ArrayTypeNode extends SyntaxNode {
   itemType: TypeNode;
 }
 
+export interface OptionalTypeNode extends SyntaxNode {
+  kind: SyntaxKind.OptionalType;
+
+  valueType: TypeNode;
+}
+
 export type TypeNode
   = SyntaxToken<SyntaxKind.NumKeyword>
   | SyntaxToken<SyntaxKind.BoolKeyword>
@@ -500,6 +507,7 @@ export type TypeNode
   | SyntaxToken<SyntaxKind.NilKeyword>
   | TypeReference
   | ArrayTypeNode
+  | OptionalTypeNode
   ;
 
 /**
