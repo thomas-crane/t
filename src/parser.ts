@@ -13,7 +13,9 @@ import {
   createIdentifierNode,
   createIfStatement,
   createLoopStatement,
+  createNilExpression,
   createNumberNode,
+  createOptionalType,
   createParenExpression,
   createReturnStatement,
   createSourceFile,
@@ -46,6 +48,7 @@ import {
   IdentifierNode,
   IfStatement,
   LoopStatement,
+  NilExpression,
   NumberNode,
   ParenExpression,
   Parser,
@@ -160,17 +163,32 @@ export function createParser(source: SourceFile): Parser {
       case SyntaxKind.StrKeyword:
         type = consume(SyntaxKind.StrKeyword);
         break;
+      case SyntaxKind.NilKeyword:
+        // we cannot turn the nil type into an
+        // optional or an array, so just return here.
+        return consume(SyntaxKind.NilKeyword);
       case SyntaxKind.IdentifierToken:
         type = parseTypeReference();
         break;
       default:
         throw new Error('parseType should not have been called');
     }
-    while (true) {
+    // check for an optional here so that arrays can
+    // contain optional types.
+    if (tokens[idx]?.kind === SyntaxKind.QuestionToken) {
+      const question = consume(SyntaxKind.QuestionToken);
+      type = createOptionalType(type, { pos: type.pos, end: question.end });
+    }
+    while (!atEnd()) {
       if (tokens[idx].kind === SyntaxKind.LeftBracketToken) {
         consume(SyntaxKind.LeftBracketToken);
         const closingBrace = consume(SyntaxKind.RightBracketToken);
         type = createArrayTypeNode(type, { pos: type.pos, end: closingBrace.end });
+        // check again in case the array type itself is optional,
+        if (tokens[idx]?.kind === SyntaxKind.QuestionToken as SyntaxKind) {
+          const question = consume(SyntaxKind.QuestionToken);
+          type = createOptionalType(type, { pos: type.pos, end: question.end });
+        }
       } else {
         break;
       }
@@ -449,6 +467,8 @@ export function createParser(source: SourceFile): Parser {
           return parseBooleanNode();
         case SyntaxKind.StringToken:
           return parseStringNode();
+        case SyntaxKind.NilKeyword:
+          return parseNilExpression();
         default:
           createDiagnostic(
             'Expected an expression.',
@@ -586,6 +606,11 @@ export function createParser(source: SourceFile): Parser {
       value,
       { pos: name.pos, end: value.end },
     );
+  }
+
+  function parseNilExpression(): NilExpression {
+    const token = consume(SyntaxKind.NilKeyword);
+    return createNilExpression({ pos: token.pos, end: token.end });
   }
 
   return {
