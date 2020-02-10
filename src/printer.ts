@@ -16,6 +16,7 @@ import {
   LoopStatement,
   Node,
   NumberNode,
+  OptionalTypeNode,
   ParenExpression,
   ReturnStatement,
   SourceFile,
@@ -28,6 +29,13 @@ import {
   SyntaxToken,
   TypeReference,
 } from './types';
+
+type TypeKeyword
+  = SyntaxKind.NumKeyword
+  | SyntaxKind.BoolKeyword
+  | SyntaxKind.StrKeyword
+  | SyntaxKind.NilKeyword
+  ;
 
 const INDENT_SIZE = 2;
 
@@ -49,9 +57,12 @@ export function printNode(node: Node): string {
       return printTypeReference(node);
     case SyntaxKind.ArrayType:
       return printArrayType(node);
+    case SyntaxKind.OptionalType:
+      return printOptionalType(node);
     case SyntaxKind.NumKeyword:
     case SyntaxKind.BoolKeyword:
     case SyntaxKind.StrKeyword:
+    case SyntaxKind.NilKeyword:
       return printTypeKeyword(node);
 
     case SyntaxKind.BinaryExpression:
@@ -66,6 +77,8 @@ export function printNode(node: Node): string {
       return printStructExpression(node);
     case SyntaxKind.StructMemberExpression:
       return printStructMemberExpression(node);
+    case SyntaxKind.NilExpression:
+      return printNilExpression();
 
     case SyntaxKind.BlockStatement:
       return printBlockStatement(node);
@@ -121,7 +134,11 @@ function printArrayType(node: ArrayTypeNode): string {
   return `(ArrayType ${printNode(node.itemType)})`;
 }
 
-function printTypeKeyword(node: SyntaxToken<SyntaxKind.NumKeyword | SyntaxKind.BoolKeyword | SyntaxKind.StrKeyword>) {
+function printOptionalType(node: OptionalTypeNode): string {
+  return `(OptionalType ${printNode(node.valueType)})`;
+}
+
+function printTypeKeyword(node: SyntaxToken<TypeKeyword>) {
   switch (node.kind) {
     case SyntaxKind.NumKeyword:
       return '(NumKeyword)';
@@ -129,6 +146,8 @@ function printTypeKeyword(node: SyntaxToken<SyntaxKind.NumKeyword | SyntaxKind.B
       return '(BoolKeyword)';
     case SyntaxKind.StrKeyword:
       return '(StrKeyword)';
+    case SyntaxKind.NilKeyword:
+      return '(NilKeyword)';
   }
 }
 
@@ -222,6 +241,10 @@ function printStructMemberExpression(node: StructMemberExpression): string {
     ], INDENT_SIZE),
     ')',
   ].join('\n');
+}
+
+function printNilExpression(): string {
+  return '(NilExpression)';
 }
 
 function printBlockStatement(node: BlockStatement): string {
