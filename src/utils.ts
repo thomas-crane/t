@@ -1,4 +1,4 @@
-import { ArrayType, FunctionType, StructType, TextRange, Type, TypeKind, TypeMatch } from './types';
+import { ArrayType, FunctionType, OptionalType, StructType, TextRange, Type, TypeKind, TypeMatch } from './types';
 
 /**
  * Sets the text range on the given target.
@@ -22,6 +22,10 @@ export function typeMatch(fromType: Type | undefined, toType: Type | undefined):
   if (fromType === toType) {
     return TypeMatch.Equal;
   }
+  // check for nil -> optional
+  if (fromType.kind === TypeKind.Nil && toType.kind === TypeKind.Optional) {
+    return TypeMatch.Equal;
+  }
   if (fromType.kind !== toType.kind) {
     return TypeMatch.NoMatch;
   }
@@ -33,6 +37,7 @@ export function typeMatch(fromType: Type | undefined, toType: Type | undefined):
     case TypeKind.Number:
     case TypeKind.Boolean:
     case TypeKind.String:
+    case TypeKind.Nil:
       return TypeMatch.Equal;
     case TypeKind.Function:
       return typeMatchFunction(fromType, toType as FunctionType);
@@ -40,6 +45,8 @@ export function typeMatch(fromType: Type | undefined, toType: Type | undefined):
       return typeMatchArray(fromType, toType as ArrayType);
     case TypeKind.Struct:
       return typeMatchStruct(fromType, toType as StructType);
+    case TypeKind.Optional:
+      return typeMatchOptional(fromType, toType as OptionalType);
   }
 }
 
@@ -86,4 +93,8 @@ function typeMatchStruct(fromType: StructType, toType: StructType): TypeMatch {
   }
 
   return TypeMatch.Equal;
+}
+
+function typeMatchOptional(fromType: OptionalType, toType: OptionalType): TypeMatch {
+  return typeMatch(fromType.valueType, toType.valueType);
 }
