@@ -16,7 +16,9 @@ import {
   IdentifierNode,
   IfStatement,
   LoopStatement,
+  NilExpression,
   NumberNode,
+  OptionalTypeNode,
   ParenExpression,
   ReturnStatement,
   SourceFile,
@@ -113,6 +115,17 @@ export function createArrayTypeNode(
   }, location);
 }
 
+export function createOptionalType(
+  valueType: TypeNode,
+  location?: TextRange,
+): OptionalTypeNode {
+  return setTextRange({
+    kind: SyntaxKind.OptionalType,
+    valueType,
+    flags: SyntaxNodeFlags.None,
+  }, location);
+}
+
 export function createBinaryExpression(
   left: ExpressionNode,
   operator: BinaryOperator,
@@ -185,6 +198,15 @@ export function createStructMemberExpression(
     kind: SyntaxKind.StructMemberExpression,
     name,
     value,
+    flags: SyntaxNodeFlags.None,
+  }, location);
+}
+
+export function createNilExpression(
+  location?: TextRange,
+): NilExpression {
+  return setTextRange({
+    kind: SyntaxKind.NilExpression,
     flags: SyntaxNodeFlags.None,
   }, location);
 }
