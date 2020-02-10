@@ -216,8 +216,8 @@ export function createTypeChecker(): TypeChecker {
   }
 
   function checkTypeReference(node: TypeReference) {
-    check(node.name);
-    node.type = node.name.type;
+    const type = findTypeByName(node.name.value);
+    node.type = type;
   }
 
   function checkArrayType(node: ArrayTypeNode) {
@@ -616,20 +616,22 @@ export function createTypeChecker(): TypeChecker {
     node.type = node.expr.type;
   }
 
-  function checkStructDeclStatement(node: StructDeclStatement) {
-    const memberTypes: StructType['members'] = {};
-    // tslint:disable-next-line: forin
-    for (const name in node.members) {
-      check(node.members[name]);
-      memberTypes[name] = node.members[name].type;
-    }
+  function registerStructDeclStatement(node: StructDeclStatement) {
     const structType: StructType = {
       kind: TypeKind.Struct,
       name: node.name.value,
-      members: memberTypes,
+      members: {},
     };
     node.type = structType;
     addType(node.type);
+  }
+  function checkStructDeclStatement(node: StructDeclStatement) {
+    const existingType = node.type as StructType;
+    // tslint:disable-next-line: forin
+    for (const name in node.members) {
+      check(node.members[name]);
+      existingType.members[name] = node.members[name].type;
+    }
   }
 
   function checkStructMember(node: StructMember) {
@@ -649,6 +651,9 @@ export function createTypeChecker(): TypeChecker {
           { pos: node.typeNode.pos, end: node.typeNode.end },
         );
       } else {
+        // TODO(thomas.crane): check for infinitely sized types
+        // (e.g. recursive or mutually recursive struct types
+        // that have no optional types to add indirection).
         node.type = expectedType;
       }
     }
@@ -656,6 +661,13 @@ export function createTypeChecker(): TypeChecker {
 
   return {
     check(source) {
+      // check struct types first.
+      for (const node of source.statements) {
+        if (node.kind === SyntaxKind.StructDeclStatement) {
+          registerStructDeclStatement(node);
+        }
+      }
+      // then check everything else.
       checkChildren(source.statements);
       source.diagnostics.push(...diagnostics);
     },
