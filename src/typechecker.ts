@@ -1,6 +1,7 @@
 import {
   ArrayExpression,
   ArrayType,
+  ArrayTypeNode,
   AssignmentStatement,
   BinaryExpression,
   BinaryOperator,
@@ -20,9 +21,13 @@ import {
   IdentifierNode,
   IfStatement,
   LoopStatement,
+  NilExpression,
+  NilType,
   Node,
   NumberNode,
   NumberType,
+  OptionalType,
+  OptionalTypeNode,
   ParameterSymbol,
   ParenExpression,
   ReturnStatement,
@@ -63,6 +68,11 @@ const strType: StringType = {
   name: 'str',
 };
 
+const nilType: NilType = {
+  kind: TypeKind.Nil,
+  name: 'nil',
+};
+
 function typeName(type: TypeNode): string {
   switch (type.kind) {
     case SyntaxKind.NumKeyword:
@@ -71,10 +81,14 @@ function typeName(type: TypeNode): string {
       return boolType.name;
     case SyntaxKind.StrKeyword:
       return strType.name;
+    case SyntaxKind.NilKeyword:
+      return nilType.name;
     case SyntaxKind.TypeReference:
       return type.name.value;
     case SyntaxKind.ArrayType:
       return `${typeName(type.itemType)}[]`;
+    case SyntaxKind.OptionalType:
+      return `${typeName(type.valueType)}?`;
   }
 }
 
@@ -89,30 +103,6 @@ export function createTypeChecker(): TypeChecker {
   }
   function popEnv() {
     typeEnvs.shift();
-  }
-
-  function findType(type: TypeNode): Type | undefined {
-    switch (type.kind) {
-      case SyntaxKind.NumKeyword:
-        return numType;
-      case SyntaxKind.BoolKeyword:
-        return boolType;
-      case SyntaxKind.StrKeyword:
-        return strType;
-      case SyntaxKind.ArrayType:
-        const itemType = findType(type.itemType);
-        if (itemType === undefined) {
-          return undefined;
-        }
-        const arrayType: ArrayType = {
-          kind: TypeKind.Array,
-          name: `${itemType.name}[]`,
-          itemType,
-        };
-        return arrayType;
-      case SyntaxKind.TypeReference:
-        return findTypeByName(type.name.value);
-    }
   }
 
   function findTypeByName(name: string): Type | undefined {
@@ -148,8 +138,16 @@ export function createTypeChecker(): TypeChecker {
         return checkNumKeyword(node);
       case SyntaxKind.BoolKeyword:
         return checkBoolKeyword(node);
+      case SyntaxKind.StrKeyword:
+        return checkStrKeyword(node);
+      case SyntaxKind.NilKeyword:
+        return checkNilKeyword(node);
       case SyntaxKind.TypeReference:
         return checkTypeReference(node);
+      case SyntaxKind.ArrayType:
+        return checkArrayType(node);
+      case SyntaxKind.OptionalType:
+        return checkOptionalType(node);
       case SyntaxKind.BinaryExpression:
         return checkBinaryExpression(node);
       case SyntaxKind.FnCallExpression:
@@ -168,6 +166,8 @@ export function createTypeChecker(): TypeChecker {
         return checkBooleanNode(node);
       case SyntaxKind.String:
         return checkStringNode(node);
+      case SyntaxKind.NilExpression:
+        return checkNilExpression(node);
       case SyntaxKind.BlockStatement:
         return checkBlockStatement(node);
       case SyntaxKind.IfStatement:
@@ -207,9 +207,43 @@ export function createTypeChecker(): TypeChecker {
     node.type = numType;
   }
 
+  function checkStrKeyword(node: SyntaxToken<SyntaxKind.StrKeyword>) {
+    node.type = strType;
+  }
+
+  function checkNilKeyword(node: SyntaxToken<SyntaxKind.NilKeyword>) {
+    node.type = nilType;
+  }
+
   function checkTypeReference(node: TypeReference) {
     check(node.name);
     node.type = node.name.type;
+  }
+
+  function checkArrayType(node: ArrayTypeNode) {
+    check(node.itemType);
+    if (node.itemType.type === undefined) {
+      return;
+    }
+    const arrayType: ArrayType = {
+      kind: TypeKind.Array,
+      name: `${node.itemType.type.name}[]`,
+      itemType: node.itemType.type,
+    };
+    node.type = arrayType;
+  }
+
+  function checkOptionalType(node: OptionalTypeNode) {
+    check(node.valueType);
+    if (node.valueType.type === undefined) {
+      return;
+    }
+    const optionalType: OptionalType = {
+      kind: TypeKind.Optional,
+      name: `${node.valueType.type.name}?`,
+      valueType: node.valueType.type,
+    };
+    node.type = optionalType;
   }
 
   function checkBinaryExpression(node: BinaryExpression) {
@@ -359,7 +393,7 @@ export function createTypeChecker(): TypeChecker {
     }
     // make sure each item matches the expected type.
     for (const item of node.items) {
-      const itemMatch = typeMatch(expectedItemType, item.type);
+      const itemMatch = typeMatch(item.type, expectedItemType);
       if (itemMatch !== TypeMatch.Equal) {
         createDiagnostic(
           `Expected a value of type ${expectedItemType.name}`,
@@ -436,6 +470,10 @@ export function createTypeChecker(): TypeChecker {
     node.type = strType;
   }
 
+  function checkNilExpression(node: NilExpression) {
+    node.type = nilType;
+  }
+
   function checkBlockStatement(node: BlockStatement) {
     pushEnv();
     checkChildren(node.statements);
@@ -481,7 +519,7 @@ export function createTypeChecker(): TypeChecker {
     // check for type annotations.
     if (node.typeNode) {
       check(node.typeNode);
-      const annotatedType = findType(node.typeNode);
+      const annotatedType = node.typeNode.type;
       if (annotatedType === undefined) {
         createDiagnostic(
           `Cannot find name ${typeName(node.typeNode)}`,
@@ -494,7 +532,7 @@ export function createTypeChecker(): TypeChecker {
         // give the value node the expected type before checking it.
         node.value.type = annotatedType;
         check(node.value);
-        const valueMatch = typeMatch(annotatedType, node.value.type);
+        const valueMatch = typeMatch(node.value.type, annotatedType);
         if (valueMatch !== TypeMatch.Equal) {
           createDiagnostic(
             `Expected a value of type ${annotatedType.name}`,
@@ -518,7 +556,8 @@ export function createTypeChecker(): TypeChecker {
         { pos: node.pos, end: node.end },
       );
     } else {
-      const paramType = findType(node.typeNode);
+      check(node.typeNode);
+      const paramType = node.typeNode.type;
       if (paramType === undefined) {
         createDiagnostic(
           `Cannot find name ${typeName(node.typeNode)}`,
@@ -542,7 +581,8 @@ export function createTypeChecker(): TypeChecker {
         { pos: node.pos, end: node.end },
       );
     } else {
-      const returnType = findType(node.returnTypeNode);
+      check(node.returnTypeNode);
+      const returnType = node.returnTypeNode.type;
       if (returnType === undefined) {
         createDiagnostic(
           `Cannot find name ${typeName(node.returnTypeNode)}`,
@@ -600,7 +640,8 @@ export function createTypeChecker(): TypeChecker {
         { pos: node.pos, end: node.end },
       );
     } else {
-      const expectedType = findType(node.typeNode);
+      check(node.typeNode);
+      const expectedType = node.typeNode.type;
       if (expectedType === undefined) {
         createDiagnostic(
           `Cannot find name ${typeName(node.typeNode)}`,
@@ -626,6 +667,7 @@ function getGlobalTypeEnvironment(): TypeEnv {
   typeEnv.set(numType.name, numType);
   typeEnv.set(boolType.name, boolType);
   typeEnv.set(strType.name, strType);
+  typeEnv.set(nilType.name, nilType);
   return typeEnv;
 }
 
