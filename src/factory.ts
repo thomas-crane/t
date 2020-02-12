@@ -4,10 +4,12 @@ import {
   AssignmentStatement,
   BinaryExpression,
   BinaryOperator,
+  BlockExitKind,
   BlockStatement,
   BooleanNode,
   DeclarationStatement,
   DiagnosticType,
+  EndBlockExit,
   ExpressionNode,
   ExpressionStatement,
   FnCallExpression,
@@ -15,9 +17,11 @@ import {
   FnParameter,
   IdentifierNode,
   IfStatement,
+  JumpBlockExit,
   LoopStatement,
   NumberNode,
   ParenExpression,
+  ReturnBlockExit,
   ReturnStatement,
   SourceFile,
   StatementNode,
@@ -113,6 +117,30 @@ export function createArrayTypeNode(
   }, location);
 }
 
+export function createReturnBlockExit(
+  returnNode: ReturnStatement,
+): ReturnBlockExit {
+  return {
+    kind: BlockExitKind.Return,
+    returnNode,
+  };
+}
+
+export function createJumpBlockExit(
+  target: BlockStatement,
+): JumpBlockExit {
+  return {
+    kind: BlockExitKind.Jump,
+    target,
+  };
+}
+
+export function createEndBlockExit(): EndBlockExit {
+  return {
+    kind: BlockExitKind.End,
+  };
+}
+
 export function createBinaryExpression(
   left: ExpressionNode,
   operator: BinaryOperator,
@@ -196,6 +224,7 @@ export function createBlockStatement(
   return setTextRange({
     kind: SyntaxKind.BlockStatement,
     statements,
+    exits: [],
     flags: SyntaxNodeFlags.None,
   }, location);
 }
