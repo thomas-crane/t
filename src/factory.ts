@@ -25,6 +25,7 @@ import {
   ReturnStatement,
   SourceFile,
   StatementNode,
+  StopBlockExit,
   StopStatement,
   StringNode,
   StructDeclStatement,
@@ -132,6 +133,15 @@ export function createJumpBlockExit(
   return {
     kind: BlockExitKind.Jump,
     target,
+  };
+}
+
+export function createStopBlockExit(
+  stopNode: StopStatement,
+): StopBlockExit {
+  return {
+    kind: BlockExitKind.Stop,
+    stopNode,
   };
 }
 
