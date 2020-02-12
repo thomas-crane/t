@@ -268,6 +268,7 @@ export enum TypeMatch {
 export enum BlockExitKind {
   Return,
   Jump,
+  Stop,
   End,
 }
 
@@ -295,6 +296,15 @@ export interface EndBlockExit extends BlockExitType {
 }
 
 /**
+ * A block exit which is a stop statement.
+ */
+export interface StopBlockExit extends BlockExitType {
+  kind: BlockExitKind.Stop;
+
+  stopNode: StopStatement;
+}
+
+/**
  * A block exit which jumps into another block.
  */
 export interface JumpBlockExit extends BlockExitType {
@@ -310,6 +320,7 @@ export type BlockExit
   = ReturnBlockExit
   | EndBlockExit
   | JumpBlockExit
+  | StopBlockExit
   ;
 
 /**
