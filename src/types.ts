@@ -277,6 +277,67 @@ export enum TypeMatch {
 }
 
 /**
+ * Types of block exits.
+ */
+export enum BlockExitKind {
+  Return,
+  Jump,
+  Stop,
+  End,
+}
+
+/**
+ * The base type of all block exit types.
+ */
+interface BlockExitType {
+  kind: BlockExitKind;
+}
+
+/**
+ * A block exit which returns from the block.
+ */
+export interface ReturnBlockExit extends BlockExitType {
+  kind: BlockExitKind.Return;
+
+  returnNode: ReturnStatement;
+}
+
+/**
+ * A block exit which is just the end of the block.
+ */
+export interface EndBlockExit extends BlockExitType {
+  kind: BlockExitKind.End;
+}
+
+/**
+ * A block exit which is a stop statement.
+ */
+export interface StopBlockExit extends BlockExitType {
+  kind: BlockExitKind.Stop;
+
+  stopNode: StopStatement;
+}
+
+/**
+ * A block exit which jumps into another block.
+ */
+export interface JumpBlockExit extends BlockExitType {
+  kind: BlockExitKind.Jump;
+
+  target: BlockStatement;
+}
+
+/**
+ * The set of all block exit types.
+ */
+export type BlockExit
+  = ReturnBlockExit
+  | EndBlockExit
+  | JumpBlockExit
+  | StopBlockExit
+  ;
+
+/**
  * A slice of text.
  */
 export interface TextRange {
@@ -605,6 +666,7 @@ export interface BlockStatement extends SyntaxNode {
   kind: SyntaxKind.BlockStatement;
 
   statements: StatementNode[];
+  exits: BlockExit[];
 }
 
 /**
@@ -767,6 +829,15 @@ export interface Lexer {
  */
 export interface Parser {
   parse(): SourceFile;
+}
+
+/**
+ * An interface for taking an existing source file and analysing
+ * the control flow paths in the code. Information which is
+ * found is added to some nodes of the AST.
+ */
+export interface ControlFlowAnalyser {
+  analyse(source: SourceFile): void;
 }
 
 /**
