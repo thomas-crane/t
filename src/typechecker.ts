@@ -49,7 +49,10 @@ import {
   TypeNode,
   TypeReference,
 } from './types';
-import { typeMatch } from './utils';
+import {
+  checkStructRecursion,
+  typeMatch,
+} from './utils';
 
 type TypeEnv = Map<string, Type>;
 
@@ -632,6 +635,14 @@ export function createTypeChecker(): TypeChecker {
       check(node.members[name]);
       existingType.members[name] = node.members[name].type;
     }
+    const isRecursive = checkStructRecursion(existingType);
+    if (isRecursive) {
+      createDiagnostic(
+        `Struct "${existingType.name}" has an infinite size because it is recursively defined`,
+        DiagnosticCode.RecursiveStruct,
+        { pos: node.pos, end: node.end },
+      );
+    }
   }
 
   function checkStructMember(node: StructMember) {
@@ -651,9 +662,6 @@ export function createTypeChecker(): TypeChecker {
           { pos: node.typeNode.pos, end: node.typeNode.end },
         );
       } else {
-        // TODO(thomas.crane): check for infinitely sized types
-        // (e.g. recursive or mutually recursive struct types
-        // that have no optional types to add indirection).
         node.type = expectedType;
       }
     }
