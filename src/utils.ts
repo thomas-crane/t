@@ -98,3 +98,23 @@ function typeMatchStruct(fromType: StructType, toType: StructType): TypeMatch {
 function typeMatchOptional(fromType: OptionalType, toType: OptionalType): TypeMatch {
   return typeMatch(fromType.valueType, toType.valueType);
 }
+
+/**
+ * Determines whether or not the given struct is either directly
+ * or mutually recursively defined.
+ */
+export function checkStructRecursion(struct: StructType): boolean {
+  function checkChildren(parent: StructType): boolean {
+    for (const name in parent.members) {
+      if (parent.members[name]?.kind === TypeKind.Struct) {
+        if (parent.members[name] === struct) {
+          return true;
+        } else {
+          return checkChildren(parent.members[name] as StructType);
+        }
+      }
+    }
+    return false;
+  }
+  return checkChildren(struct);
+}
