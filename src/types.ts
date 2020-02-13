@@ -37,6 +37,7 @@ export enum DiagnosticCode {
 
   UnknownMember,
   UninitialisedMember,
+  RecursiveStruct,
 }
 
 /**
