@@ -39,6 +39,7 @@ import {
   StructSymbol,
   StructType,
   SymbolKind,
+  SymbolType,
   SyntaxKind,
   SyntaxToken,
   TextRange,
@@ -51,10 +52,13 @@ import {
 } from './types';
 import {
   checkStructRecursion,
+  invertNarrowingOperator,
+  operatorCanNarrow,
   typeMatch,
 } from './utils';
 
 type TypeEnv = Map<string, Type>;
+type TypeTable = Map<SymbolType, Type>;
 
 const numType: NumberType = {
   kind: TypeKind.Number,
@@ -100,12 +104,60 @@ export function createTypeChecker(): TypeChecker {
     getGlobalTypeEnvironment(),
   ];
   const diagnostics: DiagnosticType[] = [];
+  const narrowedTypes: TypeTable[] = [
+    new Map(),
+  ];
 
   function pushEnv() {
     typeEnvs.unshift(new Map());
   }
+
   function popEnv() {
     typeEnvs.shift();
+  }
+
+  function pushTypeTable() {
+    narrowedTypes.unshift(new Map());
+  }
+
+  function popTypeTable() {
+    narrowedTypes.shift();
+  }
+
+  function getNarrowedType(symbol: SymbolType): Type | undefined {
+    for (const table of narrowedTypes) {
+      if (table.has(symbol)) {
+        return table.get(symbol);
+      }
+    }
+    return undefined;
+  }
+
+  function setNarrowedType(symbol: SymbolType, type: Type) {
+    narrowedTypes[0].set(symbol, type);
+  }
+
+  function tryNarrowType(optionalType: OptionalType, operator: BinaryOperator, otherType: Type): Type | undefined {
+    // check nil cases.
+    if (otherType.kind === TypeKind.Nil) {
+      switch (operator.kind) {
+        // T? == nil: nil
+        case SyntaxKind.EqualTo:
+          return nilType;
+        // T? != nil: T
+        case SyntaxKind.NotEqualTo:
+          return optionalType.valueType;
+      }
+    }
+    // check for non optional values of the same type.
+    if (optionalType.valueType === otherType) {
+      switch (operator.kind) {
+        // T? == T: T
+        case SyntaxKind.EqualTo:
+          return optionalType.valueType;
+      }
+    }
+    return undefined;
   }
 
   function findTypeByName(name: string): Type | undefined {
@@ -458,7 +510,12 @@ export function createTypeChecker(): TypeChecker {
     if (node.symbol === undefined) {
       return;
     }
-    node.type = node.symbol.firstMention.type;
+    const narrowedType = getNarrowedType(node.symbol);
+    if (narrowedType) {
+      node.type = narrowedType;
+    } else {
+      node.type = node.symbol.firstMention.type;
+    }
   }
 
   function checkNumberNode(node: NumberNode) {
@@ -485,10 +542,6 @@ export function createTypeChecker(): TypeChecker {
 
   function checkIfStatement(node: IfStatement) {
     check(node.condition);
-    check(node.body);
-    if (node.elseBody) {
-      check(node.elseBody);
-    }
     const conditionMatch = typeMatch(node.condition.type, boolType);
     if (conditionMatch !== TypeMatch.Equal) {
       createDiagnostic(
@@ -496,6 +549,53 @@ export function createTypeChecker(): TypeChecker {
         DiagnosticCode.UnexpectedType,
         { pos: node.condition.pos, end: node.condition.end },
       );
+    }
+    // check if type narrowing can occur.
+    if (node.condition.kind === SyntaxKind.BinaryExpression && operatorCanNarrow(node.condition.operator)) {
+      const operands = [node.condition.left, node.condition.right];
+      const optionalOperand = operands.findIndex((o) => o.type?.kind === TypeKind.Optional);
+      if (optionalOperand !== -1) {
+        // TODO(thomas.crane): make sure types exist here.
+        const narrowedType = tryNarrowType(
+          operands[optionalOperand].type as OptionalType,
+          node.condition.operator,
+          operands[(optionalOperand + 1) % operands.length].type!,
+        );
+        if (narrowedType !== undefined) {
+          // narrow the type then check the body.
+          pushTypeTable();
+          setNarrowedType(operands[optionalOperand].symbol!, narrowedType);
+          check(node.body);
+          popTypeTable();
+        } else {
+          check(node.body);
+        }
+
+        // invert the condition for the else body.
+        if (node.elseBody) {
+          const invertedOperator = invertNarrowingOperator(node.condition.operator);
+          const invertedNarrowedType = tryNarrowType(
+            operands[optionalOperand].type as OptionalType,
+            invertedOperator,
+            operands[(optionalOperand + 1) % operands.length].type!,
+          );
+          if (invertedNarrowedType !== undefined) {
+            // narrow the type then check the else body.
+            pushTypeTable();
+            setNarrowedType(operands[optionalOperand].symbol!, invertedNarrowedType);
+            check(node.elseBody);
+            popTypeTable();
+          } else {
+            check(node.elseBody);
+          }
+        }
+        return;
+      }
+    }
+    // no type narrowing happened so just check normally.
+    check(node.body);
+    if (node.elseBody) {
+      check(node.elseBody);
     }
   }
 
