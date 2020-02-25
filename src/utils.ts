@@ -1,4 +1,16 @@
-import { ArrayType, FunctionType, StructType, TextRange, Type, TypeKind, TypeMatch } from './types';
+import { createToken } from './factory';
+import {
+  ArrayType,
+  BinaryOperator,
+  FunctionType,
+  OptionalType,
+  StructType,
+  SyntaxKind,
+  TextRange,
+  Type,
+  TypeKind,
+  TypeMatch,
+} from './types';
 
 /**
  * Sets the text range on the given target.
@@ -22,6 +34,21 @@ export function typeMatch(fromType: Type | undefined, toType: Type | undefined):
   if (fromType === toType) {
     return TypeMatch.Equal;
   }
+  // check for nil -> optional or optional -> nil
+  if (fromType.kind === TypeKind.Nil && toType.kind === TypeKind.Optional
+    || fromType.kind === TypeKind.Optional && toType.kind === TypeKind.Nil) {
+    return TypeMatch.Equal;
+  }
+
+  // check for T -> T?
+  if (toType.kind === TypeKind.Optional) {
+    const optionalMatch = typeMatch(fromType, toType.valueType);
+    if (optionalMatch === TypeMatch.Equal) {
+      return TypeMatch.Equal;
+    }
+  }
+  // T? -> T is not valid so don't bother.
+
   if (fromType.kind !== toType.kind) {
     return TypeMatch.NoMatch;
   }
@@ -33,6 +60,7 @@ export function typeMatch(fromType: Type | undefined, toType: Type | undefined):
     case TypeKind.Number:
     case TypeKind.Boolean:
     case TypeKind.String:
+    case TypeKind.Nil:
       return TypeMatch.Equal;
     case TypeKind.Function:
       return typeMatchFunction(fromType, toType as FunctionType);
@@ -40,6 +68,8 @@ export function typeMatch(fromType: Type | undefined, toType: Type | undefined):
       return typeMatchArray(fromType, toType as ArrayType);
     case TypeKind.Struct:
       return typeMatchStruct(fromType, toType as StructType);
+    case TypeKind.Optional:
+      return typeMatchOptional(fromType, toType as OptionalType);
   }
 }
 
@@ -86,4 +116,49 @@ function typeMatchStruct(fromType: StructType, toType: StructType): TypeMatch {
   }
 
   return TypeMatch.Equal;
+}
+
+function typeMatchOptional(fromType: OptionalType, toType: OptionalType): TypeMatch {
+  return typeMatch(fromType.valueType, toType.valueType);
+}
+
+/**
+ * Determines whether or not the given struct is either directly
+ * or mutually recursively defined.
+ */
+export function checkStructRecursion(struct: StructType): boolean {
+  function checkChildren(parent: StructType): boolean {
+    for (const name in parent.members) {
+      if (parent.members[name]?.kind === TypeKind.Struct) {
+        if (parent.members[name] === struct) {
+          return true;
+        } else {
+          return checkChildren(parent.members[name] as StructType);
+        }
+      }
+    }
+    return false;
+  }
+  return checkChildren(struct);
+}
+
+export function operatorCanNarrow(operator: BinaryOperator): boolean {
+  switch (operator.kind) {
+    case SyntaxKind.EqualTo:
+    case SyntaxKind.NotEqualTo:
+      return true;
+    default:
+      return false;
+  }
+}
+
+export function invertNarrowingOperator(operator: BinaryOperator): BinaryOperator {
+  switch (operator.kind) {
+    case SyntaxKind.EqualTo:
+      return createToken(SyntaxKind.NotEqualTo);
+    case SyntaxKind.NotEqualTo:
+      return createToken(SyntaxKind.EqualTo);
+    default:
+      throw new Error(`invertNarrowingOperator should not have been called with operator ${SyntaxKind[operator.kind]}`);
+  }
 }

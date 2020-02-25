@@ -1,6 +1,7 @@
 import {
   ArrayExpression,
   ArrayType,
+  ArrayTypeNode,
   AssignmentStatement,
   BinaryExpression,
   BinaryOperator,
@@ -20,9 +21,13 @@ import {
   IdentifierNode,
   IfStatement,
   LoopStatement,
+  NilExpression,
+  NilType,
   Node,
   NumberNode,
   NumberType,
+  OptionalType,
+  OptionalTypeNode,
   ParameterSymbol,
   ParenExpression,
   ReturnStatement,
@@ -34,6 +39,7 @@ import {
   StructSymbol,
   StructType,
   SymbolKind,
+  SymbolType,
   SyntaxKind,
   SyntaxToken,
   TextRange,
@@ -44,9 +50,15 @@ import {
   TypeNode,
   TypeReference,
 } from './types';
-import { typeMatch } from './utils';
+import {
+  checkStructRecursion,
+  invertNarrowingOperator,
+  operatorCanNarrow,
+  typeMatch,
+} from './utils';
 
 type TypeEnv = Map<string, Type>;
+type TypeTable = Map<SymbolType, Type>;
 
 const numType: NumberType = {
   kind: TypeKind.Number,
@@ -63,6 +75,11 @@ const strType: StringType = {
   name: 'str',
 };
 
+const nilType: NilType = {
+  kind: TypeKind.Nil,
+  name: 'nil',
+};
+
 function typeName(type: TypeNode): string {
   switch (type.kind) {
     case SyntaxKind.NumKeyword:
@@ -71,10 +88,14 @@ function typeName(type: TypeNode): string {
       return boolType.name;
     case SyntaxKind.StrKeyword:
       return strType.name;
+    case SyntaxKind.NilKeyword:
+      return nilType.name;
     case SyntaxKind.TypeReference:
       return type.name.value;
     case SyntaxKind.ArrayType:
       return `${typeName(type.itemType)}[]`;
+    case SyntaxKind.OptionalType:
+      return `${typeName(type.valueType)}?`;
   }
 }
 
@@ -83,36 +104,60 @@ export function createTypeChecker(): TypeChecker {
     getGlobalTypeEnvironment(),
   ];
   const diagnostics: DiagnosticType[] = [];
+  const narrowedTypes: TypeTable[] = [
+    new Map(),
+  ];
 
   function pushEnv() {
     typeEnvs.unshift(new Map());
   }
+
   function popEnv() {
     typeEnvs.shift();
   }
 
-  function findType(type: TypeNode): Type | undefined {
-    switch (type.kind) {
-      case SyntaxKind.NumKeyword:
-        return numType;
-      case SyntaxKind.BoolKeyword:
-        return boolType;
-      case SyntaxKind.StrKeyword:
-        return strType;
-      case SyntaxKind.ArrayType:
-        const itemType = findType(type.itemType);
-        if (itemType === undefined) {
-          return undefined;
-        }
-        const arrayType: ArrayType = {
-          kind: TypeKind.Array,
-          name: `${itemType.name}[]`,
-          itemType,
-        };
-        return arrayType;
-      case SyntaxKind.TypeReference:
-        return findTypeByName(type.name.value);
+  function pushTypeTable() {
+    narrowedTypes.unshift(new Map());
+  }
+
+  function popTypeTable() {
+    narrowedTypes.shift();
+  }
+
+  function getNarrowedType(symbol: SymbolType): Type | undefined {
+    for (const table of narrowedTypes) {
+      if (table.has(symbol)) {
+        return table.get(symbol);
+      }
     }
+    return undefined;
+  }
+
+  function setNarrowedType(symbol: SymbolType, type: Type) {
+    narrowedTypes[0].set(symbol, type);
+  }
+
+  function tryNarrowType(optionalType: OptionalType, operator: BinaryOperator, otherType: Type): Type | undefined {
+    // check nil cases.
+    if (otherType.kind === TypeKind.Nil) {
+      switch (operator.kind) {
+        // T? == nil: nil
+        case SyntaxKind.EqualTo:
+          return nilType;
+        // T? != nil: T
+        case SyntaxKind.NotEqualTo:
+          return optionalType.valueType;
+      }
+    }
+    // check for non optional values of the same type.
+    if (optionalType.valueType === otherType) {
+      switch (operator.kind) {
+        // T? == T: T
+        case SyntaxKind.EqualTo:
+          return optionalType.valueType;
+      }
+    }
+    return undefined;
   }
 
   function findTypeByName(name: string): Type | undefined {
@@ -148,8 +193,16 @@ export function createTypeChecker(): TypeChecker {
         return checkNumKeyword(node);
       case SyntaxKind.BoolKeyword:
         return checkBoolKeyword(node);
+      case SyntaxKind.StrKeyword:
+        return checkStrKeyword(node);
+      case SyntaxKind.NilKeyword:
+        return checkNilKeyword(node);
       case SyntaxKind.TypeReference:
         return checkTypeReference(node);
+      case SyntaxKind.ArrayType:
+        return checkArrayType(node);
+      case SyntaxKind.OptionalType:
+        return checkOptionalType(node);
       case SyntaxKind.BinaryExpression:
         return checkBinaryExpression(node);
       case SyntaxKind.FnCallExpression:
@@ -168,6 +221,8 @@ export function createTypeChecker(): TypeChecker {
         return checkBooleanNode(node);
       case SyntaxKind.String:
         return checkStringNode(node);
+      case SyntaxKind.NilExpression:
+        return checkNilExpression(node);
       case SyntaxKind.BlockStatement:
         return checkBlockStatement(node);
       case SyntaxKind.IfStatement:
@@ -207,9 +262,43 @@ export function createTypeChecker(): TypeChecker {
     node.type = numType;
   }
 
+  function checkStrKeyword(node: SyntaxToken<SyntaxKind.StrKeyword>) {
+    node.type = strType;
+  }
+
+  function checkNilKeyword(node: SyntaxToken<SyntaxKind.NilKeyword>) {
+    node.type = nilType;
+  }
+
   function checkTypeReference(node: TypeReference) {
-    check(node.name);
-    node.type = node.name.type;
+    const type = findTypeByName(node.name.value);
+    node.type = type;
+  }
+
+  function checkArrayType(node: ArrayTypeNode) {
+    check(node.itemType);
+    if (node.itemType.type === undefined) {
+      return;
+    }
+    const arrayType: ArrayType = {
+      kind: TypeKind.Array,
+      name: `${node.itemType.type.name}[]`,
+      itemType: node.itemType.type,
+    };
+    node.type = arrayType;
+  }
+
+  function checkOptionalType(node: OptionalTypeNode) {
+    check(node.valueType);
+    if (node.valueType.type === undefined) {
+      return;
+    }
+    const optionalType: OptionalType = {
+      kind: TypeKind.Optional,
+      name: `${node.valueType.type.name}?`,
+      valueType: node.valueType.type,
+    };
+    node.type = optionalType;
   }
 
   function checkBinaryExpression(node: BinaryExpression) {
@@ -359,7 +448,7 @@ export function createTypeChecker(): TypeChecker {
     }
     // make sure each item matches the expected type.
     for (const item of node.items) {
-      const itemMatch = typeMatch(expectedItemType, item.type);
+      const itemMatch = typeMatch(item.type, expectedItemType);
       if (itemMatch !== TypeMatch.Equal) {
         createDiagnostic(
           `Expected a value of type ${expectedItemType.name}`,
@@ -421,7 +510,12 @@ export function createTypeChecker(): TypeChecker {
     if (node.symbol === undefined) {
       return;
     }
-    node.type = node.symbol.firstMention.type;
+    const narrowedType = getNarrowedType(node.symbol);
+    if (narrowedType) {
+      node.type = narrowedType;
+    } else {
+      node.type = node.symbol.firstMention.type;
+    }
   }
 
   function checkNumberNode(node: NumberNode) {
@@ -436,6 +530,10 @@ export function createTypeChecker(): TypeChecker {
     node.type = strType;
   }
 
+  function checkNilExpression(node: NilExpression) {
+    node.type = nilType;
+  }
+
   function checkBlockStatement(node: BlockStatement) {
     pushEnv();
     checkChildren(node.statements);
@@ -444,10 +542,6 @@ export function createTypeChecker(): TypeChecker {
 
   function checkIfStatement(node: IfStatement) {
     check(node.condition);
-    check(node.body);
-    if (node.elseBody) {
-      check(node.elseBody);
-    }
     const conditionMatch = typeMatch(node.condition.type, boolType);
     if (conditionMatch !== TypeMatch.Equal) {
       createDiagnostic(
@@ -455,6 +549,53 @@ export function createTypeChecker(): TypeChecker {
         DiagnosticCode.UnexpectedType,
         { pos: node.condition.pos, end: node.condition.end },
       );
+    }
+    // check if type narrowing can occur.
+    if (node.condition.kind === SyntaxKind.BinaryExpression && operatorCanNarrow(node.condition.operator)) {
+      const operands = [node.condition.left, node.condition.right];
+      const optionalOperand = operands.findIndex((o) => o.type?.kind === TypeKind.Optional);
+      if (optionalOperand !== -1) {
+        // TODO(thomas.crane): make sure types exist here.
+        const narrowedType = tryNarrowType(
+          operands[optionalOperand].type as OptionalType,
+          node.condition.operator,
+          operands[(optionalOperand + 1) % operands.length].type!,
+        );
+        if (narrowedType !== undefined) {
+          // narrow the type then check the body.
+          pushTypeTable();
+          setNarrowedType(operands[optionalOperand].symbol!, narrowedType);
+          check(node.body);
+          popTypeTable();
+        } else {
+          check(node.body);
+        }
+
+        // invert the condition for the else body.
+        if (node.elseBody) {
+          const invertedOperator = invertNarrowingOperator(node.condition.operator);
+          const invertedNarrowedType = tryNarrowType(
+            operands[optionalOperand].type as OptionalType,
+            invertedOperator,
+            operands[(optionalOperand + 1) % operands.length].type!,
+          );
+          if (invertedNarrowedType !== undefined) {
+            // narrow the type then check the else body.
+            pushTypeTable();
+            setNarrowedType(operands[optionalOperand].symbol!, invertedNarrowedType);
+            check(node.elseBody);
+            popTypeTable();
+          } else {
+            check(node.elseBody);
+          }
+        }
+        return;
+      }
+    }
+    // no type narrowing happened so just check normally.
+    check(node.body);
+    if (node.elseBody) {
+      check(node.elseBody);
     }
   }
 
@@ -481,7 +622,7 @@ export function createTypeChecker(): TypeChecker {
     // check for type annotations.
     if (node.typeNode) {
       check(node.typeNode);
-      const annotatedType = findType(node.typeNode);
+      const annotatedType = node.typeNode.type;
       if (annotatedType === undefined) {
         createDiagnostic(
           `Cannot find name ${typeName(node.typeNode)}`,
@@ -494,7 +635,7 @@ export function createTypeChecker(): TypeChecker {
         // give the value node the expected type before checking it.
         node.value.type = annotatedType;
         check(node.value);
-        const valueMatch = typeMatch(annotatedType, node.value.type);
+        const valueMatch = typeMatch(node.value.type, annotatedType);
         if (valueMatch !== TypeMatch.Equal) {
           createDiagnostic(
             `Expected a value of type ${annotatedType.name}`,
@@ -518,7 +659,8 @@ export function createTypeChecker(): TypeChecker {
         { pos: node.pos, end: node.end },
       );
     } else {
-      const paramType = findType(node.typeNode);
+      check(node.typeNode);
+      const paramType = node.typeNode.type;
       if (paramType === undefined) {
         createDiagnostic(
           `Cannot find name ${typeName(node.typeNode)}`,
@@ -542,7 +684,8 @@ export function createTypeChecker(): TypeChecker {
         { pos: node.pos, end: node.end },
       );
     } else {
-      const returnType = findType(node.returnTypeNode);
+      check(node.returnTypeNode);
+      const returnType = node.returnTypeNode.type;
       if (returnType === undefined) {
         createDiagnostic(
           `Cannot find name ${typeName(node.returnTypeNode)}`,
@@ -576,20 +719,30 @@ export function createTypeChecker(): TypeChecker {
     node.type = node.expr.type;
   }
 
-  function checkStructDeclStatement(node: StructDeclStatement) {
-    const memberTypes: StructType['members'] = {};
-    // tslint:disable-next-line: forin
-    for (const name in node.members) {
-      check(node.members[name]);
-      memberTypes[name] = node.members[name].type;
-    }
+  function registerStructDeclStatement(node: StructDeclStatement) {
     const structType: StructType = {
       kind: TypeKind.Struct,
       name: node.name.value,
-      members: memberTypes,
+      members: {},
     };
     node.type = structType;
     addType(node.type);
+  }
+  function checkStructDeclStatement(node: StructDeclStatement) {
+    const existingType = node.type as StructType;
+    // tslint:disable-next-line: forin
+    for (const name in node.members) {
+      check(node.members[name]);
+      existingType.members[name] = node.members[name].type;
+    }
+    const isRecursive = checkStructRecursion(existingType);
+    if (isRecursive) {
+      createDiagnostic(
+        `Struct "${existingType.name}" has an infinite size because it is recursively defined`,
+        DiagnosticCode.RecursiveStruct,
+        { pos: node.pos, end: node.end },
+      );
+    }
   }
 
   function checkStructMember(node: StructMember) {
@@ -600,7 +753,8 @@ export function createTypeChecker(): TypeChecker {
         { pos: node.pos, end: node.end },
       );
     } else {
-      const expectedType = findType(node.typeNode);
+      check(node.typeNode);
+      const expectedType = node.typeNode.type;
       if (expectedType === undefined) {
         createDiagnostic(
           `Cannot find name ${typeName(node.typeNode)}`,
@@ -615,6 +769,13 @@ export function createTypeChecker(): TypeChecker {
 
   return {
     check(source) {
+      // check struct types first.
+      for (const node of source.statements) {
+        if (node.kind === SyntaxKind.StructDeclStatement) {
+          registerStructDeclStatement(node);
+        }
+      }
+      // then check everything else.
       checkChildren(source.statements);
       source.diagnostics.push(...diagnostics);
     },
@@ -626,6 +787,7 @@ function getGlobalTypeEnvironment(): TypeEnv {
   typeEnv.set(numType.name, numType);
   typeEnv.set(boolType.name, boolType);
   typeEnv.set(strType.name, strType);
+  typeEnv.set(nilType.name, nilType);
   return typeEnv;
 }
 

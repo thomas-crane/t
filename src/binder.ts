@@ -317,7 +317,7 @@ export function createBinder(): Binder {
     node.symbol = node.expr.symbol;
   }
 
-  function bindStructDeclStatement(node: StructDeclStatement) {
+  function registerStructName(node: StructDeclStatement) {
     // make sure we're not redeclaring an existing struct.
     const existingSymbol = findSymbol(node.name.value);
     if (existingSymbol !== undefined) {
@@ -331,14 +331,23 @@ export function createBinder(): Binder {
       );
       node.flags |= SyntaxNodeFlags.HasErrors;
     } else {
-      const members: Record<string, StructMemberSymbol> = {};
       const structSymbol: StructSymbol = {
         kind: SymbolKind.Struct,
         name: node.name.value,
-        members,
+        members: {},
         firstMention: node,
         references: [],
       };
+      node.symbol = structSymbol;
+      addSymbol(structSymbol);
+    }
+  }
+  function bindStructDeclStatement(node: StructDeclStatement) {
+    // get the registered struct name.
+    const existingSymbol = findSymbol(node.name.value);
+    if (existingSymbol === undefined || existingSymbol.kind !== SymbolKind.Struct) {
+      return;
+    } else {
       // tslint:disable-next-line: forin
       for (const name in node.members) {
         const memberNode = node.members[name];
@@ -349,20 +358,25 @@ export function createBinder(): Binder {
           kind: SymbolKind.StructMember,
           name: memberNode.name.value,
           isConst: memberNode.isConst,
-          struct: structSymbol,
+          struct: existingSymbol,
           firstMention: memberNode,
           references: [],
         };
         memberNode.symbol = memberSymbol;
-        members[name] = memberSymbol;
+        existingSymbol.members[name] = memberSymbol;
       }
-      node.symbol = structSymbol;
-      addSymbol(structSymbol);
     }
   }
 
   return {
     bind(source) {
+      // bind struct names first.
+      for (const node of source.statements) {
+        if (node.kind === SyntaxKind.StructDeclStatement) {
+          registerStructName(node);
+        }
+      }
+      // then bind everything else.
       bindChildren(source.statements);
       source.diagnostics.push(...diagnostics);
     },

@@ -19,7 +19,9 @@ import {
   IfStatement,
   JumpBlockExit,
   LoopStatement,
+  NilExpression,
   NumberNode,
+  OptionalTypeNode,
   ParenExpression,
   ReturnBlockExit,
   ReturnStatement,
@@ -114,6 +116,17 @@ export function createArrayTypeNode(
   return setTextRange({
     kind: SyntaxKind.ArrayType,
     itemType,
+    flags: SyntaxNodeFlags.None,
+  }, location);
+}
+
+export function createOptionalType(
+  valueType: TypeNode,
+  location?: TextRange,
+): OptionalTypeNode {
+  return setTextRange({
+    kind: SyntaxKind.OptionalType,
+    valueType,
     flags: SyntaxNodeFlags.None,
   }, location);
 }
@@ -223,6 +236,15 @@ export function createStructMemberExpression(
     kind: SyntaxKind.StructMemberExpression,
     name,
     value,
+    flags: SyntaxNodeFlags.None,
+  }, location);
+}
+
+export function createNilExpression(
+  location?: TextRange,
+): NilExpression {
+  return setTextRange({
+    kind: SyntaxKind.NilExpression,
     flags: SyntaxNodeFlags.None,
   }, location);
 }

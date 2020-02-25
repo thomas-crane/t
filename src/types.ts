@@ -37,6 +37,7 @@ export enum DiagnosticCode {
 
   UnknownMember,
   UninitialisedMember,
+  RecursiveStruct,
 }
 
 /**
@@ -171,6 +172,8 @@ export enum TypeKind {
   Array,
   Function,
   Struct,
+  Optional,
+  Nil,
 }
 
 /**
@@ -227,6 +230,16 @@ export interface StructType extends TypeInfo {
   members: Record<string, Type | undefined>;
 }
 
+export interface OptionalType extends TypeInfo {
+  kind: TypeKind.Optional;
+
+  valueType: Type;
+}
+
+export interface NilType extends TypeInfo {
+  kind: TypeKind.Nil;
+}
+
 /**
  * The set of all types.
  */
@@ -237,6 +250,8 @@ export type Type
   | FunctionType
   | ArrayType
   | StructType
+  | OptionalType
+  | NilType
   ;
 
 /**
@@ -355,8 +370,10 @@ export enum SyntaxKind {
   NumKeyword,
   BoolKeyword,
   StrKeyword,
+  NilKeyword,
   TypeReference,
   ArrayType,
+  OptionalType,
 
   // arithmetic
   PlusToken,
@@ -378,6 +395,7 @@ export enum SyntaxKind {
   EqualsToken,
   CommaToken,
   ColonToken,
+  QuestionToken,
   NumberToken,
   IdentifierToken,
   StringToken,
@@ -397,6 +415,7 @@ export enum SyntaxKind {
   ArrayExpression,
   StructMemberExpression,
   StructExpression,
+  NilExpression,
 
   // literals
   Identifier,
@@ -452,6 +471,7 @@ export type TokenSyntaxKind
   | SyntaxKind.BoolKeyword
   | SyntaxKind.StrKeyword
   | SyntaxKind.StructKeyword
+  | SyntaxKind.NilKeyword
   | SyntaxKind.PlusToken
   | SyntaxKind.MinusToken
   | SyntaxKind.StarToken
@@ -459,6 +479,7 @@ export type TokenSyntaxKind
   | SyntaxKind.EqualsToken
   | SyntaxKind.CommaToken
   | SyntaxKind.ColonToken
+  | SyntaxKind.QuestionToken
   | SyntaxKind.LeftCurlyToken
   | SyntaxKind.RightCurlyToken
   | SyntaxKind.LeftParenToken
@@ -535,12 +556,20 @@ export interface ArrayTypeNode extends SyntaxNode {
   itemType: TypeNode;
 }
 
+export interface OptionalTypeNode extends SyntaxNode {
+  kind: SyntaxKind.OptionalType;
+
+  valueType: TypeNode;
+}
+
 export type TypeNode
   = SyntaxToken<SyntaxKind.NumKeyword>
   | SyntaxToken<SyntaxKind.BoolKeyword>
   | SyntaxToken<SyntaxKind.StrKeyword>
+  | SyntaxToken<SyntaxKind.NilKeyword>
   | TypeReference
   | ArrayTypeNode
+  | OptionalTypeNode
   ;
 
 /**
@@ -597,6 +626,24 @@ export interface ArrayExpression extends SyntaxNode {
   items: ExpressionNode[];
 }
 
+export interface StructMemberExpression extends SyntaxNode {
+  kind: SyntaxKind.StructMemberExpression;
+
+  name: IdentifierNode;
+  value: ExpressionNode;
+}
+
+export interface StructExpression extends SyntaxNode {
+  kind: SyntaxKind.StructExpression;
+
+  name: IdentifierNode;
+  members: Record<string, StructMemberExpression>;
+}
+
+export interface NilExpression extends SyntaxNode {
+  kind: SyntaxKind.NilExpression;
+}
+
 /**
  * The set of all syntax items which are expressions.
  */
@@ -610,6 +657,7 @@ export type ExpressionNode
   | ParenExpression
   | ArrayExpression
   | StructExpression
+  | NilExpression
   ;
 
 /**
@@ -725,20 +773,6 @@ export interface StructDeclStatement extends SyntaxNode {
 
   name: IdentifierNode;
   members: Record<string, StructMember>;
-}
-
-export interface StructMemberExpression extends SyntaxNode {
-  kind: SyntaxKind.StructMemberExpression;
-
-  name: IdentifierNode;
-  value: ExpressionNode;
-}
-
-export interface StructExpression extends SyntaxNode {
-  kind: SyntaxKind.StructExpression;
-
-  name: IdentifierNode;
-  members: Record<string, StructMemberExpression>;
 }
 
 /**
