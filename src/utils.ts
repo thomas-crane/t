@@ -1,4 +1,16 @@
-import { ArrayType, FunctionType, OptionalType, StructType, TextRange, Type, TypeKind, TypeMatch } from './types';
+import { createToken } from './factory';
+import {
+  ArrayType,
+  BinaryOperator,
+  FunctionType,
+  OptionalType,
+  StructType,
+  SyntaxKind,
+  TextRange,
+  Type,
+  TypeKind,
+  TypeMatch,
+} from './types';
 
 /**
  * Sets the text range on the given target.
@@ -22,10 +34,21 @@ export function typeMatch(fromType: Type | undefined, toType: Type | undefined):
   if (fromType === toType) {
     return TypeMatch.Equal;
   }
-  // check for nil -> optional
-  if (fromType.kind === TypeKind.Nil && toType.kind === TypeKind.Optional) {
+  // check for nil -> optional or optional -> nil
+  if (fromType.kind === TypeKind.Nil && toType.kind === TypeKind.Optional
+    || fromType.kind === TypeKind.Optional && toType.kind === TypeKind.Nil) {
     return TypeMatch.Equal;
   }
+
+  // check for T -> T?
+  if (toType.kind === TypeKind.Optional) {
+    const optionalMatch = typeMatch(fromType, toType.valueType);
+    if (optionalMatch === TypeMatch.Equal) {
+      return TypeMatch.Equal;
+    }
+  }
+  // T? -> T is not valid so don't bother.
+
   if (fromType.kind !== toType.kind) {
     return TypeMatch.NoMatch;
   }
@@ -117,4 +140,25 @@ export function checkStructRecursion(struct: StructType): boolean {
     return false;
   }
   return checkChildren(struct);
+}
+
+export function operatorCanNarrow(operator: BinaryOperator): boolean {
+  switch (operator.kind) {
+    case SyntaxKind.EqualTo:
+    case SyntaxKind.NotEqualTo:
+      return true;
+    default:
+      return false;
+  }
+}
+
+export function invertNarrowingOperator(operator: BinaryOperator): BinaryOperator {
+  switch (operator.kind) {
+    case SyntaxKind.EqualTo:
+      return createToken(SyntaxKind.NotEqualTo);
+    case SyntaxKind.NotEqualTo:
+      return createToken(SyntaxKind.EqualTo);
+    default:
+      throw new Error(`invertNarrowingOperator should not have been called with operator ${SyntaxKind[operator.kind]}`);
+  }
 }
