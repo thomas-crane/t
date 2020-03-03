@@ -488,7 +488,7 @@ export function createParser(source: SourceFile): Parser {
       return undefined;
     }
     const end = consume(SyntaxKind.RightBracketToken);
-    return createIndexExpression(target, index, { pos: target.pos, end: end.pos });
+    return createIndexExpression(target, index, { pos: target.pos, end: end.end });
   }
 
   function parseMemberAccessExpression(target: ExpressionNode): ExpressionNode | undefined {
