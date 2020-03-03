@@ -39,6 +39,7 @@ const charMap: SyntaxKindMap = {
   '=': SyntaxKind.EqualsToken,
   ',': SyntaxKind.CommaToken,
   ':': SyntaxKind.ColonToken,
+  '.': SyntaxKind.DotToken,
   '?': SyntaxKind.QuestionToken,
 
   '{': SyntaxKind.LeftCurlyToken,
