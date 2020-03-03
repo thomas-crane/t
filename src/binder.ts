@@ -16,7 +16,9 @@ import {
   FunctionSymbol,
   IdentifierNode,
   IfStatement,
+  IndexExpression,
   LoopStatement,
+  MemberAccessExpression,
   Node,
   ParameterSymbol,
   ParenExpression,
@@ -91,6 +93,10 @@ export function createBinder(): Binder {
         return bindStructExpression(node);
       case SyntaxKind.StructMemberExpression:
         return bindStructMemberExpression(node);
+      case SyntaxKind.IndexExpression:
+        return bindIndexExpression(node);
+      case SyntaxKind.MemberAccessExpression:
+        return bindMemberAccessExpression(node);
       case SyntaxKind.Identifier:
         return bindIdentifierNode(node);
       case SyntaxKind.BlockStatement:
@@ -128,21 +134,15 @@ export function createBinder(): Binder {
   }
 
   function bindFnCallExpression(node: FnCallExpression) {
-    const fnSymbol = findSymbol(node.fnName.value);
+    bind(node.fn);
+    const fnSymbol = node.fn.symbol;
     if (fnSymbol !== undefined) {
       fnSymbol.references.push(node);
       node.symbol = fnSymbol;
-    } else {
-      createDiagnostic(
-        `Cannot find name "${node.fnName.value}"`,
-        DiagnosticCode.UnknownSymbol,
-        {
-          pos: node.fnName.pos,
-          end: node.fnName.end,
-        },
-      );
-      node.flags |= SyntaxNodeFlags.HasErrors;
     }
+    // if there is no symbol we cannot report an error here because
+    // we might not be able to know whether or not it is a function
+    // before we have done type checking. (e.g. `my_struct.some_fn()`)
     bindChildren(node.args);
   }
 
@@ -191,6 +191,16 @@ export function createBinder(): Binder {
     bind(node.value);
     bind(node.name);
     node.symbol = node.name.symbol;
+  }
+
+  function bindIndexExpression(node: IndexExpression) {
+    bind(node.target);
+    bind(node.index);
+  }
+
+  function bindMemberAccessExpression(node: MemberAccessExpression) {
+    bind(node.target);
+    bind(node.member);
   }
 
   function bindIdentifierNode(node: IdentifierNode) {
