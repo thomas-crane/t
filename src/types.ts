@@ -395,6 +395,7 @@ export enum SyntaxKind {
   EqualsToken,
   CommaToken,
   ColonToken,
+  DotToken,
   QuestionToken,
   NumberToken,
   IdentifierToken,
@@ -416,6 +417,8 @@ export enum SyntaxKind {
   StructMemberExpression,
   StructExpression,
   NilExpression,
+  IndexExpression,
+  MemberAccessExpression,
 
   // literals
   Identifier,
@@ -479,6 +482,7 @@ export type TokenSyntaxKind
   | SyntaxKind.EqualsToken
   | SyntaxKind.CommaToken
   | SyntaxKind.ColonToken
+  | SyntaxKind.DotToken
   | SyntaxKind.QuestionToken
   | SyntaxKind.LeftCurlyToken
   | SyntaxKind.RightCurlyToken
@@ -604,7 +608,7 @@ export type BinaryOperator
 export interface FnCallExpression extends SyntaxNode {
   kind: SyntaxKind.FnCallExpression;
 
-  fnName: IdentifierNode;
+  fn: ExpressionNode;
   args: ExpressionNode[];
 }
 
@@ -644,6 +648,20 @@ export interface NilExpression extends SyntaxNode {
   kind: SyntaxKind.NilExpression;
 }
 
+export interface IndexExpression extends SyntaxNode {
+  kind: SyntaxKind.IndexExpression;
+
+  target: ExpressionNode;
+  index: ExpressionNode;
+}
+
+export interface MemberAccessExpression extends SyntaxNode {
+  kind: SyntaxKind.MemberAccessExpression;
+
+  target: ExpressionNode;
+  member: IdentifierNode;
+}
+
 /**
  * The set of all syntax items which are expressions.
  */
@@ -658,6 +676,8 @@ export type ExpressionNode
   | ArrayExpression
   | StructExpression
   | NilExpression
+  | IndexExpression
+  | MemberAccessExpression
   ;
 
 /**
