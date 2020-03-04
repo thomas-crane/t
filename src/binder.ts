@@ -200,7 +200,6 @@ export function createBinder(): Binder {
 
   function bindMemberAccessExpression(node: MemberAccessExpression) {
     bind(node.target);
-    bind(node.member);
   }
 
   function bindIdentifierNode(node: IdentifierNode) {
