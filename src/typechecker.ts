@@ -536,7 +536,7 @@ export function createTypeChecker(): TypeChecker {
       createDiagnostic(
         `Cannot index the type ${node.target.type.name}`,
         DiagnosticCode.TypeNotIndexable,
-        { pos: node.target.pos, end: node.target.end },
+        { pos: node.pos, end: node.end },
       );
     } else if (node.target.type !== undefined) {
       const optionalType: OptionalType = {
