@@ -17,8 +17,10 @@ import {
   FnParameter,
   IdentifierNode,
   IfStatement,
+  IndexExpression,
   JumpBlockExit,
   LoopStatement,
+  MemberAccessExpression,
   NilExpression,
   NumberNode,
   OptionalTypeNode,
@@ -180,13 +182,13 @@ export function createBinaryExpression(
 }
 
 export function createFnCallExpression(
-  fnName: IdentifierNode,
+  fn: ExpressionNode,
   args: ExpressionNode[],
   location?: TextRange,
 ): FnCallExpression {
   return setTextRange({
     kind: SyntaxKind.FnCallExpression,
-    fnName,
+    fn,
     args,
     flags: SyntaxNodeFlags.None,
   }, location);
@@ -245,6 +247,32 @@ export function createNilExpression(
 ): NilExpression {
   return setTextRange({
     kind: SyntaxKind.NilExpression,
+    flags: SyntaxNodeFlags.None,
+  }, location);
+}
+
+export function createIndexExpression(
+  target: ExpressionNode,
+  index: ExpressionNode,
+  location?: TextRange,
+): IndexExpression {
+  return setTextRange({
+    kind: SyntaxKind.IndexExpression,
+    target,
+    index,
+    flags: SyntaxNodeFlags.None,
+  }, location);
+}
+
+export function createMemberAccessExpression(
+  target: ExpressionNode,
+  member: IdentifierNode,
+  location?: TextRange,
+): MemberAccessExpression {
+  return setTextRange({
+    kind: SyntaxKind.MemberAccessExpression,
+    target,
+    member,
     flags: SyntaxNodeFlags.None,
   }, location);
 }

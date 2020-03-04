@@ -20,7 +20,9 @@ import {
   FunctionType,
   IdentifierNode,
   IfStatement,
+  IndexExpression,
   LoopStatement,
+  MemberAccessExpression,
   NilExpression,
   NilType,
   Node,
@@ -38,7 +40,6 @@ import {
   StructMember,
   StructSymbol,
   StructType,
-  SymbolKind,
   SymbolType,
   SyntaxKind,
   SyntaxToken,
@@ -223,6 +224,10 @@ export function createTypeChecker(): TypeChecker {
         return checkStringNode(node);
       case SyntaxKind.NilExpression:
         return checkNilExpression(node);
+      case SyntaxKind.IndexExpression:
+        return checkIndexExpression(node);
+      case SyntaxKind.MemberAccessExpression:
+        return checkMemberAccessExpression(node);
       case SyntaxKind.BlockStatement:
         return checkBlockStatement(node);
       case SyntaxKind.IfStatement:
@@ -259,7 +264,7 @@ export function createTypeChecker(): TypeChecker {
   }
 
   function checkBoolKeyword(node: SyntaxToken<SyntaxKind.BoolKeyword>) {
-    node.type = numType;
+    node.type = boolType;
   }
 
   function checkStrKeyword(node: SyntaxToken<SyntaxKind.StrKeyword>) {
@@ -348,27 +353,23 @@ export function createTypeChecker(): TypeChecker {
   }
 
   function checkFnCallExpression(node: FnCallExpression) {
-    // if there is no function symbol we cannot know the parameter types.
-    if (node.symbol === undefined || node.symbol.kind !== SymbolKind.Function) {
+    check(node.fn);
+    if (node.fn.type === undefined) {
       return;
     }
-    const fnType = node.symbol.firstMention.type;
-    if (fnType === undefined) {
-      return;
-    }
-    // make sure the symbol refers to a function.
-    if (fnType.kind !== TypeKind.Function) {
+    if (node.fn.type.kind !== TypeKind.Function) {
       createDiagnostic(
-        `Type ${fnType.name} is not callable.`,
+        `Type ${node.fn.type.name} is not callable.`,
         DiagnosticCode.TypeNotCallable,
         { pos: node.pos, end: node.end },
       );
       return;
     }
+    const fnType = node.fn.type;
     // check each arg type.
     for (let i = 0; i < node.args.length; i++) {
       const arg = node.args[i];
-      const paramSymbol = node.symbol.parameters[i];
+      const paramSymbol = fnType.parameters[i];
       // give the arg node the expected type before checking it.
       if (paramSymbol?.firstMention.type !== undefined) {
         arg.type = paramSymbol.firstMention.type;
@@ -384,25 +385,19 @@ export function createTypeChecker(): TypeChecker {
       );
       return;
     }
-    let hasError = false;
     for (let i = 0; i < fnType.parameters.length; i++) {
       const paramType = fnType.parameters[i].firstMention.type;
       const argType = node.args[i].type;
       if (paramType === undefined || argType === undefined) {
-        hasError = true;
         continue;
       }
       if (typeMatch(argType, paramType) !== TypeMatch.Equal) {
-        hasError = true;
         createDiagnostic(
           `Expected a value of type ${paramType.name}`,
           DiagnosticCode.UnexpectedType,
           { pos: node.args[i].pos, end: node.args[i].end },
         );
       }
-    }
-    if (hasError) {
-      return;
     }
     node.type = fnType.returnType;
   }
@@ -532,6 +527,55 @@ export function createTypeChecker(): TypeChecker {
 
   function checkNilExpression(node: NilExpression) {
     node.type = nilType;
+  }
+
+  function checkIndexExpression(node: IndexExpression) {
+    check(node.target);
+    check(node.index);
+    if (node.target.type !== undefined && node.target.type.kind !== TypeKind.Array) {
+      createDiagnostic(
+        `Cannot index the type ${node.target.type.name}`,
+        DiagnosticCode.TypeNotIndexable,
+        { pos: node.pos, end: node.end },
+      );
+    } else if (node.target.type !== undefined) {
+      const optionalType: OptionalType = {
+        kind: TypeKind.Optional,
+        name: `${node.target.type.itemType.name}?`,
+        valueType: node.target.type.itemType,
+      };
+      node.type = optionalType;
+    }
+    if (node.index.type !== undefined && node.index.type.kind !== TypeKind.Number) {
+      createDiagnostic(
+        `Expected a value of type ${numType.name}`,
+        DiagnosticCode.UnexpectedType,
+        { pos: node.index.pos, end: node.index.end },
+      );
+    }
+  }
+
+  function checkMemberAccessExpression(node: MemberAccessExpression) {
+    check(node.target);
+    if (node.target.type !== undefined && node.target.type.kind !== TypeKind.Struct) {
+      createDiagnostic(
+        'Expected a struct value type',
+        DiagnosticCode.UnexpectedType,
+        { pos: node.target.pos, end: node.target.end },
+      );
+    } else if (node.target.type !== undefined) {
+      const structType = node.target.type;
+      const memberName = node.member.value;
+      if (!structType.members.hasOwnProperty(memberName)) {
+        createDiagnostic(
+          `Struct ${structType.name} has no member "${memberName}"`,
+          DiagnosticCode.UnknownMember,
+          { pos: node.member.pos, end: node.member.end },
+        );
+      } else {
+        node.type = structType.members[memberName];
+      }
+    }
   }
 
   function checkBlockStatement(node: BlockStatement) {

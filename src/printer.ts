@@ -13,7 +13,9 @@ import {
   FnParameter,
   IdentifierNode,
   IfStatement,
+  IndexExpression,
   LoopStatement,
+  MemberAccessExpression,
   Node,
   NumberNode,
   OptionalTypeNode,
@@ -79,6 +81,10 @@ export function printNode(node: Node): string {
       return printStructMemberExpression(node);
     case SyntaxKind.NilExpression:
       return printNilExpression();
+    case SyntaxKind.IndexExpression:
+      return printIndexExpression(node);
+    case SyntaxKind.MemberAccessExpression:
+      return printMemberAccessExpression(node);
 
     case SyntaxKind.BlockStatement:
       return printBlockStatement(node);
@@ -191,7 +197,7 @@ function binaryOpToString(op: BinaryOperator): string {
 }
 
 function printFnCallExpression(node: FnCallExpression): string {
-  const name = printNode(node.fnName);
+  const name = printNode(node.fn);
   const args = node.args.map((arg) => printNode(arg));
   return [
     '(FnCallExpression',
@@ -245,6 +251,28 @@ function printStructMemberExpression(node: StructMemberExpression): string {
 
 function printNilExpression(): string {
   return '(NilExpression)';
+}
+
+function printIndexExpression(node: IndexExpression): string {
+  return [
+    '(IndexExpression',
+    ...indent([
+      printNode(node.target),
+      printNode(node.index),
+    ], INDENT_SIZE),
+    ')',
+  ].join('\n');
+}
+
+function printMemberAccessExpression(node: MemberAccessExpression): string {
+  return [
+    '(MemberAccessExpression',
+    ...indent([
+      printNode(node.target),
+      printNode(node.member),
+    ], INDENT_SIZE),
+    ')',
+  ].join('\n');
 }
 
 function printBlockStatement(node: BlockStatement): string {

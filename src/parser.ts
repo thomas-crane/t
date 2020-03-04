@@ -12,7 +12,9 @@ import {
   createFnParameter,
   createIdentifierNode,
   createIfStatement,
+  createIndexExpression,
   createLoopStatement,
+  createMemberAccessExpression,
   createNilExpression,
   createNumberNode,
   createOptionalType,
@@ -42,7 +44,6 @@ import {
   DiagnosticType,
   ExpressionNode,
   ExpressionStatement,
-  FnCallExpression,
   FnDeclarationStatement,
   FnParameter,
   IdentifierNode,
@@ -443,6 +444,60 @@ export function createParser(source: SourceFile): Parser {
   }
 
   function parsePrimaryExpression(): ExpressionNode | undefined {
+    let expr = parseTerminalExpression();
+    while (!atEnd()) {
+      if (expr === undefined) {
+        return undefined;
+      }
+      switch (tokens[idx].kind) {
+        case SyntaxKind.LeftBracketToken:
+          expr = parseIndexExpression(expr);
+          continue;
+        case SyntaxKind.LeftParenToken:
+          expr = parseFnCallExpression(expr);
+          continue;
+        case SyntaxKind.DotToken:
+          expr = parseMemberAccessExpression(expr);
+          continue;
+        default:
+          return expr;
+      }
+    }
+  }
+
+  function parseFnCallExpression(fn: ExpressionNode): ExpressionNode | undefined {
+    consume(SyntaxKind.LeftParenToken);
+    const args: ExpressionNode[] = [];
+    while (!atEnd() && tokens[idx].kind !== SyntaxKind.RightParenToken) {
+      const arg = parseExpression();
+      if (arg !== undefined) {
+        args.push(arg);
+        if (tokens[idx].kind === SyntaxKind.CommaToken) {
+          idx++;
+        }
+      }
+    }
+    const end = consume(SyntaxKind.RightParenToken);
+    return createFnCallExpression(fn, args, { pos: fn.pos, end: end.end });
+  }
+
+  function parseIndexExpression(target: ExpressionNode): ExpressionNode | undefined {
+    consume(SyntaxKind.LeftBracketToken);
+    const index = parseExpression();
+    if (index === undefined) {
+      return undefined;
+    }
+    const end = consume(SyntaxKind.RightBracketToken);
+    return createIndexExpression(target, index, { pos: target.pos, end: end.end });
+  }
+
+  function parseMemberAccessExpression(target: ExpressionNode): ExpressionNode | undefined {
+    consume(SyntaxKind.DotToken);
+    const member = parseIdentifierNode();
+    return createMemberAccessExpression(target, member, { pos: target.pos, end: member.end });
+  }
+
+  function parseTerminalExpression(): ExpressionNode | undefined {
     while (!atEnd()) {
       switch (tokens[idx].kind) {
         case SyntaxKind.LeftParenToken:
@@ -452,13 +507,6 @@ export function createParser(source: SourceFile): Parser {
         case SyntaxKind.NewKeyword:
           return parseStructExpression();
         case SyntaxKind.IdentifierToken:
-          if (tokens[idx + 1] !== undefined) {
-            switch (tokens[idx + 1].kind) {
-              case SyntaxKind.LeftParenToken:
-                return parseFnCallExpression();
-              default: break;
-            }
-          }
           return parseIdentifierNode();
         case SyntaxKind.NumberToken:
           return parseNumberNode();
@@ -479,26 +527,6 @@ export function createParser(source: SourceFile): Parser {
       }
     }
     return undefined;
-  }
-
-  function parseFnCallExpression(): FnCallExpression | undefined {
-    const fnName = parseIdentifierNode();
-    consume(SyntaxKind.LeftParenToken);
-    const args: ExpressionNode[] = [];
-    while (!atEnd() && tokens[idx].kind !== SyntaxKind.RightParenToken) {
-      const arg = parseExpression();
-      if (arg !== undefined) {
-        args.push(arg);
-        if (tokens[idx].kind === SyntaxKind.CommaToken) {
-          idx++;
-        }
-      }
-    }
-    const end = consume(SyntaxKind.RightParenToken);
-    return createFnCallExpression(fnName, args, {
-      pos: fnName.pos,
-      end: end.end,
-    });
   }
 
   function parseParenExpression(): ParenExpression | undefined {
