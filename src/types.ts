@@ -33,6 +33,7 @@ export enum DiagnosticCode {
   UnexpectedType,
   CannotInferType,
   TypeNotCallable,
+  TypeNotIndexable,
   WrongNumberOfArguments,
 
   UnknownMember,
