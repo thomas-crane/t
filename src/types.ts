@@ -1,3 +1,5 @@
+import { Writable } from 'stream';
+
 /**
  * Types of diagnostics which can be generated.
  */
@@ -877,4 +879,21 @@ export interface Binder {
  */
 export interface TypeChecker {
   check(source: SourceFile): void;
+}
+
+/**
+ * Options which can change the way a @see Reporter
+ * will report diagnostics.
+ */
+export interface ReporterOptions {
+  color: boolean;
+  output: Writable;
+}
+
+/**
+ * An interface for reporting the
+ * diagnostics from a given source file.
+ */
+export interface Reporter {
+  report(source: SourceFile): void;
 }
