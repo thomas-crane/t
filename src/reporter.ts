@@ -40,7 +40,7 @@ export function createReporter(options: ReporterOptions = DEFAULT_OPTIONS): Repo
   type ColorFn = (str: string) => string;
   function maybeColor(...fns: ColorFn[]) {
     return (str: string): string => {
-      if (options?.color) {
+      if (options.color) {
         return fns.reduce((s, fn) => fn(s), str);
       } else {
         return str;
@@ -94,7 +94,7 @@ export function createReporter(options: ReporterOptions = DEFAULT_OPTIONS): Repo
     const relativePos = getLinePos(source.text, diagnostic.pos, diagnostic.end);
     const errLen = relativePos.end - relativePos.pos;
     let errorMarker = colors.err('^'.repeat(errLen));
-    // if the underline is only 2 characters long add `-- here` to make it stand out more.
+    // if the underline is 2 characters or less, add `-- here` to make it stand out more.
     if (errLen <= 2) {
       errorMarker += colors.err('-- here');
     }
