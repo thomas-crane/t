@@ -12,11 +12,7 @@ export interface SyntaxToken<TokenKind extends TokenSyntaxKind> extends SyntaxNo
 export type TokenSyntaxKind
   = SyntaxKind.EndOfFileToken
   | SyntaxKind.UnknownToken
-  | SyntaxKind.NumKeyword
-  | SyntaxKind.BoolKeyword
-  | SyntaxKind.StrKeyword
   | SyntaxKind.StructKeyword
-  | SyntaxKind.NilKeyword
   | SyntaxKind.PlusToken
   | SyntaxKind.MinusToken
   | SyntaxKind.StarToken
