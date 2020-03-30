@@ -1,28 +1,18 @@
 import { IdentifierExpression } from './ast/expr/identifier-expr';
+import { BlockStatement } from './ast/stmt/block-stmt';
+import { ReturnStatement } from './ast/stmt/return-stmt';
+import { StopStatement } from './ast/stmt/stop-stmt';
 import {
   ArrayTypeNode,
-  AssignmentStatement,
   BlockExitKind,
-  BlockStatement,
-  DeclarationStatement,
   DiagnosticType,
   EndBlockExit,
-  ExpressionNode,
-  ExpressionStatement,
-  FnDeclarationStatement,
-  FnParameter,
-  IfStatement,
   JumpBlockExit,
-  LoopStatement,
   OptionalTypeNode,
   ReturnBlockExit,
-  ReturnStatement,
   SourceFile,
   StatementNode,
   StopBlockExit,
-  StopStatement,
-  StructDeclStatement,
-  StructMember,
   SyntaxKind,
   SyntaxNodeFlags,
   SyntaxToken,
@@ -107,163 +97,6 @@ export function createEndBlockExit(): EndBlockExit {
   return {
     kind: BlockExitKind.End,
   };
-}
-
-export function createBlockStatement(
-  statements: StatementNode[],
-  location?: TextRange,
-): BlockStatement {
-  return setTextRange({
-    kind: SyntaxKind.BlockStatement,
-    statements,
-    exits: [],
-    flags: SyntaxNodeFlags.None,
-  }, location);
-}
-
-export function createIfStatement(
-  condition: ExpressionNode,
-  body: BlockStatement,
-  elseBody?: BlockStatement,
-  location?: TextRange,
-): IfStatement {
-  return setTextRange({
-    kind: SyntaxKind.IfStatement,
-    condition,
-    body,
-    elseBody,
-    flags: SyntaxNodeFlags.None,
-  }, location);
-}
-
-export function createAssignmentStatement(
-  identifier: IdentifierExpression,
-  value: ExpressionNode,
-  location?: TextRange,
-): AssignmentStatement {
-  return setTextRange({
-    kind: SyntaxKind.AssignmentStatement,
-    identifier,
-    value,
-    flags: SyntaxNodeFlags.None,
-  }, location);
-}
-
-export function createDeclarationStatement(
-  isConst: boolean,
-  identifier: IdentifierExpression,
-  typeNode: TypeNode | undefined,
-  value: ExpressionNode,
-  location?: TextRange,
-): DeclarationStatement {
-  return setTextRange({
-    kind: SyntaxKind.DeclarationStatement,
-    isConst,
-    identifier,
-    typeNode,
-    value,
-    flags: SyntaxNodeFlags.None,
-  }, location);
-}
-
-export function createFnParameter(
-  name: IdentifierExpression,
-  typeNode: TypeNode | undefined,
-  location?: TextRange,
-): FnParameter {
-  return setTextRange({
-    kind: SyntaxKind.FnParameter,
-    name,
-    typeNode,
-    flags: SyntaxNodeFlags.None,
-  }, location);
-}
-
-export function createFnDeclarationStatement(
-  fnName: IdentifierExpression,
-  params: FnParameter[],
-  returnTypeNode: TypeNode | undefined,
-  body: BlockStatement,
-  location?: TextRange,
-): FnDeclarationStatement {
-  return setTextRange({
-    kind: SyntaxKind.FnDeclarationStatement,
-    fnName,
-    params,
-    returnTypeNode,
-    body,
-    flags: SyntaxNodeFlags.None,
-  }, location);
-}
-
-export function createReturnStatement(
-  value: ExpressionNode,
-  location?: TextRange,
-): ReturnStatement {
-  return setTextRange({
-    kind: SyntaxKind.ReturnStatement,
-    value,
-    flags: SyntaxNodeFlags.None,
-  }, location);
-}
-
-export function createLoopStatement(
-  body: BlockStatement,
-  location?: TextRange,
-): LoopStatement {
-  return setTextRange({
-    kind: SyntaxKind.LoopStatement,
-    body,
-    flags: SyntaxNodeFlags.None,
-  }, location);
-}
-
-export function createStopStatement(
-  location?: TextRange,
-): StopStatement {
-  return setTextRange({
-    kind: SyntaxKind.StopStatement,
-    flags: SyntaxNodeFlags.None,
-  }, location);
-}
-
-export function createExpressionStatement(
-  expr: ExpressionNode,
-  location?: TextRange,
-): ExpressionStatement {
-  return setTextRange({
-    kind: SyntaxKind.ExpressionStatement,
-    expr,
-    flags: SyntaxNodeFlags.None,
-  }, location);
-}
-
-export function createStructDeclStatement(
-  name: IdentifierExpression,
-  members: StructDeclStatement['members'],
-  location?: TextRange,
-): StructDeclStatement {
-  return setTextRange({
-    kind: SyntaxKind.StructDeclStatement,
-    name,
-    members,
-    flags: SyntaxNodeFlags.None,
-  }, location);
-}
-
-export function createStructMember(
-  isConst: boolean,
-  name: IdentifierExpression,
-  typeNode: TypeNode | undefined,
-  location?: TextRange,
-): StructMember {
-  return setTextRange({
-    kind: SyntaxKind.StructMember,
-    isConst,
-    name,
-    typeNode,
-    flags: SyntaxNodeFlags.None,
-  }, location);
 }
 
 export function createSourceFile(

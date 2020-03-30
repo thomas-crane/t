@@ -10,6 +10,16 @@ import { NumberExpression } from './ast/expr/number-expr';
 import { ParenExpression } from './ast/expr/paren-expr';
 import { StringExpression } from './ast/expr/string-expr';
 import { StructExpression } from './ast/expr/struct-expr';
+import { AssignmentStatement } from './ast/stmt/assignment-stmt';
+import { BlockStatement } from './ast/stmt/block-stmt';
+import { DeclarationStatement } from './ast/stmt/declaration-stmt';
+import { ExpressionStatement } from './ast/stmt/expression-stmt';
+import { FnDeclarationStatement } from './ast/stmt/fn-declaration-stmt';
+import { IfStatement } from './ast/stmt/if-stmt';
+import { LoopStatement } from './ast/stmt/loop-stmt';
+import { ReturnStatement } from './ast/stmt/return-stmt';
+import { StopStatement } from './ast/stmt/stop-stmt';
+import { StructDeclStatement } from './ast/stmt/struct-decl-stmt';
 
 /**
  * Types of diagnostics which can be generated.
@@ -579,121 +589,6 @@ export type ExpressionNode
   ;
 
 /**
- * A list of statements.
- */
-export interface BlockStatement extends SyntaxNode {
-  kind: SyntaxKind.BlockStatement;
-
-  statements: StatementNode[];
-  exits: BlockExit[];
-}
-
-/**
- * An if statement with an optional else branch.
- */
-export interface IfStatement extends SyntaxNode {
-  kind: SyntaxKind.IfStatement;
-
-  condition: ExpressionNode;
-  body: BlockStatement;
-  elseBody: BlockStatement | undefined;
-}
-
-/**
- * A variable assignment statement.
- */
-export interface AssignmentStatement extends SyntaxNode {
-  kind: SyntaxKind.AssignmentStatement;
-
-  identifier: IdentifierExpression;
-  value: ExpressionNode;
-}
-
-/**
- * A variable declaration statement. This encompasses
- * both mutable and immutable assignments.
- */
-export interface DeclarationStatement extends SyntaxNode {
-  kind: SyntaxKind.DeclarationStatement;
-
-  isConst: boolean;
-  identifier: IdentifierExpression;
-  typeNode?: TypeNode;
-  value: ExpressionNode;
-}
-
-/**
- * A function parameter.
- */
-export interface FnParameter extends SyntaxNode {
-  kind: SyntaxKind.FnParameter;
-
-  name: IdentifierExpression;
-  typeNode?: TypeNode;
-}
-
-/**
- * A function declaration statement.
- */
-export interface FnDeclarationStatement extends SyntaxNode {
-  kind: SyntaxKind.FnDeclarationStatement;
-
-  fnName: IdentifierExpression;
-  params: FnParameter[];
-  returnTypeNode?: TypeNode;
-  body: BlockStatement;
-}
-
-/**
- * A return statement.
- */
-export interface ReturnStatement extends SyntaxNode {
-  kind: SyntaxKind.ReturnStatement;
-
-  value: ExpressionNode;
-}
-
-/**
- * A loop statement.
- */
-export interface LoopStatement extends SyntaxNode {
-  kind: SyntaxKind.LoopStatement;
-
-  body: BlockStatement;
-}
-
-/**
- * A stop statement.
- */
-export interface StopStatement extends SyntaxNode {
-  kind: SyntaxKind.StopStatement;
-}
-
-/**
- * An expression statement.
- */
-export interface ExpressionStatement extends SyntaxNode {
-  kind: SyntaxKind.ExpressionStatement;
-
-  expr: ExpressionNode;
-}
-
-export interface StructMember extends SyntaxNode {
-  kind: SyntaxKind.StructMember;
-
-  isConst: boolean;
-  name: IdentifierExpression;
-  typeNode?: TypeNode;
-}
-
-export interface StructDeclStatement extends SyntaxNode {
-  kind: SyntaxKind.StructDeclStatement;
-
-  name: IdentifierExpression;
-  members: Record<string, StructMember>;
-}
-
-/**
  * The set of all syntax items which are statements.
  */
 export type StatementNode
@@ -729,8 +624,6 @@ export type Node
   = StatementNode
   | ExpressionNode
   | TypeNode
-  | FnParameter
-  | StructMember
   | SourceFile
   ;
 
