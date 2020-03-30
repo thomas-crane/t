@@ -10,7 +10,7 @@ export interface OptionalTypeNode extends SyntaxNode {
   valueType: TypeNode;
 }
 
-export function createOptionalType(
+export function createOptionalTypeNode(
   valueType: TypeNode,
   location?: TextRange,
 ): OptionalTypeNode {
