@@ -1,14 +1,11 @@
-import { IdentifierExpression } from './ast/expr/identifier-expr';
 import { BlockStatement } from './ast/stmt/block-stmt';
 import { ReturnStatement } from './ast/stmt/return-stmt';
 import { StopStatement } from './ast/stmt/stop-stmt';
 import {
-  ArrayTypeNode,
   BlockExitKind,
   DiagnosticType,
   EndBlockExit,
   JumpBlockExit,
-  OptionalTypeNode,
   ReturnBlockExit,
   SourceFile,
   StatementNode,
@@ -18,8 +15,6 @@ import {
   SyntaxToken,
   TextRange,
   TokenSyntaxKind,
-  TypeNode,
-  TypeReference,
 } from './types';
 import { setTextRange } from './utils';
 
@@ -29,39 +24,6 @@ export function createToken<T extends TokenSyntaxKind>(
 ): SyntaxToken<T> {
   return setTextRange({
     kind: tokenKind,
-    flags: SyntaxNodeFlags.None,
-  }, location);
-}
-
-export function createTypeReference(
-  name: IdentifierExpression,
-  location?: TextRange,
-): TypeReference {
-  return setTextRange({
-    kind: SyntaxKind.TypeReference,
-    name,
-    flags: SyntaxNodeFlags.None,
-  }, location);
-}
-
-export function createArrayTypeNode(
-  itemType: TypeNode,
-  location?: TextRange,
-): ArrayTypeNode {
-  return setTextRange({
-    kind: SyntaxKind.ArrayType,
-    itemType,
-    flags: SyntaxNodeFlags.None,
-  }, location);
-}
-
-export function createOptionalType(
-  valueType: TypeNode,
-  location?: TextRange,
-): OptionalTypeNode {
-  return setTextRange({
-    kind: SyntaxKind.OptionalType,
-    valueType,
     flags: SyntaxNodeFlags.None,
   }, location);
 }

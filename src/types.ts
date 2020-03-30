@@ -20,6 +20,9 @@ import { LoopStatement } from './ast/stmt/loop-stmt';
 import { ReturnStatement } from './ast/stmt/return-stmt';
 import { StopStatement } from './ast/stmt/stop-stmt';
 import { StructDeclStatement } from './ast/stmt/struct-decl-stmt';
+import { ArrayTypeNode } from './ast/types/array-type-node';
+import { OptionalTypeNode } from './ast/types/optional-type-node';
+import { TypeReference } from './ast/types/type-reference';
 
 /**
  * Types of diagnostics which can be generated.
@@ -536,30 +539,6 @@ export type TokenSyntaxKind
   | SyntaxKind.StructKeyword
   | SyntaxKind.NewKeyword
   ;
-
-/**
- * An identifier used in a context where it is
- * referring to the name of a type.
- */
-export interface TypeReference extends SyntaxNode {
-  kind: SyntaxKind.TypeReference;
-  name: IdentifierExpression;
-}
-
-/**
- * An array type node.
- */
-export interface ArrayTypeNode extends SyntaxNode {
-  kind: SyntaxKind.ArrayType;
-
-  itemType: TypeNode;
-}
-
-export interface OptionalTypeNode extends SyntaxNode {
-  kind: SyntaxKind.OptionalType;
-
-  valueType: TypeNode;
-}
 
 export type TypeNode
   = SyntaxToken<SyntaxKind.NumKeyword>
