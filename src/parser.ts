@@ -1,75 +1,46 @@
-import {
-  createArrayExpression,
-  createArrayTypeNode,
-  createAssignmentStatement,
-  createBinaryExpression,
-  createBlockStatement,
-  createBooleanNode,
-  createDeclarationStatement,
-  createExpressionStatement,
-  createFnCallExpression,
-  createFnDeclarationStatement,
-  createFnParameter,
-  createIdentifierNode,
-  createIfStatement,
-  createIndexExpression,
-  createLoopStatement,
-  createMemberAccessExpression,
-  createNilExpression,
-  createNumberNode,
-  createOptionalType,
-  createParenExpression,
-  createReturnStatement,
-  createSourceFile,
-  createStopStatement,
-  createStringNode,
-  createStructDeclStatement,
-  createStructExpression,
-  createStructMember,
-  createStructMemberExpression,
-  createToken,
-  createTypeReference,
-} from './factory';
+import { ExpressionNode } from './ast/expr';
+import { ArrayExpression, createArrayExpression } from './ast/expr/array-expr';
+import { BinaryOperator, createBinaryExpression } from './ast/expr/binary-expr';
+import { BooleanExpression, createBooleanExpression } from './ast/expr/boolean-expr';
+import { createFnCallExpression } from './ast/expr/fn-call-expr';
+import { createIdentifierExpression, IdentifierExpression } from './ast/expr/identifier-expr';
+import { createIndexExpression } from './ast/expr/index-expr';
+import { createMemberAccessExpression } from './ast/expr/member-access-expr';
+import { createNumberExpression, NumberExpression } from './ast/expr/number-expr';
+import { createParenExpression, ParenExpression } from './ast/expr/paren-expr';
+import { createStringExpression, StringExpression } from './ast/expr/string-expr';
+import { createStructExpression, createStructMemberExpression, StructExpression, StructMemberExpression } from './ast/expr/struct-expr';
+import { createSourceFile, SourceFile } from './ast/source-file';
+import { StatementNode } from './ast/stmt';
+import { AssignmentStatement, createAssignmentStatement } from './ast/stmt/assignment-stmt';
+import { BlockStatement, createBlockStatement } from './ast/stmt/block-stmt';
+import { createDeclarationStatement, DeclarationStatement } from './ast/stmt/declaration-stmt';
+import { createExpressionStatement, ExpressionStatement } from './ast/stmt/expression-stmt';
+import { createFnDeclarationStatement, createFnParameter, FnDeclarationStatement, FnParameter } from './ast/stmt/fn-declaration-stmt';
+import { createIfStatement, IfStatement } from './ast/stmt/if-stmt';
+import { createLoopStatement, LoopStatement } from './ast/stmt/loop-stmt';
+import { createReturnStatement, ReturnStatement } from './ast/stmt/return-stmt';
+import { createStopStatement, StopStatement } from './ast/stmt/stop-stmt';
+import { createStructDeclStatement, createStructMember, StructDeclStatement, StructMember } from './ast/stmt/struct-decl-stmt';
+import { SyntaxKind, SyntaxNodeFlags } from './ast/syntax-node';
+import { createToken, SyntaxToken, TokenSyntaxKind } from './ast/token';
+import { TypeNode } from './ast/types';
+import { createArrayTypeNode } from './ast/types/array-type-node';
+import { createOptionalTypeNode } from './ast/types/optional-type-node';
+import { createTypeReference, TypeReference } from './ast/types/type-reference';
+import { DiagnosticType } from './diagnostic';
+import { DiagnosticCode } from './diagnostic/diagnostic-code';
+import { createDiagnosticError } from './diagnostic/diagnostic-error';
+import { DiagnosticSource } from './diagnostic/diagnostic-source';
 import { createLexer } from './lexer';
-import {
-  ArrayExpression,
-  AssignmentStatement,
-  BinaryOperator,
-  BlockStatement,
-  BooleanNode,
-  DeclarationStatement,
-  DiagnosticCode,
-  DiagnosticKind,
-  DiagnosticSource,
-  DiagnosticType,
-  ExpressionNode,
-  ExpressionStatement,
-  FnDeclarationStatement,
-  FnParameter,
-  IdentifierNode,
-  IfStatement,
-  LoopStatement,
-  NilExpression,
-  NumberNode,
-  ParenExpression,
-  Parser,
-  ReturnStatement,
-  SourceFile,
-  StatementNode,
-  StopStatement,
-  StringNode,
-  StructDeclStatement,
-  StructExpression,
-  StructMember,
-  StructMemberExpression,
-  SyntaxKind,
-  SyntaxNodeFlags,
-  SyntaxToken,
-  TextRange,
-  TokenSyntaxKind,
-  TypeNode,
-  TypeReference,
-} from './types';
+import { TextRange } from './types';
+
+/**
+ * An interface for turning some text into a source file node.
+ */
+export interface Parser {
+  parse(): SourceFile;
+}
 
 export function createParser(source: SourceFile): Parser {
   const parsedSource = createSourceFile([], source.text, source.fileName);
@@ -90,19 +61,6 @@ export function createParser(source: SourceFile): Parser {
   let idx = 0;
 
   const diagnostics: DiagnosticType[] = [];
-  function createDiagnostic(
-    error: string,
-    code: DiagnosticCode,
-    location: TextRange,
-  ) {
-    diagnostics.push({
-      kind: DiagnosticKind.Error,
-      source: DiagnosticSource.Parser,
-      code,
-      error,
-      ...location,
-    });
-  }
 
   function atEnd() {
     return idx === tokens.length;
@@ -132,11 +90,12 @@ export function createParser(source: SourceFile): Parser {
 
   function consume<T extends TokenSyntaxKind>(expected: T): SyntaxToken<T> {
     if (tokens[idx].kind !== expected) {
-      createDiagnostic(
-        `Unexpected token ${SyntaxKind[tokens[idx].kind]}. Expected ${SyntaxKind[expected]}`,
+      diagnostics.push(createDiagnosticError(
+        DiagnosticSource.Parser,
         DiagnosticCode.UnexpectedToken,
+        `Unexpected token ${SyntaxKind[tokens[idx].kind]}. Expected ${SyntaxKind[expected]}`,
         { pos: tokens[idx].pos, end: tokens[idx].end },
-      );
+      ));
       const token = createToken(expected);
       token.flags |= SyntaxNodeFlags.Synthetic;
       return token;
@@ -155,19 +114,6 @@ export function createParser(source: SourceFile): Parser {
   function parseType(): TypeNode {
     let type: TypeNode;
     switch (tokens[idx].kind) {
-      case SyntaxKind.NumKeyword:
-        type = consume(SyntaxKind.NumKeyword);
-        break;
-      case SyntaxKind.BoolKeyword:
-        type = consume(SyntaxKind.BoolKeyword);
-        break;
-      case SyntaxKind.StrKeyword:
-        type = consume(SyntaxKind.StrKeyword);
-        break;
-      case SyntaxKind.NilKeyword:
-        // we cannot turn the nil type into an
-        // optional or an array, so just return here.
-        return consume(SyntaxKind.NilKeyword);
       case SyntaxKind.IdentifierToken:
         type = parseTypeReference();
         break;
@@ -178,7 +124,7 @@ export function createParser(source: SourceFile): Parser {
     // contain optional types.
     if (tokens[idx]?.kind === SyntaxKind.QuestionToken) {
       const question = consume(SyntaxKind.QuestionToken);
-      type = createOptionalType(type, { pos: type.pos, end: question.end });
+      type = createOptionalTypeNode(type, { pos: type.pos, end: question.end });
     }
     while (!atEnd()) {
       if (tokens[idx].kind === SyntaxKind.LeftBracketToken) {
@@ -188,7 +134,7 @@ export function createParser(source: SourceFile): Parser {
         // check again in case the array type itself is optional,
         if (tokens[idx]?.kind === SyntaxKind.QuestionToken as SyntaxKind) {
           const question = consume(SyntaxKind.QuestionToken);
-          type = createOptionalType(type, { pos: type.pos, end: question.end });
+          type = createOptionalTypeNode(type, { pos: type.pos, end: question.end });
         }
       } else {
         break;
@@ -198,7 +144,7 @@ export function createParser(source: SourceFile): Parser {
   }
 
   function parseTypeReference(): TypeReference {
-    const typeName = parseIdentifierNode();
+    const typeName = parseIdentifierExpression();
     return createTypeReference(typeName, { pos: typeName.pos, end: typeName.end });
   }
 
@@ -246,7 +192,7 @@ export function createParser(source: SourceFile): Parser {
 
   function parseDeclarationStatement(): DeclarationStatement | undefined {
     const declKeyword = consume(tokens[idx].kind);
-    const identifier = parseIdentifierNode();
+    const identifier = parseIdentifierExpression();
     let typeNode: TypeNode | undefined;
     if (tokens[idx].kind === SyntaxKind.ColonToken) {
       typeNode = parseTypeAnnotation();
@@ -264,7 +210,7 @@ export function createParser(source: SourceFile): Parser {
   }
 
   function parseFnParameter(): FnParameter {
-    const name = parseIdentifierNode();
+    const name = parseIdentifierExpression();
     let typeNode: TypeNode | undefined;
     if (tokens[idx].kind === SyntaxKind.ColonToken) {
       typeNode = parseTypeAnnotation();
@@ -274,7 +220,7 @@ export function createParser(source: SourceFile): Parser {
 
   function parseFnDeclarationStatement(): FnDeclarationStatement | undefined {
     const start = consume(SyntaxKind.FnKeyword);
-    const fnName = parseIdentifierNode();
+    const fnName = parseIdentifierExpression();
     let returnTypeNode: TypeNode | undefined;
     consume(SyntaxKind.LeftParenToken);
     // params
@@ -336,7 +282,7 @@ export function createParser(source: SourceFile): Parser {
   }
 
   function parseAssignmentStatement(): AssignmentStatement | undefined {
-    const identifier = parseIdentifierNode();
+    const identifier = parseIdentifierExpression();
     consume(SyntaxKind.EqualsToken);
     const value = parseExpression();
     if (value === undefined) {
@@ -358,17 +304,18 @@ export function createParser(source: SourceFile): Parser {
 
   function parseStructDeclStatement(): StructDeclStatement {
     const start = consume(SyntaxKind.StructKeyword);
-    const name = parseIdentifierNode();
+    const name = parseIdentifierExpression();
     consume(SyntaxKind.LeftCurlyToken);
     const members: StructDeclStatement['members'] = {};
     while (!atEnd() && tokens[idx].kind !== SyntaxKind.RightCurlyToken) {
       const member = parseStructMember();
       if (members[member.name.value] !== undefined) {
-        createDiagnostic(
-          `Duplicate struct member "${member.name.value}"`,
+        diagnostics.push(createDiagnosticError(
+          DiagnosticSource.Parser,
           DiagnosticCode.DuplicateSymbol,
+          `Duplicate struct member "${member.name.value}"`,
           { pos: member.pos, end: member.end },
-        );
+        ));
       } else {
         members[member.name.value] = member;
       }
@@ -393,7 +340,7 @@ export function createParser(source: SourceFile): Parser {
       start = consume(SyntaxKind.MutKeyword);
       isConst = false;
     }
-    const name = parseIdentifierNode();
+    const name = parseIdentifierExpression();
     if (start === undefined) {
       start = name;
     }
@@ -408,7 +355,7 @@ export function createParser(source: SourceFile): Parser {
       isConst,
       name,
       typeNode,
-      { pos: start.pos, end: end.end },
+      { pos: start!.pos, end: end.end },
     );
   }
 
@@ -493,7 +440,7 @@ export function createParser(source: SourceFile): Parser {
 
   function parseMemberAccessExpression(target: ExpressionNode): ExpressionNode | undefined {
     consume(SyntaxKind.DotToken);
-    const member = parseIdentifierNode();
+    const member = parseIdentifierExpression();
     return createMemberAccessExpression(target, member, { pos: target.pos, end: member.end });
   }
 
@@ -507,22 +454,21 @@ export function createParser(source: SourceFile): Parser {
         case SyntaxKind.NewKeyword:
           return parseStructExpression();
         case SyntaxKind.IdentifierToken:
-          return parseIdentifierNode();
+          return parseIdentifierExpression();
         case SyntaxKind.NumberToken:
-          return parseNumberNode();
+          return parseNumberExpression();
         case SyntaxKind.TrueKeyword:
         case SyntaxKind.FalseKeyword:
-          return parseBooleanNode();
+          return parseBooleanExpression();
         case SyntaxKind.StringToken:
-          return parseStringNode();
-        case SyntaxKind.NilKeyword:
-          return parseNilExpression();
+          return parseStringExpression();
         default:
-          createDiagnostic(
-            'Expected an expression.',
+          diagnostics.push(createDiagnosticError(
+            DiagnosticSource.Parser,
             DiagnosticCode.UnexpectedToken,
+            'Expected an expression.',
             { pos: tokens[idx].pos, end: tokens[idx].end },
-          );
+          ));
           idx++;
       }
     }
@@ -557,19 +503,19 @@ export function createParser(source: SourceFile): Parser {
     return createArrayExpression(items, { pos: start.pos, end: end.end });
   }
 
-  function parseIdentifierNode(): IdentifierNode {
+  function parseIdentifierExpression(): IdentifierExpression {
     const token = consume(SyntaxKind.IdentifierToken);
     const value = source.text.slice(token.pos, token.end);
-    return createIdentifierNode(value, { pos: token.pos, end: token.end });
+    return createIdentifierExpression(value, { pos: token.pos, end: token.end });
   }
 
-  function parseNumberNode(): NumberNode {
+  function parseNumberExpression(): NumberExpression {
     const token = consume(SyntaxKind.NumberToken);
     const value = source.text.slice(token.pos, token.end);
-    return createNumberNode(parseInt(value, 10), { pos: token.pos, end: token.end });
+    return createNumberExpression(parseInt(value, 10), { pos: token.pos, end: token.end });
   }
 
-  function parseBooleanNode(): BooleanNode {
+  function parseBooleanExpression(): BooleanExpression {
     let token: SyntaxToken<SyntaxKind.TrueKeyword | SyntaxKind.FalseKeyword>;
     switch (tokens[idx].kind) {
       case SyntaxKind.TrueKeyword:
@@ -581,18 +527,18 @@ export function createParser(source: SourceFile): Parser {
       default:
         throw new Error('parseBooleanNode should not have been called.');
     }
-    return createBooleanNode(token.kind === SyntaxKind.TrueKeyword, { pos: token.pos, end: token.end });
+    return createBooleanExpression(token.kind === SyntaxKind.TrueKeyword, { pos: token.pos, end: token.end });
   }
 
-  function parseStringNode(): StringNode {
+  function parseStringExpression(): StringExpression {
     const token = consume(SyntaxKind.StringToken);
     const value = source.text.slice(token.pos + 1, token.end - 1); // cut off quotemarks.
-    return createStringNode(value, { pos: token.pos, end: token.end });
+    return createStringExpression(value, { pos: token.pos, end: token.end });
   }
 
   function parseStructExpression(): StructExpression | undefined {
     const start = consume(SyntaxKind.NewKeyword);
-    const name = parseIdentifierNode();
+    const name = parseIdentifierExpression();
     consume(SyntaxKind.LeftCurlyToken);
     const members: StructExpression['members'] = {};
     while (!atEnd() && tokens[idx].kind !== SyntaxKind.RightCurlyToken) {
@@ -601,11 +547,12 @@ export function createParser(source: SourceFile): Parser {
         return undefined;
       }
       if (members[member.name.value] !== undefined) {
-        createDiagnostic(
-          `Duplicate struct member "${member.name.value}"`,
+        diagnostics.push(createDiagnosticError(
+          DiagnosticSource.Parser,
           DiagnosticCode.DuplicateSymbol,
+          `Duplicate struct member "${member.name.value}"`,
           { pos: member.pos, end: member.end },
-        );
+        ));
       } else {
         members[member.name.value] = member;
       }
@@ -623,7 +570,7 @@ export function createParser(source: SourceFile): Parser {
   }
 
   function parseStructMemberExpression(): StructMemberExpression | undefined {
-    const name = parseIdentifierNode();
+    const name = parseIdentifierExpression();
     consume(SyntaxKind.ColonToken);
     const value = parseExpression();
     if (value === undefined) {
@@ -634,11 +581,6 @@ export function createParser(source: SourceFile): Parser {
       value,
       { pos: name.pos, end: value.end },
     );
-  }
-
-  function parseNilExpression(): NilExpression {
-    const token = consume(SyntaxKind.NilKeyword);
-    return createNilExpression({ pos: token.pos, end: token.end });
   }
 
   return {
