@@ -1,7 +1,11 @@
 import { format } from 'util';
+import { BinaryOperator } from './ast/expr/binary-expr';
+import { SyntaxKind } from './ast/syntax-node';
+import { createToken } from './ast/token';
 import { Type } from './type';
 import { ArrayType } from './type/array-type';
 import { FunctionType } from './type/function-type';
+import { OptionalType } from './type/optional-type';
 import { StructType } from './type/struct-type';
 import { TypeKind } from './type/type-kind';
 import { TextRange, TypeMatch } from './types';
