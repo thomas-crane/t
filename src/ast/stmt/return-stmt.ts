@@ -1,3 +1,4 @@
+import { Printer } from '../../printer';
 import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
 import { ExpressionNode } from '../expr';
@@ -21,4 +22,10 @@ export function createReturnStatement(
     value,
     flags: SyntaxNodeFlags.None,
   }, location);
+}
+
+export function printReturnStatement(printer: Printer, node: ReturnStatement) {
+  printer.indent('(ReturnStatement');
+  printer.printNode(node.value);
+  printer.dedent(')');
 }

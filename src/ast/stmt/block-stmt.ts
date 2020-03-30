@@ -1,4 +1,5 @@
 import { StatementNode } from '.';
+import { Printer } from '../../printer';
 import { BlockExit, TextRange } from '../../types';
 import { setTextRange } from '../../utils';
 import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
@@ -23,4 +24,10 @@ export function createBlockStatement(
     exits: [],
     flags: SyntaxNodeFlags.None,
   }, location);
+}
+
+export function printBlockStatement(printer: Printer, node: BlockStatement) {
+  printer.indent('(BlockStatement');
+  node.statements.forEach((stmt) => printer.printNode(stmt));
+  printer.dedent(')');
 }

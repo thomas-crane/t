@@ -1,4 +1,5 @@
 import { ExpressionNode } from '.';
+import { Printer } from '../../printer';
 import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
 import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
@@ -21,4 +22,10 @@ export function createParenExpression(
     expr,
     flags: SyntaxNodeFlags.None,
   }, location);
+}
+
+export function printParenExpression(printer: Printer, node: ParenExpression) {
+  printer.indent('(ParenExpression');
+  printer.printNode(node.expr);
+  printer.dedent(')');
 }

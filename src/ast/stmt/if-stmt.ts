@@ -1,3 +1,4 @@
+import { Printer } from '../../printer';
 import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
 import { ExpressionNode } from '../expr';
@@ -28,4 +29,14 @@ export function createIfStatement(
     elseBody,
     flags: SyntaxNodeFlags.None,
   }, location);
+}
+
+export function printIfStatement(printer: Printer, node: IfStatement) {
+  printer.indent('(IfStatement');
+  printer.printNode(node.condition);
+  printer.printNode(node.body);
+  if (node.elseBody) {
+    printer.printNode(node.elseBody);
+  }
+  printer.dedent(')');
 }

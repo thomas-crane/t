@@ -1,3 +1,4 @@
+import { Printer } from '../../printer';
 import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
 import { IdentifierExpression } from '../expr/identifier-expr';
@@ -21,4 +22,10 @@ export function createTypeReference(
     name,
     flags: SyntaxNodeFlags.None,
   }, location);
+}
+
+export function printTypeReference(printer: Printer, node: TypeReference) {
+  printer.indent('(TypeReference');
+  printer.printNode(node.name);
+  printer.dedent(')');
 }

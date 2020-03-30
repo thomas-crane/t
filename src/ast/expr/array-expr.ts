@@ -1,4 +1,5 @@
 import { ExpressionNode } from '.';
+import { Printer } from '../../printer';
 import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
 import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
@@ -21,4 +22,10 @@ export function createArrayExpression(
     items,
     flags: SyntaxNodeFlags.None,
   }, location);
+}
+
+export function printArrayExpression(printer: Printer, node: ArrayExpression) {
+  printer.indent('(ArrayExpression');
+  node.items.forEach((item) => printer.printNode(item));
+  printer.dedent(')');
 }

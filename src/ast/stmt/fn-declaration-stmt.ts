@@ -1,3 +1,4 @@
+import { Printer } from '../../printer';
 import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
 import { IdentifierExpression } from '../expr/identifier-expr';
@@ -55,4 +56,24 @@ export function createFnParameter(
     typeNode,
     flags: SyntaxNodeFlags.None,
   }, location);
+}
+
+export function printFnDeclarationStatement(printer: Printer, node: FnDeclarationStatement) {
+  printer.indent('(FnDeclarationStatement');
+  printer.printNode(node.fnName);
+  node.params.forEach((param) => printFnParameter(printer, param));
+  if (node.returnTypeNode) {
+    printer.printNode(node.returnTypeNode);
+  }
+  printer.printNode(node.body);
+  printer.dedent(')');
+}
+
+export function printFnParameter(printer: Printer, node: FnParameter) {
+  printer.indent('(FnParameter');
+  printer.printNode(node.name);
+  if (node.typeNode) {
+    printer.printNode(node.typeNode);
+  }
+  printer.dedent(')');
 }

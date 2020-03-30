@@ -1,4 +1,5 @@
 import { ExpressionNode } from '.';
+import { Printer } from '../../printer';
 import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
 import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
@@ -22,4 +23,11 @@ export function createMemberAccessExpression(
     member,
     flags: SyntaxNodeFlags.None,
   }, location);
+}
+
+export function printMemberAccessExpression(printer: Printer, node: MemberAccessExpression) {
+  printer.indent('(MemberAccessExpression');
+  printer.printNode(node.target);
+  printer.printNode(node.member);
+  printer.dedent(')');
 }

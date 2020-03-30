@@ -1,4 +1,5 @@
-import { DiagnosticType } from '../types';
+import { DiagnosticType } from '../diagnostic';
+import { Printer } from '../printer';
 import { StatementNode } from './stmt';
 import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from './syntax-node';
 
@@ -34,4 +35,10 @@ export function createSourceFile(
     pos: 0,
     end: text.length - 1,
   };
+}
+
+export function printSourceFile(printer: Printer, node: SourceFile) {
+  printer.indent('(SourceFile');
+  node.statements.forEach((stmt) => printer.printNode(stmt));
+  printer.dedent(')');
 }

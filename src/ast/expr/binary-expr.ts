@@ -1,4 +1,5 @@
 import { ExpressionNode } from '.';
+import { Printer } from '../../printer';
 import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
 import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
@@ -43,4 +44,37 @@ export function createBinaryExpression(
     right,
     flags: SyntaxNodeFlags.None,
   }, location);
+}
+
+export function printBinaryExpression(printer: Printer, node: BinaryExpression) {
+  printer.indent('(BinaryExpression');
+  printer.printNode(node.left);
+  printer.println(binaryOpToString(node.operator));
+  printer.printNode(node.right);
+  printer.dedent(')');
+}
+
+function binaryOpToString(op: BinaryOperator): string {
+  switch (op.kind) {
+    case SyntaxKind.PlusToken:
+      return '+';
+    case SyntaxKind.MinusToken:
+      return '-';
+    case SyntaxKind.StarToken:
+      return '*';
+    case SyntaxKind.SlashToken:
+      return '/';
+    case SyntaxKind.LessThan:
+      return '<';
+    case SyntaxKind.GreaterThan:
+      return '>';
+    case SyntaxKind.EqualTo:
+      return '==';
+    case SyntaxKind.NotEqualTo:
+      return '!=';
+    case SyntaxKind.LogicalAnd:
+      return '&&';
+    case SyntaxKind.LogicalOr:
+      return '||';
+  }
 }

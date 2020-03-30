@@ -1,3 +1,4 @@
+import { Printer } from '../../printer';
 import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
 import { ExpressionNode } from '../expr';
@@ -25,4 +26,11 @@ export function createAssignmentStatement(
     value,
     flags: SyntaxNodeFlags.None,
   }, location);
+}
+
+export function printAssignmentStatement(printer: Printer, node: AssignmentStatement) {
+  printer.indent('(AssignmentStatement');
+  printer.printNode(node.identifier);
+  printer.printNode(node.value);
+  printer.dedent(')');
 }

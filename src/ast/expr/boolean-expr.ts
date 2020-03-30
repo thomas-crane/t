@@ -1,3 +1,4 @@
+import { Printer } from '../../printer';
 import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
 import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
@@ -19,4 +20,8 @@ export function createBooleanExpression(
     value,
     flags: SyntaxNodeFlags.None,
   }, location);
+}
+
+export function printBooleanExpression(printer: Printer, node: BooleanExpression) {
+  printer.println(`(BooleanExpression ${node.value})`);
 }

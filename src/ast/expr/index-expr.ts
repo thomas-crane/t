@@ -1,4 +1,5 @@
 import { ExpressionNode } from '.';
+import { Printer } from '../../printer';
 import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
 import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
@@ -21,4 +22,11 @@ export function createIndexExpression(
     index,
     flags: SyntaxNodeFlags.None,
   }, location);
+}
+
+export function printIndexExpression(printer: Printer, node: IndexExpression) {
+  printer.indent('(IndexExpression');
+  printer.printNode(node.target);
+  printer.printNode(node.index);
+  printer.dedent(')');
 }

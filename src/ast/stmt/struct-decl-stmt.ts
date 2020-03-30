@@ -1,3 +1,4 @@
+import { Printer } from '../../printer';
 import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
 import { IdentifierExpression } from '../expr/identifier-expr';
@@ -45,4 +46,26 @@ export function createStructMember(
     typeNode,
     flags: SyntaxNodeFlags.None,
   }, location);
+}
+
+export function printStructDeclStatement(printer: Printer, node: StructDeclStatement) {
+  printer.indent('(StructDeclStatement');
+  printer.printNode(node.name);
+  // tslint:disable-next-line: forin
+  for (const name in node.members) {
+    printStructMember(printer, node.members[name]);
+  }
+  printer.dedent(')');
+}
+
+export function printStructMember(printer: Printer, node: StructMember) {
+  printer.indent('(StructMember');
+  if (!node.isConst) {
+    printer.println('(MutKeyword)');
+  }
+  printer.printNode(node.name);
+  if (node.typeNode) {
+    printer.printNode(node.typeNode);
+  }
+  printer.dedent(')');
 }

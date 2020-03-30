@@ -1,4 +1,5 @@
 import { TypeNode } from '.';
+import { Printer } from '../../printer';
 import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
 import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
@@ -21,4 +22,10 @@ export function createArrayTypeNode(
     itemType,
     flags: SyntaxNodeFlags.None,
   }, location);
+}
+
+export function printArrayTypeNode(printer: Printer, node: ArrayTypeNode) {
+  printer.indent('(ArrayType');
+  printer.printNode(node.itemType);
+  printer.dedent(')');
 }

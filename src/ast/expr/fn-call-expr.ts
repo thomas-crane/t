@@ -1,4 +1,5 @@
 import { ExpressionNode } from '.';
+import { Printer } from '../../printer';
 import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
 import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
@@ -24,4 +25,11 @@ export function createFnCallExpression(
     args,
     flags: SyntaxNodeFlags.None,
   }, location);
+}
+
+export function printFnCallExpression(printer: Printer, node: FnCallExpression) {
+  printer.indent('(FnCallExpression');
+  printer.printNode(node.fn);
+  node.args.forEach((arg) => printer.printNode(arg));
+  printer.dedent(')');
 }

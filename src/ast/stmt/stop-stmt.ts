@@ -1,3 +1,4 @@
+import { Printer } from '../../printer';
 import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
 import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
@@ -16,4 +17,8 @@ export function createStopStatement(
     kind: SyntaxKind.StopStatement,
     flags: SyntaxNodeFlags.None,
   }, location);
+}
+
+export function printStopStatement(printer: Printer, _: StopStatement) {
+  printer.println('(StopStatement)');
 }

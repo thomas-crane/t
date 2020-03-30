@@ -1,3 +1,4 @@
+import { Printer } from '../../printer';
 import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
 import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
@@ -19,4 +20,8 @@ export function createNumberExpression(
     value,
     flags: SyntaxNodeFlags.None,
   }, location);
+}
+
+export function printNumberExpression(printer: Printer, node: NumberExpression) {
+  printer.println(`(NumberExpression ${node.value})`);
 }

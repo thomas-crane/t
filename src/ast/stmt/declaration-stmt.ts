@@ -1,3 +1,4 @@
+import { Printer } from '../../printer';
 import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
 import { ExpressionNode } from '../expr';
@@ -33,4 +34,19 @@ export function createDeclarationStatement(
     value,
     flags: SyntaxNodeFlags.None,
   }, location);
+}
+
+export function printDeclarationStatement(printer: Printer, node: DeclarationStatement) {
+  printer.indent('(DeclarationStatement');
+  if (node.isConst) {
+    printer.println('LetKeyword');
+  } else {
+    printer.println('MutKeyword');
+  }
+  printer.printNode(node.identifier);
+  if (node.typeNode) {
+    printer.printNode(node.typeNode);
+  }
+  printer.printNode(node.value);
+  printer.dedent(')');
 }
