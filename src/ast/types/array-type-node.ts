@@ -1,5 +1,7 @@
-import { SyntaxKind, SyntaxNode, SyntaxNodeFlags, TextRange, TypeNode } from '../../types';
+import { TypeNode } from '.';
+import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
+import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
 
 /**
  * An array type node.

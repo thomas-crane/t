@@ -1,5 +1,7 @@
-import { BlockExit, StatementNode, SyntaxKind, SyntaxNode, SyntaxNodeFlags, TextRange } from '../../types';
+import { StatementNode } from '.';
+import { BlockExit, TextRange } from '../../types';
 import { setTextRange } from '../../utils';
+import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
 
 /**
  * A list of statements.

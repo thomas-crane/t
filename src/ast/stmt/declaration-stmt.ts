@@ -1,6 +1,9 @@
-import { ExpressionNode, SyntaxKind, SyntaxNode, SyntaxNodeFlags, TextRange, TypeNode } from '../../types';
+import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
+import { ExpressionNode } from '../expr';
 import { IdentifierExpression } from '../expr/identifier-expr';
+import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
+import { TypeNode } from '../types';
 
 /**
  * A variable declaration statement. This encompasses

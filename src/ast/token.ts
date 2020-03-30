@@ -1,5 +1,6 @@
-import { SyntaxKind, SyntaxNode, SyntaxNodeFlags, TextRange } from '../types';
+import { TextRange } from '../types';
 import { setTextRange } from '../utils';
+import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from './syntax-node';
 
 /**
  * A token. This can include single characters, operators and keywords.

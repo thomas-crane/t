@@ -1,6 +1,7 @@
-import { SyntaxKind, SyntaxNode, SyntaxNodeFlags, TextRange } from '../../types';
+import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
 import { IdentifierExpression } from '../expr/identifier-expr';
+import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
 
 /**
  * An identifier used in a context where it is

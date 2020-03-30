@@ -1,6 +1,8 @@
-import { SyntaxKind, SyntaxNode, SyntaxNodeFlags, TextRange, TypeNode } from '../../types';
+import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
 import { IdentifierExpression } from '../expr/identifier-expr';
+import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
+import { TypeNode } from '../types';
 
 export interface StructDeclStatement extends SyntaxNode {
   kind: SyntaxKind.StructDeclStatement;

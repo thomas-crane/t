@@ -1,4 +1,4 @@
-import { SyntaxKind } from '../../types';
+import { SyntaxKind } from '../syntax-node';
 import { SyntaxToken } from '../token';
 import { ArrayTypeNode } from './array-type-node';
 import { OptionalTypeNode } from './optional-type-node';

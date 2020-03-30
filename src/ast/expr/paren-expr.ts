@@ -1,5 +1,7 @@
-import { ExpressionNode, SyntaxKind, SyntaxNode, SyntaxNodeFlags, TextRange } from '../../types';
+import { ExpressionNode } from '.';
+import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
+import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
 
 /**
  * An expression which is wrapped in parentheses.

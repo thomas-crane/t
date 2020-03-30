@@ -1,12 +1,8 @@
-import {
-  ExpressionNode,
-  SyntaxKind,
-  SyntaxNode,
-  SyntaxNodeFlags,
-  SyntaxToken,
-  TextRange,
-} from '../../types';
+import { ExpressionNode } from '.';
+import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
+import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
+import { SyntaxToken } from '../token';
 
 /**
  * A binary expression such as `10 + 20`

@@ -1,5 +1,6 @@
-import { DiagnosticType, SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../types';
+import { DiagnosticType } from '../types';
 import { StatementNode } from './stmt';
+import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from './syntax-node';
 
 /**
  * A top level node which contains the list of statements in a program,
