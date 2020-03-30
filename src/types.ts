@@ -1,4 +1,15 @@
 import { Writable } from 'stream';
+import { ArrayExpression } from './ast/expr/array-expr';
+import { BinaryExpression } from './ast/expr/binary-expr';
+import { BooleanExpression } from './ast/expr/boolean-expr';
+import { FnCallExpression } from './ast/expr/fn-call-expr';
+import { IdentifierExpression } from './ast/expr/identifier-expr';
+import { IndexExpression } from './ast/expr/index-expr';
+import { MemberAccessExpression } from './ast/expr/member-access-expr';
+import { NumberExpression } from './ast/expr/number-expr';
+import { ParenExpression } from './ast/expr/paren-expr';
+import { StringExpression } from './ast/expr/string-expr';
+import { StructExpression } from './ast/expr/struct-expr';
 
 /**
  * Types of diagnostics which can be generated.
@@ -449,7 +460,7 @@ export enum SyntaxKind {
 /**
  * The base type of all types which represent some kind of syntax.
  */
-interface SyntaxNode extends TextRange {
+export interface SyntaxNode extends TextRange {
   kind: SyntaxKind;
   flags: SyntaxNodeFlags;
 
@@ -517,41 +528,12 @@ export type TokenSyntaxKind
   ;
 
 /**
- * A number literal expression.
- */
-export interface NumberNode extends SyntaxNode {
-  kind: SyntaxKind.Number;
-  value: number;
-}
-
-/**
- * An identifier literal expression.
- */
-export interface IdentifierNode extends SyntaxNode {
-  kind: SyntaxKind.Identifier;
-  value: string;
-}
-
-/**
- * A boolean literal expression.
- */
-export interface BooleanNode extends SyntaxNode {
-  kind: SyntaxKind.Boolean;
-  value: boolean;
-}
-
-export interface StringNode extends SyntaxNode {
-  kind: SyntaxKind.String;
-  value: string;
-}
-
-/**
  * An identifier used in a context where it is
  * referring to the name of a type.
  */
 export interface TypeReference extends SyntaxNode {
   kind: SyntaxKind.TypeReference;
-  name: IdentifierNode;
+  name: IdentifierExpression;
 }
 
 /**
@@ -580,105 +562,18 @@ export type TypeNode
   ;
 
 /**
- * A binary expression such as `10 + 20`
- */
-export interface BinaryExpression extends SyntaxNode {
-  kind: SyntaxKind.BinaryExpression;
-
-  left: ExpressionNode;
-  operator: BinaryOperator;
-  right: ExpressionNode;
-}
-/**
- * The set of syntax tokens which are valid binary expression operators.
- */
-export type BinaryOperator
-  = SyntaxToken<SyntaxKind.PlusToken>
-  | SyntaxToken<SyntaxKind.MinusToken>
-  | SyntaxToken<SyntaxKind.StarToken>
-  | SyntaxToken<SyntaxKind.SlashToken>
-  | SyntaxToken<SyntaxKind.LessThan>
-  | SyntaxToken<SyntaxKind.GreaterThan>
-  | SyntaxToken<SyntaxKind.EqualTo>
-  | SyntaxToken<SyntaxKind.NotEqualTo>
-  | SyntaxToken<SyntaxKind.LogicalAnd>
-  | SyntaxToken<SyntaxKind.LogicalOr>
-  ;
-
-/**
- * A function call expression.
- */
-export interface FnCallExpression extends SyntaxNode {
-  kind: SyntaxKind.FnCallExpression;
-
-  fn: ExpressionNode;
-  args: ExpressionNode[];
-}
-
-/**
- * An expression which is wrapped in parentheses.
- */
-export interface ParenExpression extends SyntaxNode {
-  kind: SyntaxKind.ParenExpression;
-
-  expr: ExpressionNode;
-}
-
-/**
- * A list of expressions surrounded by square brackets.
- */
-export interface ArrayExpression extends SyntaxNode {
-  kind: SyntaxKind.ArrayExpression;
-
-  items: ExpressionNode[];
-}
-
-export interface StructMemberExpression extends SyntaxNode {
-  kind: SyntaxKind.StructMemberExpression;
-
-  name: IdentifierNode;
-  value: ExpressionNode;
-}
-
-export interface StructExpression extends SyntaxNode {
-  kind: SyntaxKind.StructExpression;
-
-  name: IdentifierNode;
-  members: Record<string, StructMemberExpression>;
-}
-
-export interface NilExpression extends SyntaxNode {
-  kind: SyntaxKind.NilExpression;
-}
-
-export interface IndexExpression extends SyntaxNode {
-  kind: SyntaxKind.IndexExpression;
-
-  target: ExpressionNode;
-  index: ExpressionNode;
-}
-
-export interface MemberAccessExpression extends SyntaxNode {
-  kind: SyntaxKind.MemberAccessExpression;
-
-  target: ExpressionNode;
-  member: IdentifierNode;
-}
-
-/**
  * The set of all syntax items which are expressions.
  */
 export type ExpressionNode
-  = NumberNode
-  | IdentifierNode
-  | BooleanNode
-  | StringNode
+  = NumberExpression
+  | IdentifierExpression
+  | BooleanExpression
+  | StringExpression
   | BinaryExpression
   | FnCallExpression
   | ParenExpression
   | ArrayExpression
   | StructExpression
-  | NilExpression
   | IndexExpression
   | MemberAccessExpression
   ;
@@ -710,7 +605,7 @@ export interface IfStatement extends SyntaxNode {
 export interface AssignmentStatement extends SyntaxNode {
   kind: SyntaxKind.AssignmentStatement;
 
-  identifier: IdentifierNode;
+  identifier: IdentifierExpression;
   value: ExpressionNode;
 }
 
@@ -722,7 +617,7 @@ export interface DeclarationStatement extends SyntaxNode {
   kind: SyntaxKind.DeclarationStatement;
 
   isConst: boolean;
-  identifier: IdentifierNode;
+  identifier: IdentifierExpression;
   typeNode?: TypeNode;
   value: ExpressionNode;
 }
@@ -733,7 +628,7 @@ export interface DeclarationStatement extends SyntaxNode {
 export interface FnParameter extends SyntaxNode {
   kind: SyntaxKind.FnParameter;
 
-  name: IdentifierNode;
+  name: IdentifierExpression;
   typeNode?: TypeNode;
 }
 
@@ -743,7 +638,7 @@ export interface FnParameter extends SyntaxNode {
 export interface FnDeclarationStatement extends SyntaxNode {
   kind: SyntaxKind.FnDeclarationStatement;
 
-  fnName: IdentifierNode;
+  fnName: IdentifierExpression;
   params: FnParameter[];
   returnTypeNode?: TypeNode;
   body: BlockStatement;
@@ -787,14 +682,14 @@ export interface StructMember extends SyntaxNode {
   kind: SyntaxKind.StructMember;
 
   isConst: boolean;
-  name: IdentifierNode;
+  name: IdentifierExpression;
   typeNode?: TypeNode;
 }
 
 export interface StructDeclStatement extends SyntaxNode {
   kind: SyntaxKind.StructDeclStatement;
 
-  name: IdentifierNode;
+  name: IdentifierExpression;
   members: Record<string, StructMember>;
 }
 
@@ -836,7 +731,6 @@ export type Node
   | TypeNode
   | FnParameter
   | StructMember
-  | StructMemberExpression
   | SourceFile
   ;
 

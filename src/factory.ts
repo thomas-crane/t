@@ -1,41 +1,28 @@
+import { IdentifierExpression } from './ast/expr/identifier-expr';
 import {
-  ArrayExpression,
   ArrayTypeNode,
   AssignmentStatement,
-  BinaryExpression,
-  BinaryOperator,
   BlockExitKind,
   BlockStatement,
-  BooleanNode,
   DeclarationStatement,
   DiagnosticType,
   EndBlockExit,
   ExpressionNode,
   ExpressionStatement,
-  FnCallExpression,
   FnDeclarationStatement,
   FnParameter,
-  IdentifierNode,
   IfStatement,
-  IndexExpression,
   JumpBlockExit,
   LoopStatement,
-  MemberAccessExpression,
-  NilExpression,
-  NumberNode,
   OptionalTypeNode,
-  ParenExpression,
   ReturnBlockExit,
   ReturnStatement,
   SourceFile,
   StatementNode,
   StopBlockExit,
   StopStatement,
-  StringNode,
   StructDeclStatement,
-  StructExpression,
   StructMember,
-  StructMemberExpression,
   SyntaxKind,
   SyntaxNodeFlags,
   SyntaxToken,
@@ -56,52 +43,8 @@ export function createToken<T extends TokenSyntaxKind>(
   }, location);
 }
 
-export function createNumberNode(
-  value: number,
-  location?: TextRange,
-): NumberNode {
-  return setTextRange({
-    kind: SyntaxKind.Number,
-    value,
-    flags: SyntaxNodeFlags.None,
-  }, location);
-}
-
-export function createIdentifierNode(
-  value: string,
-  location?: TextRange,
-): IdentifierNode {
-  return setTextRange({
-    kind: SyntaxKind.Identifier,
-    value,
-    flags: SyntaxNodeFlags.None,
-  }, location);
-}
-
-export function createBooleanNode(
-  value: boolean,
-  location?: TextRange,
-): BooleanNode {
-  return setTextRange({
-    kind: SyntaxKind.Boolean,
-    value,
-    flags: SyntaxNodeFlags.None,
-  }, location);
-}
-
-export function createStringNode(
-  value: string,
-  location?: TextRange,
-): StringNode {
-  return setTextRange({
-    kind: SyntaxKind.String,
-    value,
-    flags: SyntaxNodeFlags.None,
-  }, location);
-}
-
 export function createTypeReference(
-  name: IdentifierNode,
+  name: IdentifierExpression,
   location?: TextRange,
 ): TypeReference {
   return setTextRange({
@@ -166,117 +109,6 @@ export function createEndBlockExit(): EndBlockExit {
   };
 }
 
-export function createBinaryExpression(
-  left: ExpressionNode,
-  operator: BinaryOperator,
-  right: ExpressionNode,
-  location?: TextRange,
-): BinaryExpression {
-  return setTextRange({
-    kind: SyntaxKind.BinaryExpression,
-    left,
-    operator,
-    right,
-    flags: SyntaxNodeFlags.None,
-  }, location);
-}
-
-export function createFnCallExpression(
-  fn: ExpressionNode,
-  args: ExpressionNode[],
-  location?: TextRange,
-): FnCallExpression {
-  return setTextRange({
-    kind: SyntaxKind.FnCallExpression,
-    fn,
-    args,
-    flags: SyntaxNodeFlags.None,
-  }, location);
-}
-
-export function createParenExpression(
-  expr: ExpressionNode,
-  location?: TextRange,
-): ParenExpression {
-  return setTextRange({
-    kind: SyntaxKind.ParenExpression,
-    expr,
-    flags: SyntaxNodeFlags.None,
-  }, location);
-}
-
-export function createArrayExpression(
-  items: ExpressionNode[],
-  location?: TextRange,
-): ArrayExpression {
-  return setTextRange({
-    kind: SyntaxKind.ArrayExpression,
-    items,
-    flags: SyntaxNodeFlags.None,
-  }, location);
-}
-
-export function createStructExpression(
-  name: IdentifierNode,
-  members: StructExpression['members'],
-  location?: TextRange,
-): StructExpression {
-  return setTextRange({
-    kind: SyntaxKind.StructExpression,
-    name,
-    members,
-    flags: SyntaxNodeFlags.None,
-  }, location);
-}
-
-export function createStructMemberExpression(
-  name: IdentifierNode,
-  value: ExpressionNode,
-  location?: TextRange,
-): StructMemberExpression {
-  return setTextRange({
-    kind: SyntaxKind.StructMemberExpression,
-    name,
-    value,
-    flags: SyntaxNodeFlags.None,
-  }, location);
-}
-
-export function createNilExpression(
-  location?: TextRange,
-): NilExpression {
-  return setTextRange({
-    kind: SyntaxKind.NilExpression,
-    flags: SyntaxNodeFlags.None,
-  }, location);
-}
-
-export function createIndexExpression(
-  target: ExpressionNode,
-  index: ExpressionNode,
-  location?: TextRange,
-): IndexExpression {
-  return setTextRange({
-    kind: SyntaxKind.IndexExpression,
-    target,
-    index,
-    flags: SyntaxNodeFlags.None,
-  }, location);
-}
-
-export function createMemberAccessExpression(
-  target: ExpressionNode,
-  member: IdentifierNode,
-  location?: TextRange,
-): MemberAccessExpression {
-  return setTextRange({
-    kind: SyntaxKind.MemberAccessExpression,
-    target,
-    member,
-    flags: SyntaxNodeFlags.None,
-  }, location);
-}
-
 export function createBlockStatement(
   statements: StatementNode[],
   location?: TextRange,
@@ -305,7 +137,7 @@ export function createIfStatement(
 }
 
 export function createAssignmentStatement(
-  identifier: IdentifierNode,
+  identifier: IdentifierExpression,
   value: ExpressionNode,
   location?: TextRange,
 ): AssignmentStatement {
@@ -319,7 +151,7 @@ export function createAssignmentStatement(
 
 export function createDeclarationStatement(
   isConst: boolean,
-  identifier: IdentifierNode,
+  identifier: IdentifierExpression,
   typeNode: TypeNode | undefined,
   value: ExpressionNode,
   location?: TextRange,
@@ -335,7 +167,7 @@ export function createDeclarationStatement(
 }
 
 export function createFnParameter(
-  name: IdentifierNode,
+  name: IdentifierExpression,
   typeNode: TypeNode | undefined,
   location?: TextRange,
 ): FnParameter {
@@ -348,7 +180,7 @@ export function createFnParameter(
 }
 
 export function createFnDeclarationStatement(
-  fnName: IdentifierNode,
+  fnName: IdentifierExpression,
   params: FnParameter[],
   returnTypeNode: TypeNode | undefined,
   body: BlockStatement,
@@ -407,7 +239,7 @@ export function createExpressionStatement(
 }
 
 export function createStructDeclStatement(
-  name: IdentifierNode,
+  name: IdentifierExpression,
   members: StructDeclStatement['members'],
   location?: TextRange,
 ): StructDeclStatement {
@@ -421,7 +253,7 @@ export function createStructDeclStatement(
 
 export function createStructMember(
   isConst: boolean,
-  name: IdentifierNode,
+  name: IdentifierExpression,
   typeNode: TypeNode | undefined,
   location?: TextRange,
 ): StructMember {
