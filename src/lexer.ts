@@ -1,15 +1,17 @@
-import {
-  createToken,
-} from './factory';
-import {
-  DiagnosticCode,
-  DiagnosticKind,
-  DiagnosticSource,
-  DiagnosticType,
-  Lexer,
-  SyntaxKind,
-  TokenSyntaxKind,
-} from './types';
+import { SyntaxKind } from './ast/syntax-node';
+import { createToken, SyntaxToken, TokenSyntaxKind } from './ast/token';
+import { DiagnosticType } from './diagnostic';
+import { DiagnosticCode } from './diagnostic/diagnostic-code';
+import { createDiagnosticError } from './diagnostic/diagnostic-error';
+import { DiagnosticSource } from './diagnostic/diagnostic-source';
+
+/**
+ * An interface for turning some text into a stream of tokens.
+ */
+export interface Lexer {
+  nextToken(): SyntaxToken<TokenSyntaxKind>;
+  getDiagnostics(): DiagnosticType[];
+}
 
 interface SyntaxKindMap {
   [key: string]: TokenSyntaxKind;
@@ -51,11 +53,6 @@ const charMap: SyntaxKindMap = {
 };
 
 const keywordMap: SyntaxKindMap = {
-  num: SyntaxKind.NumKeyword,
-  bool: SyntaxKind.BoolKeyword,
-  str: SyntaxKind.StrKeyword,
-  nil: SyntaxKind.NilKeyword,
-
   let: SyntaxKind.LetKeyword,
   mut: SyntaxKind.MutKeyword,
 
@@ -131,14 +128,11 @@ export function createLexer(src: string): Lexer {
         do {
           pos++;
           if (src[pos] === '\n' || atEnd()) {
-            diagnostics.push({
-              kind: DiagnosticKind.Error,
-              error: 'Unterminated string literal.',
-              pos: start,
-              end: pos,
-              source: DiagnosticSource.Lexer,
-              code: DiagnosticCode.UnterminatedStringLiteral,
-            });
+            diagnostics.push(createDiagnosticError(
+              DiagnosticSource.Lexer,
+              DiagnosticCode.UnterminatedStringLiteral,
+              'Unterminated string literal.',
+            ));
             hadError = true;
             tokenKind = SyntaxKind.UnknownToken;
             break;
@@ -163,14 +157,11 @@ export function createLexer(src: string): Lexer {
         kind = charMap[char];
       }
       if (kind === SyntaxKind.UnknownToken) {
-        diagnostics.push({
-          kind: DiagnosticKind.Error,
-          error: `Unknown character "${char}"`,
-          pos: charStart,
-          end: pos,
-          source: DiagnosticSource.Lexer,
-          code: DiagnosticCode.UnknownToken,
-        });
+        diagnostics.push(createDiagnosticError(
+          DiagnosticSource.Lexer,
+          DiagnosticCode.UnknownToken,
+          `Unknown character "${char}"`,
+        ));
       }
       return createToken(kind, { pos: charStart, end: pos });
     },

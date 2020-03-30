@@ -1,7 +1,9 @@
 import test, { ExecutionContext } from 'ava';
-import { createToken } from './factory';
+import { SyntaxKind } from './ast/syntax-node';
+import { createToken, SyntaxToken, TokenSyntaxKind } from './ast/token';
+import { DiagnosticCode } from './diagnostic/diagnostic-code';
+import { DiagnosticKind } from './diagnostic/diagnostic-kind';
 import { createLexer } from './lexer';
-import { DiagnosticCode, DiagnosticKind, SyntaxKind, SyntaxToken, TokenSyntaxKind } from './types';
 
 const keywords: Array<[string, SyntaxToken<TokenSyntaxKind>]> = [
   ['let', createToken(SyntaxKind.LetKeyword)],
@@ -18,11 +20,6 @@ const keywords: Array<[string, SyntaxToken<TokenSyntaxKind>]> = [
 
   ['true', createToken(SyntaxKind.TrueKeyword)],
   ['false', createToken(SyntaxKind.FalseKeyword)],
-
-  ['num', createToken(SyntaxKind.NumKeyword)],
-  ['bool', createToken(SyntaxKind.BoolKeyword)],
-  ['str', createToken(SyntaxKind.StrKeyword)],
-  ['nil', createToken(SyntaxKind.NilKeyword)],
 
   ['struct', createToken(SyntaxKind.StructKeyword)],
   ['new', createToken(SyntaxKind.NewKeyword)],

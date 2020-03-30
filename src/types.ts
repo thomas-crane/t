@@ -3,8 +3,6 @@ import { SourceFile } from './ast/source-file';
 import { BlockStatement } from './ast/stmt/block-stmt';
 import { ReturnStatement } from './ast/stmt/return-stmt';
 import { StopStatement } from './ast/stmt/stop-stmt';
-import { SyntaxToken, TokenSyntaxKind } from './ast/token';
-import { DiagnosticType } from './diagnostic';
 
 /**
  * Types of matches which can occur when trying to
@@ -96,14 +94,6 @@ export type BlockExit
 export interface TextRange {
   pos: number;
   end: number;
-}
-
-/**
- * An interface for turning some text into a stream of tokens.
- */
-export interface Lexer {
-  nextToken(): SyntaxToken<TokenSyntaxKind>;
-  getDiagnostics(): DiagnosticType[];
 }
 
 /**

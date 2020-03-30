@@ -1,4 +1,6 @@
-import { SymbolType, TextRange, Type } from '../types';
+import { SymbolType } from '../symbol';
+import { Type } from '../type';
+import { TextRange } from '../types';
 
 /**
  * The base type of all types which represent some kind of syntax.
@@ -40,10 +42,6 @@ export enum SyntaxKind {
   NewKeyword,
 
   // type stuff
-  NumKeyword,
-  BoolKeyword,
-  StrKeyword,
-  NilKeyword,
   TypeReference,
   ArrayType,
   OptionalType,
