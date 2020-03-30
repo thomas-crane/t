@@ -1,13 +1,10 @@
 import { Writable } from 'stream';
-import { ExpressionNode } from './ast/expr';
 import { SourceFile } from './ast/source-file';
-import { StatementNode } from './ast/stmt';
 import { BlockStatement } from './ast/stmt/block-stmt';
 import { ReturnStatement } from './ast/stmt/return-stmt';
 import { StopStatement } from './ast/stmt/stop-stmt';
 import { SyntaxNode } from './ast/syntax-node';
 import { SyntaxToken, TokenSyntaxKind } from './ast/token';
-import { TypeNode } from './ast/types';
 
 /**
  * Types of diagnostics which can be generated.
@@ -357,16 +354,6 @@ export interface TextRange {
   pos: number;
   end: number;
 }
-
-/**
- * The set of all syntax item types.
- */
-export type Node
-  = StatementNode
-  | ExpressionNode
-  | TypeNode
-  | SourceFile
-  ;
 
 /**
  * An interface for turning some text into a stream of tokens.
