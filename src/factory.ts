@@ -12,21 +12,7 @@ import {
   StopBlockExit,
   SyntaxKind,
   SyntaxNodeFlags,
-  SyntaxToken,
-  TextRange,
-  TokenSyntaxKind,
 } from './types';
-import { setTextRange } from './utils';
-
-export function createToken<T extends TokenSyntaxKind>(
-  tokenKind: T,
-  location?: TextRange,
-): SyntaxToken<T> {
-  return setTextRange({
-    kind: tokenKind,
-    flags: SyntaxNodeFlags.None,
-  }, location);
-}
 
 export function createReturnBlockExit(
   returnNode: ReturnStatement,
