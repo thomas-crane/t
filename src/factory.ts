@@ -8,11 +8,11 @@ import {
   JumpBlockExit,
   ReturnBlockExit,
   SourceFile,
-  StatementNode,
   StopBlockExit,
   SyntaxKind,
   SyntaxNodeFlags,
 } from './types';
+import { StatementNode } from './ast/stmt';
 
 export function createReturnBlockExit(
   returnNode: ReturnStatement,

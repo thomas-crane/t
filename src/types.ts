@@ -1,29 +1,11 @@
 import { Writable } from 'stream';
-import { ArrayExpression } from './ast/expr/array-expr';
-import { BinaryExpression } from './ast/expr/binary-expr';
-import { BooleanExpression } from './ast/expr/boolean-expr';
-import { FnCallExpression } from './ast/expr/fn-call-expr';
-import { IdentifierExpression } from './ast/expr/identifier-expr';
-import { IndexExpression } from './ast/expr/index-expr';
-import { MemberAccessExpression } from './ast/expr/member-access-expr';
-import { NumberExpression } from './ast/expr/number-expr';
-import { ParenExpression } from './ast/expr/paren-expr';
-import { StringExpression } from './ast/expr/string-expr';
-import { StructExpression } from './ast/expr/struct-expr';
-import { AssignmentStatement } from './ast/stmt/assignment-stmt';
+import { ExpressionNode } from './ast/expr';
+import { StatementNode } from './ast/stmt';
 import { BlockStatement } from './ast/stmt/block-stmt';
-import { DeclarationStatement } from './ast/stmt/declaration-stmt';
-import { ExpressionStatement } from './ast/stmt/expression-stmt';
-import { FnDeclarationStatement } from './ast/stmt/fn-declaration-stmt';
-import { IfStatement } from './ast/stmt/if-stmt';
-import { LoopStatement } from './ast/stmt/loop-stmt';
 import { ReturnStatement } from './ast/stmt/return-stmt';
 import { StopStatement } from './ast/stmt/stop-stmt';
-import { StructDeclStatement } from './ast/stmt/struct-decl-stmt';
 import { SyntaxToken, TokenSyntaxKind } from './ast/token';
-import { ArrayTypeNode } from './ast/types/array-type-node';
-import { OptionalTypeNode } from './ast/types/optional-type-node';
-import { TypeReference } from './ast/types/type-reference';
+import { TypeNode } from './ast/types';
 
 /**
  * Types of diagnostics which can be generated.
@@ -488,49 +470,6 @@ export const enum SyntaxNodeFlags {
   Synthetic = 1 << 2,
   HasSideEffects = 1 << 3,
 }
-
-export type TypeNode
-  = SyntaxToken<SyntaxKind.NumKeyword>
-  | SyntaxToken<SyntaxKind.BoolKeyword>
-  | SyntaxToken<SyntaxKind.StrKeyword>
-  | SyntaxToken<SyntaxKind.NilKeyword>
-  | TypeReference
-  | ArrayTypeNode
-  | OptionalTypeNode
-  ;
-
-/**
- * The set of all syntax items which are expressions.
- */
-export type ExpressionNode
-  = NumberExpression
-  | IdentifierExpression
-  | BooleanExpression
-  | StringExpression
-  | BinaryExpression
-  | FnCallExpression
-  | ParenExpression
-  | ArrayExpression
-  | StructExpression
-  | IndexExpression
-  | MemberAccessExpression
-  ;
-
-/**
- * The set of all syntax items which are statements.
- */
-export type StatementNode
-  = BlockStatement
-  | IfStatement
-  | AssignmentStatement
-  | DeclarationStatement
-  | FnDeclarationStatement
-  | ReturnStatement
-  | LoopStatement
-  | StopStatement
-  | ExpressionStatement
-  | StructDeclStatement
-  ;
 
 /**
  * A top level node which contains the list of statements in a program,
