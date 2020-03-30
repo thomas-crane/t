@@ -1,5 +1,6 @@
 import { Writable } from 'stream';
 import { ExpressionNode } from './ast/expr';
+import { SourceFile } from './ast/source-file';
 import { StatementNode } from './ast/stmt';
 import { BlockStatement } from './ast/stmt/block-stmt';
 import { ReturnStatement } from './ast/stmt/return-stmt';
@@ -469,19 +470,6 @@ export const enum SyntaxNodeFlags {
   HasErrors = 1 << 1,
   Synthetic = 1 << 2,
   HasSideEffects = 1 << 3,
-}
-
-/**
- * A top level node which contains the list of statements in a program,
- * and some information about the file which the statements came from.
- */
-export interface SourceFile extends SyntaxNode {
-  kind: SyntaxKind.SourceFile;
-  statements: StatementNode[];
-  text: string;
-  fileName: string;
-
-  diagnostics: DiagnosticType[];
 }
 
 /**

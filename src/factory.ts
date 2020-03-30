@@ -3,16 +3,11 @@ import { ReturnStatement } from './ast/stmt/return-stmt';
 import { StopStatement } from './ast/stmt/stop-stmt';
 import {
   BlockExitKind,
-  DiagnosticType,
   EndBlockExit,
   JumpBlockExit,
   ReturnBlockExit,
-  SourceFile,
   StopBlockExit,
-  SyntaxKind,
-  SyntaxNodeFlags,
 } from './types';
-import { StatementNode } from './ast/stmt';
 
 export function createReturnBlockExit(
   returnNode: ReturnStatement,
@@ -44,26 +39,5 @@ export function createStopBlockExit(
 export function createEndBlockExit(): EndBlockExit {
   return {
     kind: BlockExitKind.End,
-  };
-}
-
-export function createSourceFile(
-  statements: StatementNode[],
-  text: string,
-  fileName: string,
-  diagnostics?: DiagnosticType[],
-): SourceFile {
-  if (!diagnostics) {
-    diagnostics = [];
-  }
-  return {
-    kind: SyntaxKind.SourceFile,
-    statements,
-    text,
-    fileName,
-    flags: SyntaxNodeFlags.None,
-    diagnostics,
-    pos: 0,
-    end: text.length - 1,
   };
 }
