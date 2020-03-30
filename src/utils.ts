@@ -1,16 +1,18 @@
-import { createToken } from './factory';
-import {
-  ArrayType,
-  BinaryOperator,
-  FunctionType,
-  OptionalType,
-  StructType,
-  SyntaxKind,
-  TextRange,
-  Type,
-  TypeKind,
-  TypeMatch,
-} from './types';
+import { format } from 'util';
+import { Type } from './type';
+import { ArrayType } from './type/array-type';
+import { FunctionType } from './type/function-type';
+import { StructType } from './type/struct-type';
+import { TypeKind } from './type/type-kind';
+import { TextRange, TypeMatch } from './types';
+
+/**
+ * Used to assert at compile time that a switch statement over
+ * a discriminated union type is exhaustive of that type.
+ */
+export function unreachable(value: never): never {
+  throw new Error(format('The value %o caused some unreachable code to be reached.', value));
+}
 
 /**
  * Sets the text range on the given target.
