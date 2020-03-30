@@ -5,6 +5,7 @@ import { StatementNode } from './ast/stmt';
 import { BlockStatement } from './ast/stmt/block-stmt';
 import { ReturnStatement } from './ast/stmt/return-stmt';
 import { StopStatement } from './ast/stmt/stop-stmt';
+import { SyntaxNode } from './ast/syntax-node';
 import { SyntaxToken, TokenSyntaxKind } from './ast/token';
 import { TypeNode } from './ast/types';
 
@@ -355,121 +356,6 @@ export type BlockExit
 export interface TextRange {
   pos: number;
   end: number;
-}
-/**
- * Types of syntax which can appear in a source file of t.
- */
-export enum SyntaxKind {
-  EndOfFileToken,
-  UnknownToken,
-
-  // keywords
-  LetKeyword,
-  MutKeyword,
-  IfKeyword,
-  ElseKeyword,
-  FnKeyword,
-  ReturnKeyword,
-  LoopKeyword,
-  StopKeyword,
-  TrueKeyword,
-  FalseKeyword,
-  StructKeyword,
-  NewKeyword,
-
-  // type stuff
-  NumKeyword,
-  BoolKeyword,
-  StrKeyword,
-  NilKeyword,
-  TypeReference,
-  ArrayType,
-  OptionalType,
-
-  // arithmetic
-  PlusToken,
-  MinusToken,
-  StarToken,
-  SlashToken,
-
-  // comparison
-  LessThan,
-  GreaterThan,
-  EqualTo,
-  NotEqualTo,
-
-  // logical
-  LogicalAnd,
-  LogicalOr,
-
-  // misc
-  EqualsToken,
-  CommaToken,
-  ColonToken,
-  DotToken,
-  QuestionToken,
-  NumberToken,
-  IdentifierToken,
-  StringToken,
-
-  // brackets
-  LeftCurlyToken,
-  RightCurlyToken,
-  LeftParenToken,
-  RightParenToken,
-  LeftBracketToken,
-  RightBracketToken,
-
-  // expressions
-  BinaryExpression,
-  FnCallExpression,
-  ParenExpression,
-  ArrayExpression,
-  StructMemberExpression,
-  StructExpression,
-  NilExpression,
-  IndexExpression,
-  MemberAccessExpression,
-
-  // literals
-  Identifier,
-  Number,
-  Boolean,
-  String,
-
-  // statements
-  BlockStatement,
-  IfStatement,
-  AssignmentStatement,
-  DeclarationStatement,
-  FnParameter,
-  FnDeclarationStatement,
-  ReturnStatement,
-  LoopStatement,
-  StopStatement,
-  ExpressionStatement,
-  StructMember,
-  StructDeclStatement,
-
-  SourceFile,
-}
-
-/**
- * The base type of all types which represent some kind of syntax.
- */
-export interface SyntaxNode extends TextRange {
-  kind: SyntaxKind;
-  flags: SyntaxNodeFlags;
-
-  symbol?: SymbolType;
-  type?: Type;
-}
-
-export const enum SyntaxNodeFlags {
-  None = 0,
-  HasErrors = 1 << 1,
-  Synthetic = 1 << 2,
-  HasSideEffects = 1 << 3,
 }
 
 /**
