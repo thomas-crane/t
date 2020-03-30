@@ -3,77 +3,9 @@ import { SourceFile } from './ast/source-file';
 import { BlockStatement } from './ast/stmt/block-stmt';
 import { ReturnStatement } from './ast/stmt/return-stmt';
 import { StopStatement } from './ast/stmt/stop-stmt';
-import { SyntaxNode } from './ast/syntax-node';
 import { SyntaxToken, TokenSyntaxKind } from './ast/token';
 import { DiagnosticType } from './diagnostic';
-
-/**
- * Types of symbols which can appear in the AST.
- */
-export enum SymbolKind {
-  Variable,
-  Function,
-  Parameter,
-  Struct,
-  StructMember,
-}
-
-/**
- * The base type of all types which represent some kind of symbol.
- */
-interface Symbol {
-  kind: SymbolKind;
-  name: string;
-  firstMention: SyntaxNode;
-  references: SyntaxNode[];
-}
-
-/**
- * A symbol which refers to a variable.
- */
-export interface VariableSymbol extends Symbol {
-  kind: SymbolKind.Variable;
-  isConst: boolean;
-}
-
-/**
- * A symbol which refers to a function.
- */
-export interface FunctionSymbol extends Symbol {
-  kind: SymbolKind.Function;
-  parameters: ParameterSymbol[];
-}
-
-/**
- * A symbol which refers to the parameter of a function.
- */
-export interface ParameterSymbol extends Symbol {
-  kind: SymbolKind.Parameter;
-}
-
-export interface StructSymbol extends Symbol {
-  kind: SymbolKind.Struct;
-
-  members: Record<string, StructMemberSymbol>;
-}
-
-export interface StructMemberSymbol extends Symbol {
-  kind: SymbolKind.StructMember;
-
-  isConst: boolean;
-  struct: StructSymbol;
-}
-
-/**
- * The set of all symbol types.
- */
-export type SymbolType
-  = VariableSymbol
-  | FunctionSymbol
-  | ParameterSymbol
-  | StructSymbol
-  | StructMemberSymbol
-  ;
+import { ParameterSymbol } from './symbol/function-symbol';
 
 /**
  * Types of types.
