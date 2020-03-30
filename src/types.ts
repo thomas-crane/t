@@ -1,4 +1,3 @@
-import { Writable } from 'stream';
 import { SourceFile } from './ast/source-file';
 import { BlockStatement } from './ast/stmt/block-stmt';
 import { ReturnStatement } from './ast/stmt/return-stmt';
@@ -97,13 +96,6 @@ export interface TextRange {
 }
 
 /**
- * An interface for turning some text into a source file node.
- */
-export interface Parser {
-  parse(): SourceFile;
-}
-
-/**
  * An interface for taking an existing source file and analysing
  * the control flow paths in the code. Information which is
  * found is added to some nodes of the AST.
@@ -127,21 +119,4 @@ export interface Binder {
  */
 export interface TypeChecker {
   check(source: SourceFile): void;
-}
-
-/**
- * Options which can change the way a @see Reporter
- * will report diagnostics.
- */
-export interface ReporterOptions {
-  color: boolean;
-  output: Writable;
-}
-
-/**
- * An interface for reporting the
- * diagnostics from a given source file.
- */
-export interface Reporter {
-  report(source: SourceFile): void;
 }

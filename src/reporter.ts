@@ -1,5 +1,26 @@
 import * as chalk from 'chalk';
-import { DiagnosticKind, DiagnosticType, Reporter, ReporterOptions, SourceFile, TextRange } from './types';
+import { Writable } from 'stream';
+import { SourceFile } from './ast/source-file';
+import { DiagnosticType } from './diagnostic';
+import { DiagnosticKind } from './diagnostic/diagnostic-kind';
+import { TextRange } from './types';
+
+/**
+ * Options which can change the way a @see Reporter
+ * will report diagnostics.
+ */
+export interface ReporterOptions {
+  color: boolean;
+  output: Writable;
+}
+
+/**
+ * An interface for reporting the
+ * diagnostics from a given source file.
+ */
+export interface Reporter {
+  report(source: SourceFile): void;
+}
 
 const DEFAULT_OPTIONS: ReporterOptions = {
   color: true,
