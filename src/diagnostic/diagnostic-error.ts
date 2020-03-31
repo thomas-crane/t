@@ -18,7 +18,7 @@ export function createDiagnosticError(
   source: DiagnosticSource,
   code: DiagnosticCode,
   error: string,
-  location?: TextRange,
+  location: TextRange,
 ): DiagnosticError {
   return setTextRange({
     kind: DiagnosticKind.Error,

@@ -132,6 +132,7 @@ export function createLexer(src: string): Lexer {
               DiagnosticSource.Lexer,
               DiagnosticCode.UnterminatedStringLiteral,
               'Unterminated string literal.',
+              { pos: start, end: pos },
             ));
             hadError = true;
             tokenKind = SyntaxKind.UnknownToken;
@@ -161,6 +162,7 @@ export function createLexer(src: string): Lexer {
           DiagnosticSource.Lexer,
           DiagnosticCode.UnknownToken,
           `Unknown character "${char}"`,
+          { pos: charStart, end: pos },
         ));
       }
       return createToken(kind, { pos: charStart, end: pos });

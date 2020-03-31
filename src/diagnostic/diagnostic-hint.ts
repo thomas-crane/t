@@ -17,7 +17,7 @@ export function createDiagnosticHint(
   source: DiagnosticSource,
   code: DiagnosticCode,
   hint: string,
-  location?: TextRange,
+  location: TextRange,
 ): DiagnosticHint {
   return setTextRange({
     kind: DiagnosticKind.Hint,

@@ -18,7 +18,7 @@ export function createDiagnosticWarning(
   source: DiagnosticSource,
   code: DiagnosticCode,
   warning: string,
-  location?: TextRange,
+  location: TextRange,
 ): DiagnosticWarning {
   return setTextRange({
     kind: DiagnosticKind.Warning,
