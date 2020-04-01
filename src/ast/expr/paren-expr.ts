@@ -1,4 +1,5 @@
 import { ExpressionNode } from '.';
+import { Binder } from '../../bind/binder';
 import { Printer } from '../../printer';
 import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
@@ -28,4 +29,8 @@ export function printParenExpression(printer: Printer, node: ParenExpression) {
   printer.indent('(ParenExpression');
   printer.printNode(node.expr);
   printer.dedent(')');
+}
+
+export function bindParenExpression(binder: Binder, node: ParenExpression) {
+  binder.bindNode(node.expr);
 }

@@ -1,3 +1,7 @@
+import { Binder } from '../../bind/binder';
+import { DiagnosticCode } from '../../diagnostic/diagnostic-code';
+import { createDiagnosticError } from '../../diagnostic/diagnostic-error';
+import { DiagnosticSource } from '../../diagnostic/diagnostic-source';
 import { Printer } from '../../printer';
 import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
@@ -28,4 +32,23 @@ export function printTypeReference(printer: Printer, node: TypeReference) {
   printer.indent('(TypeReference');
   printer.printNode(node.name);
   printer.dedent(')');
+}
+
+export function bindTypeReference(binder: Binder, node: TypeReference) {
+  const typeSymbol = binder.typeSymbolTable.get(node.name.value);
+  if (typeSymbol !== undefined) {
+    node.name.symbol = typeSymbol;
+    typeSymbol.references.push(node.name);
+  } else {
+    binder.diagnostics.push(createDiagnosticError(
+      DiagnosticSource.Binder,
+      DiagnosticCode.UnknownSymbol,
+      `Cannot find name "${node.name.value}"`,
+      {
+        pos: node.pos,
+        end: node.end,
+      },
+    ));
+    node.flags |= SyntaxNodeFlags.HasErrors;
+  }
 }

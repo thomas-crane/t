@@ -1,4 +1,5 @@
 import { ExpressionNode } from '.';
+import { Binder } from '../../bind/binder';
 import { Printer } from '../../printer';
 import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
@@ -32,4 +33,9 @@ export function printFnCallExpression(printer: Printer, node: FnCallExpression) 
   printer.printNode(node.fn);
   node.args.forEach((arg) => printer.printNode(arg));
   printer.dedent(')');
+}
+
+export function bindFnCallExpression(binder: Binder, node: FnCallExpression) {
+  binder.bindNode(node.fn);
+  node.args.forEach((arg) => binder.bindNode(arg));
 }

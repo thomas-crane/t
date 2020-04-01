@@ -1,4 +1,5 @@
 import { TypeNode } from '.';
+import { Binder } from '../../bind/binder';
 import { Printer } from '../../printer';
 import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
@@ -25,4 +26,8 @@ export function printOptionalTypeNode(printer: Printer, node: OptionalTypeNode) 
   printer.indent('(OptionalTypeNode');
   printer.printNode(node.valueType);
   printer.dedent(')');
+}
+
+export function bindOptionalTypeNode(binder: Binder, node: OptionalTypeNode) {
+  binder.bindNode(node.valueType);
 }

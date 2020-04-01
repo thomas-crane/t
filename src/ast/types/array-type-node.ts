@@ -1,4 +1,5 @@
 import { TypeNode } from '.';
+import { Binder } from '../../bind/binder';
 import { Printer } from '../../printer';
 import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
@@ -28,4 +29,8 @@ export function printArrayTypeNode(printer: Printer, node: ArrayTypeNode) {
   printer.indent('(ArrayType');
   printer.printNode(node.itemType);
   printer.dedent(')');
+}
+
+export function bindArrayTypeNode(binder: Binder, node: ArrayTypeNode) {
+  binder.bindNode(node.itemType);
 }

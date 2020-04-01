@@ -1,4 +1,5 @@
 import { ExpressionNode } from '.';
+import { Binder } from '../../bind/binder';
 import { Printer } from '../../printer';
 import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
@@ -30,4 +31,11 @@ export function printMemberAccessExpression(printer: Printer, node: MemberAccess
   printer.printNode(node.target);
   printer.printNode(node.member);
   printer.dedent(')');
+}
+
+export function bindMemberAccessExpression(binder: Binder, node: MemberAccessExpression) {
+  // since we don't know the type of the target yet, we can't determine
+  // whether or the member being accessed is actually part of that type,
+  // so just bind the target and move on.
+  binder.bindNode(node.target);
 }

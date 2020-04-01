@@ -1,4 +1,5 @@
 import { ExpressionNode } from '.';
+import { Binder } from '../../bind/binder';
 import { Printer } from '../../printer';
 import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
@@ -29,4 +30,9 @@ export function printIndexExpression(printer: Printer, node: IndexExpression) {
   printer.printNode(node.target);
   printer.printNode(node.index);
   printer.dedent(')');
+}
+
+export function bindIndexExpression(binder: Binder, node: IndexExpression) {
+  binder.bindNode(node.target);
+  binder.bindNode(node.index);
 }

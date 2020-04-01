@@ -1,6 +1,8 @@
+import { Binder } from '../bind/binder';
 import { DiagnosticType } from '../diagnostic';
 import { Printer } from '../printer';
 import { StatementNode } from './stmt';
+import { registerStructName, StructDeclStatement } from './stmt/struct-decl-stmt';
 import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from './syntax-node';
 
 /**
@@ -41,4 +43,13 @@ export function printSourceFile(printer: Printer, node: SourceFile) {
   printer.indent('(SourceFile');
   node.statements.forEach((stmt) => printer.printNode(stmt));
   printer.dedent(')');
+}
+
+export function bindSourceFile(binder: Binder, node: SourceFile) {
+  // register the struct names first.
+  node.statements
+    .filter((stmt) => stmt.kind === SyntaxKind.StructDeclStatement)
+    .forEach((stmt) => registerStructName(binder, stmt as StructDeclStatement));
+  // then bind everything.
+  node.statements.forEach((stmt) => binder.bindNode(stmt));
 }

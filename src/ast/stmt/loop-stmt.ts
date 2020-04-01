@@ -1,3 +1,4 @@
+import { Binder } from '../../bind/binder';
 import { Printer } from '../../printer';
 import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
@@ -28,4 +29,8 @@ export function printLoopStatement(printer: Printer, node: LoopStatement) {
   printer.indent('(LoopStatement');
   printer.printNode(node.body);
   printer.dedent(')');
+}
+
+export function bindLoopStatement(binder: Binder, node: LoopStatement) {
+  binder.bindNode(node.body);
 }

@@ -1,4 +1,5 @@
 import { StatementNode } from '.';
+import { Binder } from '../../bind/binder';
 import { Printer } from '../../printer';
 import { BlockExit, TextRange } from '../../types';
 import { setTextRange } from '../../utils';
@@ -30,4 +31,10 @@ export function printBlockStatement(printer: Printer, node: BlockStatement) {
   printer.indent('(BlockStatement');
   node.statements.forEach((stmt) => printer.printNode(stmt));
   printer.dedent(')');
+}
+
+export function bindBlockStatement(binder: Binder, node: BlockStatement) {
+  binder.valueSymbolTable.pushScope();
+  node.statements.forEach((stmt) => binder.bindNode(stmt));
+  binder.valueSymbolTable.popScope();
 }

@@ -1,3 +1,4 @@
+import { Binder } from '../../bind/binder';
 import { Printer } from '../../printer';
 import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
@@ -33,4 +34,9 @@ export function printAssignmentStatement(printer: Printer, node: AssignmentState
   printer.printNode(node.identifier);
   printer.printNode(node.value);
   printer.dedent(')');
+}
+
+export function bindAssignmentStatement(binder: Binder, node: AssignmentStatement) {
+  binder.bindNode(node.identifier);
+  binder.bindNode(node.value);
 }

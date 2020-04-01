@@ -1,4 +1,5 @@
 import { ExpressionNode } from '.';
+import { Binder } from '../../bind/binder';
 import { Printer } from '../../printer';
 import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
@@ -77,4 +78,9 @@ function binaryOpToString(op: BinaryOperator): string {
     case SyntaxKind.LogicalOr:
       return '||';
   }
+}
+
+export function bindBinaryExpression(binder: Binder, node: BinaryExpression) {
+  binder.bindNode(node.left);
+  binder.bindNode(node.right);
 }

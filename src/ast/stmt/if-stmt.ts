@@ -1,3 +1,4 @@
+import { Binder } from '../../bind/binder';
 import { Printer } from '../../printer';
 import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
@@ -39,4 +40,12 @@ export function printIfStatement(printer: Printer, node: IfStatement) {
     printer.printNode(node.elseBody);
   }
   printer.dedent(')');
+}
+
+export function bindIfStatement(binder: Binder, node: IfStatement) {
+  binder.bindNode(node.condition);
+  binder.bindNode(node.body);
+  if (node.elseBody) {
+    binder.bindNode(node.elseBody);
+  }
 }

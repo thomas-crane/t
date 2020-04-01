@@ -1,3 +1,4 @@
+import { Binder } from '../../bind/binder';
 import { Printer } from '../../printer';
 import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
@@ -28,4 +29,8 @@ export function printReturnStatement(printer: Printer, node: ReturnStatement) {
   printer.indent('(ReturnStatement');
   printer.printNode(node.value);
   printer.dedent(')');
+}
+
+export function bindReturnStatement(binder: Binder, node: ReturnStatement) {
+  binder.bindNode(node.value);
 }
