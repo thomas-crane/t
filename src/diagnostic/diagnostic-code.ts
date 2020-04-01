@@ -2,6 +2,7 @@
  * Unique codes for each diagnostic message which can be generated.
  */
 export enum DiagnosticCode {
+  // errors
   UnknownToken,
   UnexpectedToken,
   UnterminatedStringLiteral,
@@ -19,4 +20,7 @@ export enum DiagnosticCode {
   UnknownMember,
   UninitialisedMember,
   RecursiveStruct,
+
+  // warnings
+  ShadowedName,
 }
