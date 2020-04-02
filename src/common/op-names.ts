@@ -1,5 +1,5 @@
 import { SyntaxKind } from '../ast/syntax-node';
-import { BinaryOperator } from '../ast/token';
+import { BinaryOperator, UnaryOperator } from '../ast/token';
 
 export function binaryOpToString(op: BinaryOperator): string {
   switch (op.kind) {
@@ -23,5 +23,16 @@ export function binaryOpToString(op: BinaryOperator): string {
       return '&&';
     case SyntaxKind.LogicalOr:
       return '||';
+  }
+}
+
+export function unaryOpToString(op: UnaryOperator): string {
+  switch (op.kind) {
+    case SyntaxKind.PlusToken:
+      return '+';
+    case SyntaxKind.MinusToken:
+      return '-';
+    case SyntaxKind.ExclamationToken:
+      return '!';
   }
 }

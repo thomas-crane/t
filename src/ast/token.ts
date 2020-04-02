@@ -67,6 +67,14 @@ export type BinaryOperator
   | SyntaxToken<SyntaxKind.LogicalAnd>
   | SyntaxToken<SyntaxKind.LogicalOr>
   ;
+/**
+ * The set of syntax tokens which are valid unary expression operators.
+ */
+export type UnaryOperator
+  = SyntaxToken<SyntaxKind.PlusToken>
+  | SyntaxToken<SyntaxKind.MinusToken>
+  | SyntaxToken<SyntaxKind.ExclamationToken>
+  ;
 
 export function createToken<T extends TokenSyntaxKind>(
   tokenKind: T,

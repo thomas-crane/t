@@ -20,12 +20,12 @@ import { createReturnStatement, ReturnStatement } from './ast/stmt/return-stmt';
 import { createStopStatement, StopStatement } from './ast/stmt/stop-stmt';
 import { createStructDeclStatement, createStructMember, StructDeclStatement, StructMember } from './ast/stmt/struct-decl-stmt';
 import { SyntaxKind, SyntaxNodeFlags } from './ast/syntax-node';
-import { BinaryOperator, createToken, SyntaxToken, TokenSyntaxKind } from './ast/token';
+import { BinaryOperator, createToken, SyntaxToken, TokenSyntaxKind, UnaryOperator } from './ast/token';
 import { TypeNode } from './ast/types';
 import { createArrayTypeNode } from './ast/types/array-type-node';
 import { createOptionalTypeNode } from './ast/types/optional-type-node';
 import { createTypeReference, TypeReference } from './ast/types/type-reference';
-import { binaryOpToString } from './common/op-names';
+import { binaryOpToString, unaryOpToString } from './common/op-names';
 import { DiagnosticType } from './diagnostic';
 import { DiagnosticCode } from './diagnostic/diagnostic-code';
 import { createDiagnosticError } from './diagnostic/diagnostic-error';
@@ -83,6 +83,17 @@ export function createParser(source: SourceFile): Parser {
         return 1;
       default:
         return 0;
+    }
+  }
+
+  function isUnaryOperator(kind: SyntaxKind): boolean {
+    switch (kind) {
+      case SyntaxKind.ExclamationToken:
+      case SyntaxKind.PlusToken:
+      case SyntaxKind.MinusToken:
+        return true;
+      default:
+        return false;
     }
   }
 
@@ -368,7 +379,7 @@ export function createParser(source: SourceFile): Parser {
   }
 
   function parseBinaryExpression(parentPrecedence = 0): ExpressionNode | undefined {
-    let left = parsePrimaryExpression();
+    let left = parseUnaryExpression();
     if (left === undefined) {
       return undefined;
     }
@@ -397,6 +408,27 @@ export function createParser(source: SourceFile): Parser {
       }
     }
     return left;
+  }
+
+  function parseUnaryExpression(): ExpressionNode | undefined {
+    if (isUnaryOperator(tokens[idx].kind)) {
+      const operator = consume(tokens[idx].kind) as UnaryOperator;
+      const operand = parseUnaryExpression();
+      if (operand === undefined) {
+        return undefined;
+      }
+      // turn the operator into an identifier.
+      const opName = createIdentifierExpression(unaryOpToString(operator), { pos: operator.pos, end: operator.end });
+
+      // desugar into an fn call
+      return createFnCallExpression(
+        opName,
+        [operand],
+        FnCallFlags.Operator | FnCallFlags.UnaryOp,
+      );
+    } else {
+      return parsePrimaryExpression();
+    }
   }
 
   function parsePrimaryExpression(): ExpressionNode | undefined {
