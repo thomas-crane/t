@@ -95,7 +95,12 @@ function printIndex(printer: Printer, node: FnCallExpression) {
 }
 
 export function bindFnCallExpression(binder: Binder, node: FnCallExpression) {
-  binder.bindNode(node.fn);
+  // if this fn call is an operator, we can only bind the arguments. The
+  // fn name will refer to the operator, and whether or not the operator
+  // is supported is type information.
+  if (!(node.fnFlags & FnCallFlags.Operator)) {
+    binder.bindNode(node.fn);
+  }
   if (node.fnFlags & FnCallFlags.FieldAccess) {
     // since we don't know the type of the target yet, we can't determine whether
     // or the member being accessed is actually part of that type. The name
