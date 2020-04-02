@@ -22,6 +22,7 @@ export type TokenSyntaxKind
   | SyntaxKind.ColonToken
   | SyntaxKind.DotToken
   | SyntaxKind.QuestionToken
+  | SyntaxKind.ExclamationToken
   | SyntaxKind.LeftCurlyToken
   | SyntaxKind.RightCurlyToken
   | SyntaxKind.LeftParenToken

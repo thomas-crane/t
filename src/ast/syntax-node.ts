@@ -68,6 +68,7 @@ export enum SyntaxKind {
   ColonToken,
   DotToken,
   QuestionToken,
+  ExclamationToken,
   NumberToken,
   IdentifierToken,
   StringToken,

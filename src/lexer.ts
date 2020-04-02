@@ -23,7 +23,6 @@ const charMap: SyntaxKindMap = {
   // to work properly.
   '&': SyntaxKind.UnknownToken,
   '|': SyntaxKind.UnknownToken,
-  '!': SyntaxKind.UnknownToken,
 
   '+': SyntaxKind.PlusToken,
   '-': SyntaxKind.MinusToken,
@@ -43,6 +42,7 @@ const charMap: SyntaxKindMap = {
   ':': SyntaxKind.ColonToken,
   '.': SyntaxKind.DotToken,
   '?': SyntaxKind.QuestionToken,
+  '!': SyntaxKind.ExclamationToken,
 
   '{': SyntaxKind.LeftCurlyToken,
   '}': SyntaxKind.RightCurlyToken,
