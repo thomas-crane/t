@@ -1,11 +1,8 @@
 import { Node } from './ast';
 import { printArrayExpression } from './ast/expr/array-expr';
-import { printBinaryExpression } from './ast/expr/binary-expr';
 import { printBooleanExpression } from './ast/expr/boolean-expr';
 import { printFnCallExpression } from './ast/expr/fn-call-expr';
 import { printIdentifierExpression } from './ast/expr/identifier-expr';
-import { printIndexExpression } from './ast/expr/index-expr';
-import { printMemberAccessExpression } from './ast/expr/member-access-expr';
 import { printNumberExpression } from './ast/expr/number-expr';
 import { printParenExpression } from './ast/expr/paren-expr';
 import { printStringExpression } from './ast/expr/string-expr';
@@ -87,18 +84,12 @@ export function createPrinter(): Printer {
         // expressions
         case SyntaxKind.ArrayExpression:
           return printArrayExpression(this, node);
-        case SyntaxKind.BinaryExpression:
-          return printBinaryExpression(this, node);
         case SyntaxKind.Boolean:
           return printBooleanExpression(this, node);
         case SyntaxKind.FnCallExpression:
           return printFnCallExpression(this, node);
         case SyntaxKind.Identifier:
           return printIdentifierExpression(this, node);
-        case SyntaxKind.IndexExpression:
-          return printIndexExpression(this, node);
-        case SyntaxKind.MemberAccessExpression:
-          return printMemberAccessExpression(this, node);
         case SyntaxKind.Number:
           return printNumberExpression(this, node);
         case SyntaxKind.ParenExpression:

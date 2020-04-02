@@ -82,15 +82,11 @@ export enum SyntaxKind {
   RightBracketToken,
 
   // expressions
-  BinaryExpression,
   FnCallExpression,
   ParenExpression,
   ArrayExpression,
   StructMemberExpression,
   StructExpression,
-  NilExpression,
-  IndexExpression,
-  MemberAccessExpression,
 
   // literals
   Identifier,

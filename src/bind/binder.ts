@@ -1,10 +1,7 @@
 import { Node } from '../ast';
 import { bindArrayExpression } from '../ast/expr/array-expr';
-import { bindBinaryExpression } from '../ast/expr/binary-expr';
 import { bindFnCallExpression } from '../ast/expr/fn-call-expr';
 import { bindIdentifierExpression } from '../ast/expr/identifier-expr';
-import { bindIndexExpression } from '../ast/expr/index-expr';
-import { bindMemberAccessExpression } from '../ast/expr/member-access-expr';
 import { bindParenExpression } from '../ast/expr/paren-expr';
 import { bindStructExpression } from '../ast/expr/struct-expr';
 import { bindSourceFile } from '../ast/source-file';
@@ -65,18 +62,12 @@ export function createBinder(diagnostics: DiagnosticType[]): Binder {
         // expressions
         case SyntaxKind.ArrayExpression:
           return bindArrayExpression(this, node);
-        case SyntaxKind.BinaryExpression:
-          return bindBinaryExpression(this, node);
         case SyntaxKind.Boolean:
           return undefined;
         case SyntaxKind.FnCallExpression:
           return bindFnCallExpression(this, node);
         case SyntaxKind.Identifier:
           return bindIdentifierExpression(this, node);
-        case SyntaxKind.IndexExpression:
-          return bindIndexExpression(this, node);
-        case SyntaxKind.MemberAccessExpression:
-          return bindMemberAccessExpression(this, node);
         case SyntaxKind.Number:
           return undefined;
         case SyntaxKind.ParenExpression:
