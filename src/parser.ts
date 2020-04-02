@@ -1,11 +1,8 @@
 import { ExpressionNode } from './ast/expr';
 import { ArrayExpression, createArrayExpression } from './ast/expr/array-expr';
-import { BinaryOperator, createBinaryExpression } from './ast/expr/binary-expr';
 import { BooleanExpression, createBooleanExpression } from './ast/expr/boolean-expr';
-import { createFnCallExpression } from './ast/expr/fn-call-expr';
+import { createFnCallExpression, FnCallFlags } from './ast/expr/fn-call-expr';
 import { createIdentifierExpression, IdentifierExpression } from './ast/expr/identifier-expr';
-import { createIndexExpression } from './ast/expr/index-expr';
-import { createMemberAccessExpression } from './ast/expr/member-access-expr';
 import { createNumberExpression, NumberExpression } from './ast/expr/number-expr';
 import { createParenExpression, ParenExpression } from './ast/expr/paren-expr';
 import { createStringExpression, StringExpression } from './ast/expr/string-expr';
@@ -23,11 +20,12 @@ import { createReturnStatement, ReturnStatement } from './ast/stmt/return-stmt';
 import { createStopStatement, StopStatement } from './ast/stmt/stop-stmt';
 import { createStructDeclStatement, createStructMember, StructDeclStatement, StructMember } from './ast/stmt/struct-decl-stmt';
 import { SyntaxKind, SyntaxNodeFlags } from './ast/syntax-node';
-import { createToken, SyntaxToken, TokenSyntaxKind } from './ast/token';
+import { BinaryOperator, createToken, SyntaxToken, TokenSyntaxKind } from './ast/token';
 import { TypeNode } from './ast/types';
 import { createArrayTypeNode } from './ast/types/array-type-node';
 import { createOptionalTypeNode } from './ast/types/optional-type-node';
 import { createTypeReference, TypeReference } from './ast/types/type-reference';
+import { binaryOpToString } from './common/op-names';
 import { DiagnosticType } from './diagnostic';
 import { DiagnosticCode } from './diagnostic/diagnostic-code';
 import { createDiagnosticError } from './diagnostic/diagnostic-error';
@@ -384,7 +382,18 @@ export function createParser(source: SourceFile): Parser {
         if (right === undefined) {
           return undefined;
         }
-        left = createBinaryExpression(left, operator, right, { pos: left.pos, end: right.end });
+
+        // turn the operator into an identifier.
+        const opName = createIdentifierExpression(binaryOpToString(operator), { pos: operator.pos, end: operator.end });
+        opName.flags |= SyntaxNodeFlags.Synthetic;
+
+        // desugar into an fn call
+        left = createFnCallExpression(
+          opName,
+          [left, right],
+          FnCallFlags.Operator | FnCallFlags.BinaryOp,
+          { pos: left.pos, end: right.pos },
+        );
       }
     }
     return left;
@@ -425,7 +434,12 @@ export function createParser(source: SourceFile): Parser {
       }
     }
     const end = consume(SyntaxKind.RightParenToken);
-    return createFnCallExpression(fn, args, { pos: fn.pos, end: end.end });
+    return createFnCallExpression(
+      fn,
+      args,
+      FnCallFlags.None,
+      { pos: fn.pos, end: end.end },
+    );
   }
 
   function parseIndexExpression(target: ExpressionNode): ExpressionNode | undefined {
@@ -435,13 +449,25 @@ export function createParser(source: SourceFile): Parser {
       return undefined;
     }
     const end = consume(SyntaxKind.RightBracketToken);
-    return createIndexExpression(target, index, { pos: target.pos, end: end.end });
+    // desugar into an index fn call.
+    return createFnCallExpression(
+      target,
+      [index],
+      FnCallFlags.Index,
+      { pos: target.pos, end: end.end },
+    );
   }
 
   function parseMemberAccessExpression(target: ExpressionNode): ExpressionNode | undefined {
     consume(SyntaxKind.DotToken);
     const member = parseIdentifierExpression();
-    return createMemberAccessExpression(target, member, { pos: target.pos, end: member.end });
+    // desugar into a field access fn call.
+    return createFnCallExpression(
+      target,
+      [member],
+      FnCallFlags.FieldAccess,
+      { pos: target.pos, end: member.end },
+    );
   }
 
   function parseTerminalExpression(): ExpressionNode | undefined {

@@ -52,6 +52,22 @@ export type TokenSyntaxKind
   | SyntaxKind.NewKeyword
   ;
 
+/**
+ * The set of syntax tokens which are valid binary expression operators.
+ */
+export type BinaryOperator
+  = SyntaxToken<SyntaxKind.PlusToken>
+  | SyntaxToken<SyntaxKind.MinusToken>
+  | SyntaxToken<SyntaxKind.StarToken>
+  | SyntaxToken<SyntaxKind.SlashToken>
+  | SyntaxToken<SyntaxKind.LessThan>
+  | SyntaxToken<SyntaxKind.GreaterThan>
+  | SyntaxToken<SyntaxKind.EqualTo>
+  | SyntaxToken<SyntaxKind.NotEqualTo>
+  | SyntaxToken<SyntaxKind.LogicalAnd>
+  | SyntaxToken<SyntaxKind.LogicalOr>
+  ;
+
 export function createToken<T extends TokenSyntaxKind>(
   tokenKind: T,
   location?: TextRange,
