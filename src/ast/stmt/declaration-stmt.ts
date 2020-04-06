@@ -80,7 +80,6 @@ export function bindDeclarationStatement(binder: Binder, node: DeclarationStatem
     // warn about shadowed names.
     const shadowedSymbol = binder.nearestSymbolTable.get(node.identifier.value);
     if (shadowedSymbol !== undefined) {
-      console.log('found shadowed symbol');
       binder.diagnostics.push(createDiagnosticWarning(
         DiagnosticSource.Binder,
         DiagnosticCode.ShadowedName,
