@@ -20,14 +20,42 @@ import { createDataFlowPass } from './flow/data-flow';
 yargs
   .command('$0 <file>', 'Run the t compiler', (args) => {
     args
-      .positional('file', { type: 'string', demandOption: true })
+      .positional('file', {
+        type: 'string',
+        demandOption: true,
+        description: 'The file to compile. Use "stdin" to run the repl.',
+      })
       .options({
-        print: { type: 'boolean', default: false },
-        ast: { type: 'boolean', default: false },
-        thread: { type: 'boolean', default: true },
-        bind: { type: 'boolean', default: true },
-        check: { type: 'boolean', default: true },
-        dataFlow: { type: 'boolean', default: true },
+        print: {
+          type: 'boolean',
+          default: false,
+          description: 'Print the AST in an S-expression format.',
+        },
+        ast: {
+          type: 'boolean',
+          default: false,
+          description: 'Print the raw AST using the %o format.',
+        },
+        thread: {
+          type: 'boolean',
+          default: false,
+          description: 'Run the block threading pass.',
+        },
+        bind: {
+          type: 'boolean',
+          default: false,
+          description: 'Run the name resolution pass.',
+        },
+        check: {
+          type: 'boolean',
+          default: false,
+          description: 'Run the type checking pass.',
+        },
+        dataFlow: {
+          type: 'boolean',
+          default: false,
+          description: 'Run the data flow pass.',
+        },
       });
   }, (argv) => {
     let input = '';

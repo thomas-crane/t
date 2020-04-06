@@ -8,6 +8,28 @@ Currently, t only supports enough features to give the semantic analysis and cod
 
 With this in mind, please stop reading about this project if you are looking for a fancy new programming language. If you are interested in how compilers work, then this may be of some interest.
 
+## Usage
+
+```bash
+$ tcc
+tcc <file>
+
+Run the t compiler
+
+Positionals:
+  file  The file to compile. Use "stdin" to run the repl.               [string]
+
+Options:
+  --version   Show version number                                      [boolean]
+  --help      Show help                                                [boolean]
+  --print     Print the AST in an S-expression format.[boolean] [default: false]
+  --ast       Print the raw AST using the %o format.  [boolean] [default: false]
+  --thread    Run the block threading pass.           [boolean] [default: false]
+  --bind      Run the name resolution pass.           [boolean] [default: false]
+  --check     Run the type checking pass.             [boolean] [default: false]
+  --dataFlow  Run the data flow pass.                 [boolean] [default: false]
+```
+
 ## Language overview
 
 
