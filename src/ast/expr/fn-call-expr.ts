@@ -4,6 +4,7 @@ import { DiagnosticCode } from '../../diagnostic/diagnostic-code';
 import { createDiagnosticError } from '../../diagnostic/diagnostic-error';
 import { DiagnosticSource } from '../../diagnostic/diagnostic-source';
 import { Printer } from '../../printer';
+import { indexFnName } from '../../type/array-type';
 import { FnType } from '../../type/function-type';
 import { TypeKind } from '../../type/type-kind';
 import { TypeMatch } from '../../typecheck/type-match';
@@ -12,7 +13,6 @@ import { TextRange } from '../../types';
 import { setTextRange, typeMatch } from '../../utils';
 import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
 import { IdentifierExpression } from './identifier-expr';
-import { indexFnName } from '../../type/array-type';
 
 export const enum FnCallFlags {
   None = 0,

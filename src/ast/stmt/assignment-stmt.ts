@@ -1,16 +1,16 @@
 import { Binder } from '../../bind/binder';
+import { DiagnosticCode } from '../../diagnostic/diagnostic-code';
+import { createDiagnosticError } from '../../diagnostic/diagnostic-error';
+import { DiagnosticSource } from '../../diagnostic/diagnostic-source';
 import { Printer } from '../../printer';
+import { VariableSymbol } from '../../symbol/variable-symbol';
+import { TypeMatch } from '../../typecheck/type-match';
+import { TypeChecker } from '../../typecheck/typechecker';
 import { TextRange } from '../../types';
 import { setTextRange, typeMatch } from '../../utils';
 import { ExpressionNode } from '../expr';
 import { IdentifierExpression } from '../expr/identifier-expr';
 import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
-import { TypeChecker } from '../../typecheck/typechecker';
-import { VariableSymbol } from '../../symbol/variable-symbol';
-import { createDiagnosticError } from '../../diagnostic/diagnostic-error';
-import { DiagnosticSource } from '../../diagnostic/diagnostic-source';
-import { DiagnosticCode } from '../../diagnostic/diagnostic-code';
-import { TypeMatch } from '../../typecheck/type-match';
 
 /**
  * A variable assignment statement.

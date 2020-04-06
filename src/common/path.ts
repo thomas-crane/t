@@ -3,4 +3,3 @@ export interface Path<T> {
   next: Array<Path<T>>;
   expand(): void;
 }
-
