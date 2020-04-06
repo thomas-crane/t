@@ -4,3 +4,6 @@ tsconfig.tsbuildinfo
 
 # random test files
 *.t
+
+# editors
+.vscode/
