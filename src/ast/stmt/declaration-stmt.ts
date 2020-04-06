@@ -5,8 +5,10 @@ import { DiagnosticSource } from '../../diagnostic/diagnostic-source';
 import { createDiagnosticWarning } from '../../diagnostic/diagnostic-warning';
 import { Printer } from '../../printer';
 import { createVariableSymbol } from '../../symbol/variable-symbol';
+import { TypeMatch } from '../../typecheck/type-match';
+import { TypeChecker } from '../../typecheck/typechecker';
 import { TextRange } from '../../types';
-import { setTextRange } from '../../utils';
+import { setTextRange, typeMatch } from '../../utils';
 import { ExpressionNode } from '../expr';
 import { IdentifierExpression } from '../expr/identifier-expr';
 import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
@@ -65,7 +67,7 @@ export function bindDeclarationStatement(binder: Binder, node: DeclarationStatem
     binder.bindNode(node.typeNode);
   }
   // since we allow shadowing, just look in the immediate scope for duplicates.
-  const existingSymbol = binder.valueSymbolTable.getImmediate(node.identifier.value);
+  const existingSymbol = binder.nearestSymbolTable.getImmediate(node.identifier.value);
   if (existingSymbol !== undefined) {
     binder.diagnostics.push(createDiagnosticError(
       DiagnosticSource.Binder,
@@ -76,8 +78,9 @@ export function bindDeclarationStatement(binder: Binder, node: DeclarationStatem
     node.flags |= SyntaxNodeFlags.HasErrors;
   } else {
     // warn about shadowed names.
-    const shadowedSymbol = binder.valueSymbolTable.get(node.identifier.value);
+    const shadowedSymbol = binder.nearestSymbolTable.get(node.identifier.value);
     if (shadowedSymbol !== undefined) {
+      console.log('found shadowed symbol');
       binder.diagnostics.push(createDiagnosticWarning(
         DiagnosticSource.Binder,
         DiagnosticCode.ShadowedName,
@@ -89,6 +92,32 @@ export function bindDeclarationStatement(binder: Binder, node: DeclarationStatem
     // add the new symbol.
     const varSymbol = createVariableSymbol(node.identifier.value, node.isConst, node);
     node.identifier.symbol = varSymbol;
-    binder.valueSymbolTable.set(varSymbol.name, varSymbol);
+    binder.nearestSymbolTable.set(varSymbol.name, varSymbol);
+  }
+}
+
+export function checkDeclarationStatement(checker: TypeChecker, node: DeclarationStatement) {
+  if (node.typeNode !== undefined) {
+    if (node.typeNode.type === undefined) {
+      return;
+    }
+    node.type = node.typeNode.type;
+
+    // make sure the value type matches the annotated type.
+    checker.checkNode(node.value, node.typeNode.type);
+    const match = typeMatch(node.value.type, node.typeNode.type);
+    if (match !== TypeMatch.Equal) {
+      checker.diagnostics.push(createDiagnosticError(
+        DiagnosticSource.Checker,
+        DiagnosticCode.UnexpectedType,
+        `Expected a value of type ${node.typeNode.type.name}`,
+        { pos: node.value.pos, end: node.value.end },
+      ));
+    }
+  } else {
+    // if there is no annotated type, the
+    // decl type is inferred from the value.
+    checker.checkNode(node.value);
+    node.type = node.value.type;
   }
 }

@@ -14,10 +14,27 @@ export interface SyntaxNode extends TextRange {
 }
 
 export const enum SyntaxNodeFlags {
+  /**
+   * This node has no flags.
+   */
   None = 0,
+  /**
+   * This node has some diagnostics associated with it.
+   */
   HasErrors = 1 << 1,
+  /**
+   * This node was inserted by the compiler.
+   */
   Synthetic = 1 << 2,
+  /**
+   * This node has side effects.
+   */
   HasSideEffects = 1 << 3,
+  /**
+   * The current scope should be retained
+   * before this node is checked.
+   */
+  RetainScope = 1 << 4,
 }
 
 /**
@@ -103,10 +120,10 @@ export enum SyntaxKind {
   FnDeclarationStatement,
   ReturnStatement,
   LoopStatement,
-  StopStatement,
   ExpressionStatement,
   StructMember,
   StructDeclStatement,
+  GotoStatement,
 
   // top level
   SourceFile,

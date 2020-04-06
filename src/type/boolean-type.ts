@@ -12,5 +12,6 @@ export function createBooleanType(): BooleanType {
   return {
     kind: TypeKind.Boolean,
     name: 'bool',
+    fields: {},
   };
 }

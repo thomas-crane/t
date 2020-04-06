@@ -14,10 +14,10 @@ import { BlockStatement, createBlockStatement } from './ast/stmt/block-stmt';
 import { createDeclarationStatement, DeclarationStatement } from './ast/stmt/declaration-stmt';
 import { createExpressionStatement, ExpressionStatement } from './ast/stmt/expression-stmt';
 import { createFnDeclarationStatement, createFnParameter, FnDeclarationStatement, FnParameter } from './ast/stmt/fn-declaration-stmt';
+import { createGotoStatement, GotoStatement } from './ast/stmt/goto-stmt';
 import { createIfStatement, IfStatement } from './ast/stmt/if-stmt';
 import { createLoopStatement, LoopStatement } from './ast/stmt/loop-stmt';
 import { createReturnStatement, ReturnStatement } from './ast/stmt/return-stmt';
-import { createStopStatement, StopStatement } from './ast/stmt/stop-stmt';
 import { createStructDeclStatement, createStructMember, StructDeclStatement, StructMember } from './ast/stmt/struct-decl-stmt';
 import { SyntaxKind, SyntaxNodeFlags } from './ast/syntax-node';
 import { BinaryOperator, createToken, SyntaxToken, TokenSyntaxKind, UnaryOperator } from './ast/token';
@@ -25,13 +25,31 @@ import { TypeNode } from './ast/types';
 import { createArrayTypeNode } from './ast/types/array-type-node';
 import { createOptionalTypeNode } from './ast/types/optional-type-node';
 import { createTypeReference, TypeReference } from './ast/types/type-reference';
-import { binaryOpToString, unaryOpToString } from './common/op-names';
+import { getDeadEnds } from './common/block-utils';
+import { binaryOpName, unaryOpName } from './common/op-names';
 import { DiagnosticType } from './diagnostic';
 import { DiagnosticCode } from './diagnostic/diagnostic-code';
 import { createDiagnosticError } from './diagnostic/diagnostic-error';
 import { DiagnosticSource } from './diagnostic/diagnostic-source';
 import { createLexer } from './lexer';
 import { TextRange } from './types';
+
+interface LoopBlock {
+  block: BlockStatement;
+  hasStop: boolean;
+  afterBlock: BlockStatement;
+}
+
+function createLoopBlock(): LoopBlock {
+  const block = createBlockStatement();
+  const afterBlock = createBlockStatement();
+  afterBlock.flags |= SyntaxNodeFlags.Synthetic;
+  return {
+    block,
+    hasStop: false,
+    afterBlock,
+  };
+}
 
 /**
  * An interface for turning some text into a source file node.
@@ -44,6 +62,37 @@ export function createParser(source: SourceFile): Parser {
   const parsedSource = createSourceFile([], source.text, source.fileName);
   const lexer = createLexer(source.text);
   const tokens: Array<SyntaxToken<TokenSyntaxKind>> = [];
+  /**
+   * The stack of blocks currently being parsed.
+   */
+  const blocks: BlockStatement[] = [];
+  /**
+   * The block at the top of the stack.
+   */
+  function currentBlock(): BlockStatement {
+    return blocks[blocks.length - 1];
+  }
+
+  function replaceBlock(end: TextRange) {
+    currentBlock().end = end.end;
+    const newBlock = createBlockStatement();
+
+    // since new block is adjacent to the current one,
+    // we need to copy the parent of the current block.
+    const currentTable = currentBlock().symbolTable;
+    newBlock.symbolTable.parent = currentTable;
+
+    newBlock.flags |= SyntaxNodeFlags.Synthetic;
+    newBlock.pos = end.end;
+    blocks.pop();
+    blocks.push(newBlock);
+  }
+
+  /**
+   * The stack of loop statements currently being parsed.
+   */
+  const loopBlocks: LoopBlock[] = [];
+
   while (true) {
     const token = lexer.nextToken();
     // skip unknown tokens, they will just cause
@@ -186,17 +235,141 @@ export function createParser(source: SourceFile): Parser {
         return parseExpressionStatement();
     }
   }
-  function parseBlockStatement(): BlockStatement {
+  function parseBlockStatement(existingBlock?: BlockStatement): BlockStatement {
+    // create a new block and add it to the stack.
+    let block: BlockStatement;
+    if (existingBlock) {
+      block = existingBlock;
+    } else {
+      block = createBlockStatement();
+    }
+    blocks.push(block);
+
+    // set the start pos.
     const start = consume(SyntaxKind.LeftCurlyToken);
-    const statements: StatementNode[] = [];
+    block.pos = start.pos;
+
+    let hasExit = false;
+
     while (!atEnd() && tokens[idx].kind !== SyntaxKind.RightCurlyToken) {
       const statement = parseStatement();
-      if (statement) {
-        statements.push(statement);
+      if (statement === undefined) {
+        continue;
+      }
+      // if there is already an exit for this block,
+      // the statements go in the `afterExit` list.
+      if (hasExit) {
+        currentBlock().afterExit.push(statement);
+      } else {
+        // otherwise we should check if we can set the
+        // exit, or just put the statement in the list.
+        switch (statement.kind) {
+          case SyntaxKind.ReturnStatement:
+          case SyntaxKind.GotoStatement:
+            // any code after a `return` or `stop` statement
+            // is unreachable and does not require a new block.
+            currentBlock().exit = statement;
+            hasExit = true;
+            break;
+          case SyntaxKind.BlockStatement: {
+            // if the statement was another block statement, jump into that one.
+            const intoBlock = createGotoStatement(statement);
+            intoBlock.flags |= SyntaxNodeFlags.Synthetic;
+            currentBlock().exit = intoBlock;
+            // set the parent scope of the block to this block.
+            statement.symbolTable.parent = currentBlock().symbolTable;
+
+            // if the block we jumped into has a synthetic exit, we
+            // need to create a new block to jump back out to.
+            const fallthroughs = getDeadEnds(statement);
+            if (fallthroughs.length > 0) {
+              replaceBlock(statement);
+              for (const fallthrough of fallthroughs) {
+                // jump from the block into the new block.
+                const exitBlock = createGotoStatement(currentBlock());
+                exitBlock.flags |= SyntaxNodeFlags.Synthetic;
+                fallthrough.exit = exitBlock;
+              }
+            } else {
+              hasExit = true;
+            }
+            break;
+          }
+          case SyntaxKind.LoopStatement: {
+            // jump into the loop.
+            const intoLoop = createGotoStatement(statement.body);
+            intoLoop.flags |= SyntaxNodeFlags.Synthetic;
+            currentBlock().exit = intoLoop;
+            // set the parent scope.
+            statement.body.symbolTable.parent = currentBlock().symbolTable;
+
+            // if this loop statement had an exit, replace the current
+            // block with the afterBlock of that loop. Otherwise the
+            // rest of the code is unreachable.
+            const currentLoop = loopBlocks.pop()!;
+            if (currentLoop.hasStop) {
+              blocks.pop();
+              blocks.push(currentLoop.afterBlock);
+            } else {
+              hasExit = true;
+            }
+            break;
+          }
+          case SyntaxKind.IfStatement: {
+            currentBlock().exit = statement;
+            // set the scope parents.
+            statement.body.symbolTable.parent = currentBlock().symbolTable;
+            statement.elseBody.symbolTable.parent = currentBlock().symbolTable;
+            // if either one of the branches has a synthetic
+            // exit, we will need to create a new block
+            // to jump back into after the if statement.
+            const branchExitFlags = statement.body.exit.flags | statement.elseBody.exit.flags;
+            if (branchExitFlags & SyntaxNodeFlags.Synthetic) {
+              // replace the current block with a new one.
+              replaceBlock(statement);
+
+              // check the body.
+              if (statement.body.exit.flags & SyntaxNodeFlags.Synthetic) {
+                const gotoExit = createGotoStatement(currentBlock());
+                gotoExit.flags |= SyntaxNodeFlags.Synthetic;
+                statement.body.exit = gotoExit;
+              }
+              // check the else body.
+              if (statement.elseBody.exit.flags & SyntaxNodeFlags.Synthetic) {
+                const gotoExit = createGotoStatement(currentBlock());
+                gotoExit.flags |= SyntaxNodeFlags.Synthetic;
+                statement.elseBody.exit = gotoExit;
+              }
+            } else {
+              // if neither branches have a synthetic exit, any
+              // code after the if statement is unreachable.
+              hasExit = true;
+            }
+            break;
+          }
+          default: {
+            currentBlock().statements.push(statement);
+          }
+        }
       }
     }
-    const end = consume(SyntaxKind.RightCurlyToken);
-    return createBlockStatement(statements, { pos: start.pos, end: end.end });
+    // set the end pos.
+    if (!atEnd()) {
+      const end = consume(SyntaxKind.RightCurlyToken);
+      block.end = end.end;
+    } else {
+      block.end = idx;
+    }
+
+    // if this block still has a synthetic exit and we're
+    // in a loop, create a jump back to it's parent.
+    if (currentBlock().exit.flags & SyntaxNodeFlags.Synthetic && loopBlocks.length > 0) {
+      const gotoLoop = createGotoStatement(loopBlocks[loopBlocks.length - 1].block);
+      currentBlock().exit = gotoLoop;
+    }
+    // remove this block from the stack.
+    blocks.pop();
+    return block;
   }
 
   function parseDeclarationStatement(): DeclarationStatement | undefined {
@@ -259,26 +432,49 @@ export function createParser(source: SourceFile): Parser {
       return undefined;
     }
     const body = parseBlockStatement();
-    let elseBody: BlockStatement | undefined;
+    let elseBody: BlockStatement;
     if (tokens[idx].kind === SyntaxKind.ElseKeyword) {
       consume(SyntaxKind.ElseKeyword);
       elseBody = parseBlockStatement();
+    } else {
+      // if there is no else body create a
+      // synthetic, empty block.
+      elseBody = createBlockStatement();
+      elseBody.flags = SyntaxNodeFlags.Synthetic;
     }
     return createIfStatement(condition, body, elseBody, {
       pos: start.pos,
-      end: elseBody ? elseBody.end : body.end,
+      end: elseBody.end,
     });
   }
 
   function parseLoopStatement(): LoopStatement {
     const start = consume(SyntaxKind.LoopKeyword);
-    const body = parseBlockStatement();
+    // make sure the loop counter is incremented
+    // before we parse the body so that the exit
+    // can be constructed properly.
+    const loopBlock = createLoopBlock();
+    loopBlocks.push(loopBlock);
+    const body = parseBlockStatement(loopBlock.block);
     return createLoopStatement(body, { pos: start.pos, end: body.end });
   }
 
-  function parseStopStatement(): StopStatement {
+  function parseStopStatement(): GotoStatement | undefined {
     const token = consume(SyntaxKind.StopKeyword);
-    return createStopStatement({ pos: token.pos, end: token.end });
+    if (loopBlocks.length === 0) {
+      diagnostics.push(createDiagnosticError(
+        DiagnosticSource.Parser,
+        DiagnosticCode.UnexpectedToken,
+        'stop statements can only appear within loops.',
+        { pos: token.pos, end: token.end },
+      ));
+      return undefined;
+    }
+    // create a goto to the afterBlock of the current loopBlock,
+    // and mark that the current loop has a stop.
+    const target = loopBlocks[loopBlocks.length - 1].afterBlock;
+    loopBlocks[loopBlocks.length - 1].hasStop = true;
+    return createGotoStatement(target, { pos: token.pos, end: token.end });
   }
 
   function parseReturnStatement(): ReturnStatement | undefined {
@@ -388,14 +584,17 @@ export function createParser(source: SourceFile): Parser {
       if (precedence === 0 || precedence <= parentPrecedence) {
         break;
       } else {
-        const operator = consume(tokens[idx].kind) as BinaryOperator;
+        const operator = consume(tokens[idx].kind);
         const right = parseBinaryExpression(precedence);
         if (right === undefined) {
           return undefined;
         }
 
         // turn the operator into an identifier.
-        const opName = createIdentifierExpression(binaryOpToString(operator), { pos: operator.pos, end: operator.end });
+        const opName = createIdentifierExpression(
+          binaryOpName[operator.kind as BinaryOperator],
+          { pos: operator.pos, end: operator.end },
+        );
         opName.flags |= SyntaxNodeFlags.Synthetic;
 
         // desugar into an fn call
@@ -403,7 +602,7 @@ export function createParser(source: SourceFile): Parser {
           opName,
           [left, right],
           FnCallFlags.Operator | FnCallFlags.BinaryOp,
-          { pos: left.pos, end: right.pos },
+          { pos: left.pos, end: right.end },
         );
       }
     }
@@ -412,13 +611,16 @@ export function createParser(source: SourceFile): Parser {
 
   function parseUnaryExpression(): ExpressionNode | undefined {
     if (isUnaryOperator(tokens[idx].kind)) {
-      const operator = consume(tokens[idx].kind) as UnaryOperator;
+      const operator = consume(tokens[idx].kind);
       const operand = parseUnaryExpression();
       if (operand === undefined) {
         return undefined;
       }
       // turn the operator into an identifier.
-      const opName = createIdentifierExpression(unaryOpToString(operator), { pos: operator.pos, end: operator.end });
+      const opName = createIdentifierExpression(
+        unaryOpName[operator.kind as UnaryOperator],
+        { pos: operator.pos, end: operator.end },
+      );
 
       // desugar into an fn call
       return createFnCallExpression(

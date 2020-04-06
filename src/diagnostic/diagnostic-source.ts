@@ -6,4 +6,5 @@ export const enum DiagnosticSource {
   Parser = 1 << 1,
   Binder = 1 << 2,
   Checker = 1 << 3,
+  DataFlow = 1 << 4,
 }

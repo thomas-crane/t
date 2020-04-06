@@ -1,9 +1,12 @@
 import { Binder } from '../../bind/binder';
+import { createLinkedTable } from '../../common/linked-table';
 import { DiagnosticCode } from '../../diagnostic/diagnostic-code';
 import { createDiagnosticError } from '../../diagnostic/diagnostic-error';
 import { DiagnosticSource } from '../../diagnostic/diagnostic-source';
 import { Printer } from '../../printer';
+import { SymbolType } from '../../symbol';
 import { createFunctionSymbol, createParameterSymbol, ParameterSymbol } from '../../symbol/function-symbol';
+import { TypeChecker } from '../../typecheck/typechecker';
 import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
 import { IdentifierExpression } from '../expr/identifier-expr';
@@ -84,7 +87,7 @@ export function printFnParameter(printer: Printer, node: FnParameter) {
 }
 
 export function bindFnDeclarationStatement(binder: Binder, node: FnDeclarationStatement) {
-  const existingSymbol = binder.valueSymbolTable.get(node.fnName.value);
+  const existingSymbol = binder.nearestSymbolTable.get(node.fnName.value);
   if (existingSymbol !== undefined) {
     binder.diagnostics.push(createDiagnosticError(
       DiagnosticSource.Binder,
@@ -104,16 +107,19 @@ export function bindFnDeclarationStatement(binder: Binder, node: FnDeclarationSt
     // create the fn symbol and add it to the scope.
     const fnSymbol = createFunctionSymbol(node.fnName.value, paramSymbols, node);
     node.fnName.symbol = fnSymbol;
-    binder.valueSymbolTable.set(fnSymbol.name, fnSymbol);
+    binder.nearestSymbolTable.set(fnSymbol.name, fnSymbol);
 
     // create a new scope and add the parameters.
-    binder.valueSymbolTable.pushScope();
-    paramSymbols.forEach((param) => binder.valueSymbolTable.set(param.name, param));
+    const paramTable = createLinkedTable<string, SymbolType>();
+    paramTable.parent = node.body.symbolTable;
+    paramSymbols.forEach((param) => paramTable.set(param.name, param));
     // bind each statement in the fn body. We don't want
     // to bind it as a block statement because this will
     // add another scope level unnecessarily.
+    const oldNearest = binder.nearestSymbolTable;
+    binder.nearestSymbolTable = paramTable;
     node.body.statements.forEach((stmt) => binder.bindNode(stmt));
-    binder.valueSymbolTable.popScope();
+    binder.nearestSymbolTable = oldNearest;
   }
 }
 
@@ -123,4 +129,40 @@ export function bindFnParameter(binder: Binder, node: FnParameter) {
   }
   const paramSymbol = createParameterSymbol(node.name.value, node.name);
   node.name.symbol = paramSymbol;
+}
+
+export function checkFnDeclarationStatement(checker: TypeChecker, node: FnDeclarationStatement) {
+  // check the params.
+  node.params.forEach((param) => checkFnParameter(checker, param));
+
+  // make sure the fn has a return type.
+  if (node.returnTypeNode === undefined) {
+    checker.diagnostics.push(createDiagnosticError(
+      DiagnosticSource.Checker,
+      DiagnosticCode.CannotInferType,
+      'Function return types cannot be inferred',
+      { pos: node.fnName.pos, end: node.fnName.end },
+    ));
+    return;
+  }
+  checker.checkNode(node.returnTypeNode);
+
+  // set the current fn and check the body, then unset it.
+  checker.currentFn = node;
+  checker.checkNode(node.body);
+  checker.currentFn = undefined;
+}
+
+export function checkFnParameter(checker: TypeChecker, node: FnParameter) {
+  if (node.typeNode === undefined) {
+    checker.diagnostics.push(createDiagnosticError(
+      DiagnosticSource.Checker,
+      DiagnosticCode.CannotInferType,
+      'Parameter types cannot be inferred',
+      { pos: node.name.pos, end: node.name.end },
+    ));
+    return;
+  }
+  checker.checkNode(node.typeNode);
+  node.name.type = node.typeNode.type;
 }

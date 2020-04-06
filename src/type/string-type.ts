@@ -12,5 +12,6 @@ export function createStringType(): StringType {
   return {
     kind: TypeKind.String,
     name: 'str',
+    fields: {},
   };
 }

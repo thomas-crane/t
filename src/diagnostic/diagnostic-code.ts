@@ -10,12 +10,13 @@ export enum DiagnosticCode {
   UnknownSymbol,
   DuplicateSymbol,
 
-  IncompatibleOperandTypes,
+  UnsupportedOperator,
   UnexpectedType,
   CannotInferType,
   TypeNotCallable,
   TypeNotIndexable,
   WrongNumberOfArguments,
+  CannotAssignToConst,
 
   UnknownMember,
   UninitialisedMember,
@@ -23,4 +24,6 @@ export enum DiagnosticCode {
 
   // warnings
   ShadowedName,
+  NameNotUsed,
+  UnreachableCode,
 }

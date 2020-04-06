@@ -1,3 +1,4 @@
+import { Type } from '.';
 import { TypeKind } from './type-kind';
 
 /**
@@ -6,4 +7,5 @@ import { TypeKind } from './type-kind';
 export interface TypeInfo {
   kind: TypeKind;
   name: string;
+  fields: Record<string, Type>;
 }

@@ -1,8 +1,11 @@
 import { Binder } from '../bind/binder';
 import { DiagnosticType } from '../diagnostic';
+import { DataFlowPass } from '../flow/data-flow';
 import { Printer } from '../printer';
+import { TypeChecker } from '../typecheck/typechecker';
 import { StatementNode } from './stmt';
-import { registerStructName, StructDeclStatement } from './stmt/struct-decl-stmt';
+import { BlockStatement } from './stmt/block-stmt';
+import { registerStructName, registerStructType, StructDeclStatement } from './stmt/struct-decl-stmt';
 import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from './syntax-node';
 
 /**
@@ -52,4 +55,19 @@ export function bindSourceFile(binder: Binder, node: SourceFile) {
     .forEach((stmt) => registerStructName(binder, stmt as StructDeclStatement));
   // then bind everything.
   node.statements.forEach((stmt) => binder.bindNode(stmt));
+}
+
+export function checkSourceFile(checker: TypeChecker, node: SourceFile) {
+  // register struct types first.
+  node.statements
+    .filter((stmt) => stmt.kind === SyntaxKind.StructDeclStatement)
+    .forEach((stmt) => registerStructType(checker, stmt as StructDeclStatement));
+  // then check everything.
+  node.statements.forEach((stmt) => checker.checkNode(stmt));
+}
+
+export function dataFlowSourceFile(pass: DataFlowPass, node: SourceFile) {
+  node.statements
+    .filter((stmt) => stmt.kind === SyntaxKind.BlockStatement)
+    .forEach((stmt) => pass.visitNode(stmt as BlockStatement));
 }

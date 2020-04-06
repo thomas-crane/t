@@ -6,10 +6,11 @@ import { bindParenExpression } from '../ast/expr/paren-expr';
 import { bindStructExpression } from '../ast/expr/struct-expr';
 import { bindSourceFile } from '../ast/source-file';
 import { bindAssignmentStatement } from '../ast/stmt/assignment-stmt';
-import { bindBlockStatement } from '../ast/stmt/block-stmt';
+import { bindBlockStatement, BlockStatement } from '../ast/stmt/block-stmt';
 import { bindDeclarationStatement } from '../ast/stmt/declaration-stmt';
 import { bindExpressionStatement } from '../ast/stmt/expression-stmt';
 import { bindFnDeclarationStatement } from '../ast/stmt/fn-declaration-stmt';
+import { bindGotoStatement } from '../ast/stmt/goto-stmt';
 import { bindIfStatement } from '../ast/stmt/if-stmt';
 import { bindLoopStatement } from '../ast/stmt/loop-stmt';
 import { bindReturnStatement } from '../ast/stmt/return-stmt';
@@ -18,11 +19,12 @@ import { SyntaxKind } from '../ast/syntax-node';
 import { bindArrayTypeNode } from '../ast/types/array-type-node';
 import { bindOptionalTypeNode } from '../ast/types/optional-type-node';
 import { bindTypeReference } from '../ast/types/type-reference';
+import { LinkedTable } from '../common/linked-table';
 import { ScopedMap } from '../common/scoped-map';
 import { DiagnosticType } from '../diagnostic';
 import { SymbolType } from '../symbol';
 import { unreachable } from '../utils';
-import { createGlobalTypeTable, createGlobalValueTable } from './global-symbol-table';
+import { createGlobalTypeTable, globalValueTable } from './global-symbol-table';
 
 /**
  * An interface for taking an existing source file node and filling
@@ -30,14 +32,21 @@ import { createGlobalTypeTable, createGlobalValueTable } from './global-symbol-t
  */
 export interface Binder {
   /**
+   * Block statements which have already been bound.
+   * This can be used to avoid infinite loops when
+   * binding blocks that exit into themselves.
+   */
+  readonly boundBlocks: Set<BlockStatement>;
+  /**
    * The diagnostics of this binder.
    */
   readonly diagnostics: DiagnosticType[];
   /**
-   * The symbol table which contains
-   * symbols that refer to values.
+   * The symbol table of the block which is
+   * lexically the closest to where the binder
+   * is currently binding.
    */
-  readonly valueSymbolTable: ScopedMap<string, SymbolType>;
+  nearestSymbolTable: LinkedTable<string, SymbolType>;
   /**
    * The symbol table which contains
    * symbols that refer to types.
@@ -53,8 +62,9 @@ export interface Binder {
 export function createBinder(diagnostics: DiagnosticType[]): Binder {
 
   return {
+    boundBlocks: new Set(),
     diagnostics,
-    valueSymbolTable: createGlobalValueTable(),
+    nearestSymbolTable: globalValueTable,
     typeSymbolTable: createGlobalTypeTable(),
 
     bindNode(node) {
@@ -94,8 +104,8 @@ export function createBinder(diagnostics: DiagnosticType[]): Binder {
           return bindLoopStatement(this, node);
         case SyntaxKind.ReturnStatement:
           return bindReturnStatement(this, node);
-        case SyntaxKind.StopStatement:
-          return undefined;
+        case SyntaxKind.GotoStatement:
+          return bindGotoStatement(this, node);
         case SyntaxKind.StructDeclStatement:
           return bindStructDeclStatement(this, node);
 

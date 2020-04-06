@@ -1,5 +1,6 @@
 import { Binder } from '../../bind/binder';
 import { Printer } from '../../printer';
+import { TypeChecker } from '../../typecheck/typechecker';
 import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
 import { ExpressionNode } from '../expr';
@@ -33,4 +34,8 @@ export function printExpressionStatement(printer: Printer, node: ExpressionState
 
 export function bindExpressionStatement(binder: Binder, node: ExpressionStatement) {
   binder.bindNode(node.expr);
+}
+
+export function checkExpressionStatement(checker: TypeChecker, node: ExpressionStatement) {
+  checker.checkNode(node.expr);
 }

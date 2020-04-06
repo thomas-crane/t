@@ -3,6 +3,7 @@ import { DiagnosticCode } from '../../diagnostic/diagnostic-code';
 import { createDiagnosticError } from '../../diagnostic/diagnostic-error';
 import { DiagnosticSource } from '../../diagnostic/diagnostic-source';
 import { Printer } from '../../printer';
+import { TypeChecker } from '../../typecheck/typechecker';
 import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
 import { IdentifierExpression } from '../expr/identifier-expr';
@@ -51,4 +52,8 @@ export function bindTypeReference(binder: Binder, node: TypeReference) {
     ));
     node.flags |= SyntaxNodeFlags.HasErrors;
   }
+}
+
+export function checkTypeReference(checker: TypeChecker, node: TypeReference) {
+  node.type = checker.typeTable.get(node.name.value);
 }

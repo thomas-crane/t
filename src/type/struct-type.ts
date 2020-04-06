@@ -16,5 +16,6 @@ export function createStructType(
     kind: TypeKind.Struct,
     name,
     members,
+    fields: {},
   };
 }

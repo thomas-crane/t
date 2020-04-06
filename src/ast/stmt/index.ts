@@ -3,10 +3,10 @@ import { BlockStatement } from './block-stmt';
 import { DeclarationStatement } from './declaration-stmt';
 import { ExpressionStatement } from './expression-stmt';
 import { FnDeclarationStatement } from './fn-declaration-stmt';
+import { GotoStatement } from './goto-stmt';
 import { IfStatement } from './if-stmt';
 import { LoopStatement } from './loop-stmt';
 import { ReturnStatement } from './return-stmt';
-import { StopStatement } from './stop-stmt';
 import { StructDeclStatement } from './struct-decl-stmt';
 
 /**
@@ -20,7 +20,7 @@ export type StatementNode
   | FnDeclarationStatement
   | ReturnStatement
   | LoopStatement
-  | StopStatement
   | ExpressionStatement
   | StructDeclStatement
+  | GotoStatement
   ;

@@ -12,5 +12,6 @@ export function createNumberType(): NumberType {
   return {
     kind: TypeKind.Number,
     name: 'num',
+    fields: {},
   };
 }

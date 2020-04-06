@@ -1,27 +1,27 @@
 import { Type } from '.';
-import { ParameterSymbol } from '../symbol/function-symbol';
 import { TypeInfo } from './type-info';
 import { TypeKind } from './type-kind';
 
 /**
  * The function type.
  */
-export interface FunctionType extends TypeInfo {
-  kind: TypeKind.Function;
+export interface FnType extends TypeInfo {
+  kind: TypeKind.Fn;
 
-  parameters: ParameterSymbol[];
+  parameters: Type[];
   returnType: Type | undefined;
 }
 
-export function createFunctionType(
+export function createFnType(
   name: string,
-  parameters: ParameterSymbol[],
+  parameters: Type[],
   returnType: Type | undefined,
-): FunctionType {
+): FnType {
   return {
-    kind: TypeKind.Function,
+    kind: TypeKind.Fn,
     name,
     parameters,
     returnType,
+    fields: {},
   };
 }

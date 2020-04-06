@@ -1,7 +1,12 @@
 import { Binder } from '../../bind/binder';
+import { DiagnosticCode } from '../../diagnostic/diagnostic-code';
+import { createDiagnosticError } from '../../diagnostic/diagnostic-error';
+import { DiagnosticSource } from '../../diagnostic/diagnostic-source';
 import { Printer } from '../../printer';
+import { TypeMatch } from '../../typecheck/type-match';
+import { TypeChecker } from '../../typecheck/typechecker';
 import { TextRange } from '../../types';
-import { setTextRange } from '../../utils';
+import { setTextRange, typeMatch } from '../../utils';
 import { ExpressionNode } from '../expr';
 import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
 import { BlockStatement } from './block-stmt';
@@ -14,13 +19,13 @@ export interface IfStatement extends SyntaxNode {
 
   condition: ExpressionNode;
   body: BlockStatement;
-  elseBody: BlockStatement | undefined;
+  elseBody: BlockStatement;
 }
 
 export function createIfStatement(
   condition: ExpressionNode,
   body: BlockStatement,
-  elseBody?: BlockStatement,
+  elseBody: BlockStatement,
   location?: TextRange,
 ): IfStatement {
   return setTextRange({
@@ -47,5 +52,24 @@ export function bindIfStatement(binder: Binder, node: IfStatement) {
   binder.bindNode(node.body);
   if (node.elseBody) {
     binder.bindNode(node.elseBody);
+  }
+}
+
+export function checkIfStatement(checker: TypeChecker, node: IfStatement) {
+  // TODO(thomas.crane): reimplement type narrowing.
+  checker.checkNode(node.condition);
+  const boolType = checker.typeTable.get('bool')!;
+  const conditionMatch = typeMatch(node.condition.type, boolType);
+  if (conditionMatch !== TypeMatch.Equal) {
+    checker.diagnostics.push(createDiagnosticError(
+      DiagnosticSource.Checker,
+      DiagnosticCode.UnexpectedType,
+      `Expected a value of type ${boolType.name}`,
+      { pos: node.condition.pos, end: node.condition.end },
+    ));
+  }
+  checker.checkNode(node.body);
+  if (node.elseBody) {
+    checker.checkNode(node.elseBody);
   }
 }

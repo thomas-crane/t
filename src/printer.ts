@@ -9,14 +9,14 @@ import { printStringExpression } from './ast/expr/string-expr';
 import { printStructExpression } from './ast/expr/struct-expr';
 import { printSourceFile } from './ast/source-file';
 import { printAssignmentStatement } from './ast/stmt/assignment-stmt';
-import { printBlockStatement } from './ast/stmt/block-stmt';
+import { BlockStatement, printBlockStatement } from './ast/stmt/block-stmt';
 import { printDeclarationStatement } from './ast/stmt/declaration-stmt';
 import { printExpressionStatement } from './ast/stmt/expression-stmt';
 import { printFnDeclarationStatement } from './ast/stmt/fn-declaration-stmt';
+import { printGotoStatement } from './ast/stmt/goto-stmt';
 import { printIfStatement } from './ast/stmt/if-stmt';
 import { printLoopStatement } from './ast/stmt/loop-stmt';
 import { printReturnStatement } from './ast/stmt/return-stmt';
-import { printStopStatement } from './ast/stmt/stop-stmt';
 import { printStructDeclStatement } from './ast/stmt/struct-decl-stmt';
 import { SyntaxKind } from './ast/syntax-node';
 import { printArrayTypeNode } from './ast/types/array-type-node';
@@ -25,6 +25,12 @@ import { printTypeReference } from './ast/types/type-reference';
 import { unreachable } from './utils';
 
 export interface Printer {
+  /**
+   * Block statements which have already been printed.
+   * This can be used to avoid infinite loops when
+   * printing blocks that exit into themselves.
+   */
+  readonly printedBlocks: Map<BlockStatement, number>;
   /**
    * Prints the `str` if it is given, then
    * increases the current indentation of the printer.
@@ -55,7 +61,9 @@ export function createPrinter(): Printer {
   let buffer = '';
   let currentIndent = 0;
   const INDENT_SIZE = 2;
+  const printedBlocks = new Map<BlockStatement, number>();
   return {
+    printedBlocks,
     indent(str) {
       if (str !== undefined) {
         this.println(str);
@@ -116,8 +124,8 @@ export function createPrinter(): Printer {
           return printLoopStatement(this, node);
         case SyntaxKind.ReturnStatement:
           return printReturnStatement(this, node);
-        case SyntaxKind.StopStatement:
-          return printStopStatement(this, node);
+        case SyntaxKind.GotoStatement:
+          return printGotoStatement(this, node);
         case SyntaxKind.StructDeclStatement:
           return printStructDeclStatement(this, node);
 

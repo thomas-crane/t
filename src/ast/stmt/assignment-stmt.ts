@@ -1,10 +1,16 @@
 import { Binder } from '../../bind/binder';
 import { Printer } from '../../printer';
 import { TextRange } from '../../types';
-import { setTextRange } from '../../utils';
+import { setTextRange, typeMatch } from '../../utils';
 import { ExpressionNode } from '../expr';
 import { IdentifierExpression } from '../expr/identifier-expr';
 import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
+import { TypeChecker } from '../../typecheck/typechecker';
+import { VariableSymbol } from '../../symbol/variable-symbol';
+import { createDiagnosticError } from '../../diagnostic/diagnostic-error';
+import { DiagnosticSource } from '../../diagnostic/diagnostic-source';
+import { DiagnosticCode } from '../../diagnostic/diagnostic-code';
+import { TypeMatch } from '../../typecheck/type-match';
 
 /**
  * A variable assignment statement.
@@ -39,4 +45,35 @@ export function printAssignmentStatement(printer: Printer, node: AssignmentState
 export function bindAssignmentStatement(binder: Binder, node: AssignmentStatement) {
   binder.bindNode(node.identifier);
   binder.bindNode(node.value);
+}
+
+export function checkAssignmentStatement(checker: TypeChecker, node: AssignmentStatement) {
+  const varSymbol = node.symbol as VariableSymbol | undefined;
+  if (varSymbol === undefined) {
+    return;
+  }
+  // make sure we're not assigning to a const variable.
+  if (varSymbol.isConst) {
+    checker.diagnostics.push(createDiagnosticError(
+      DiagnosticSource.Checker,
+      DiagnosticCode.CannotAssignToConst,
+      `Cannot assign to "${varSymbol.name}" because it is not mutable.`,
+      { pos: node.identifier.pos, end: node.identifier.end },
+    ));
+  }
+
+  const expectedType = varSymbol.firstMention.type;
+  if (expectedType === undefined) {
+    return undefined;
+  }
+  checker.checkNode(node.value, expectedType);
+  const match = typeMatch(node.value.type, expectedType);
+  if (match !== TypeMatch.Equal) {
+    checker.diagnostics.push(createDiagnosticError(
+      DiagnosticSource.Checker,
+      DiagnosticCode.UnexpectedType,
+      `Expected a value of type ${expectedType.name}`,
+      { pos: node.identifier.pos, end: node.identifier.end },
+    ));
+  }
 }

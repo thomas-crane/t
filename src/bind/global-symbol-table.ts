@@ -1,9 +1,16 @@
 import { createIdentifierExpression, IdentifierExpression } from '../ast/expr/identifier-expr';
 import { SyntaxNodeFlags } from '../ast/syntax-node';
+import { createLinkedTable, LinkedTable } from '../common/linked-table';
 import { createScopedMap, ScopedMap } from '../common/scoped-map';
 import { SymbolType } from '../symbol';
 import { createTypeSymbol, TypeSymbol } from '../symbol/type-symbol';
 import { createVariableSymbol } from '../symbol/variable-symbol';
+
+function createSyntheticIdentifier(name: string): IdentifierExpression {
+  const identifier = createIdentifierExpression(name);
+  identifier.flags |= SyntaxNodeFlags.Synthetic;
+  return identifier;
+}
 
 export function createGlobalTypeTable(): ScopedMap<string, SymbolType> {
   const numNode = createSyntheticIdentifier('num');
@@ -31,18 +38,14 @@ export function createGlobalTypeTable(): ScopedMap<string, SymbolType> {
   return table;
 }
 
-export function createGlobalValueTable(): ScopedMap<string, SymbolType> {
+function createGlobalValueTable(): LinkedTable<string, SymbolType> {
   const nilNode = createSyntheticIdentifier('nil');
   const nilSymbol = createVariableSymbol(nilNode.value, true, nilNode);
 
-  const table = createScopedMap<string, SymbolType>();
+  const table = createLinkedTable<string, SymbolType>();
   table.set(nilSymbol.name, nilSymbol);
 
   return table;
 }
 
-function createSyntheticIdentifier(name: string): IdentifierExpression {
-  const identifier = createIdentifierExpression(name);
-  identifier.flags |= SyntaxNodeFlags.Synthetic;
-  return identifier;
-}
+export const globalValueTable = createGlobalValueTable();

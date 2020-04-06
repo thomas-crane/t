@@ -1,4 +1,5 @@
 import { Printer } from '../../printer';
+import { TypeChecker } from '../../typecheck/typechecker';
 import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
 import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
@@ -24,4 +25,8 @@ export function createBooleanExpression(
 
 export function printBooleanExpression(printer: Printer, node: BooleanExpression) {
   printer.println(`(BooleanExpression ${node.value})`);
+}
+
+export function checkBooleanExpression(checker: TypeChecker, node: BooleanExpression) {
+  node.type = checker.typeTable.get('bool');
 }

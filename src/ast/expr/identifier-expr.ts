@@ -3,6 +3,7 @@ import { DiagnosticCode } from '../../diagnostic/diagnostic-code';
 import { createDiagnosticError } from '../../diagnostic/diagnostic-error';
 import { DiagnosticSource } from '../../diagnostic/diagnostic-source';
 import { Printer } from '../../printer';
+import { TypeChecker } from '../../typecheck/typechecker';
 import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
 import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
@@ -31,7 +32,7 @@ export function printIdentifierExpression(printer: Printer, node: IdentifierExpr
 }
 
 export function bindIdentifierExpression(binder: Binder, node: IdentifierExpression) {
-  const varSymbol = binder.valueSymbolTable.get(node.value);
+  const varSymbol = binder.nearestSymbolTable.get(node.value);
   if (varSymbol !== undefined) {
     varSymbol.references.push(node);
     node.symbol = varSymbol;
@@ -46,5 +47,17 @@ export function bindIdentifierExpression(binder: Binder, node: IdentifierExpress
       },
     ));
     node.flags |= SyntaxNodeFlags.HasErrors;
+  }
+}
+
+export function checkIdentifierExpression(checker: TypeChecker, node: IdentifierExpression) {
+  if (node.symbol === undefined) {
+    return;
+  }
+  // see if there is a narrowed type for this name.
+  if (checker.narrowedTypes.get(node.symbol) !== undefined) {
+    node.type = checker.narrowedTypes.get(node.symbol);
+  } else {
+    node.type = node.symbol.firstMention.type;
   }
 }

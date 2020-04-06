@@ -56,24 +56,24 @@ export type TokenSyntaxKind
  * The set of syntax tokens which are valid binary expression operators.
  */
 export type BinaryOperator
-  = SyntaxToken<SyntaxKind.PlusToken>
-  | SyntaxToken<SyntaxKind.MinusToken>
-  | SyntaxToken<SyntaxKind.StarToken>
-  | SyntaxToken<SyntaxKind.SlashToken>
-  | SyntaxToken<SyntaxKind.LessThan>
-  | SyntaxToken<SyntaxKind.GreaterThan>
-  | SyntaxToken<SyntaxKind.EqualTo>
-  | SyntaxToken<SyntaxKind.NotEqualTo>
-  | SyntaxToken<SyntaxKind.LogicalAnd>
-  | SyntaxToken<SyntaxKind.LogicalOr>
+  = SyntaxKind.PlusToken
+  | SyntaxKind.MinusToken
+  | SyntaxKind.StarToken
+  | SyntaxKind.SlashToken
+  | SyntaxKind.LessThan
+  | SyntaxKind.GreaterThan
+  | SyntaxKind.EqualTo
+  | SyntaxKind.NotEqualTo
+  | SyntaxKind.LogicalAnd
+  | SyntaxKind.LogicalOr
   ;
 /**
  * The set of syntax tokens which are valid unary expression operators.
  */
 export type UnaryOperator
-  = SyntaxToken<SyntaxKind.PlusToken>
-  | SyntaxToken<SyntaxKind.MinusToken>
-  | SyntaxToken<SyntaxKind.ExclamationToken>
+  = SyntaxKind.PlusToken
+  | SyntaxKind.MinusToken
+  | SyntaxKind.ExclamationToken
   ;
 
 export function createToken<T extends TokenSyntaxKind>(

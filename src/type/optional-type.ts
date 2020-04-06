@@ -15,5 +15,6 @@ export function createOptionalType(
     kind: TypeKind.Optional,
     name: `${valueType.name}?`,
     valueType,
+    fields: {},
   };
 }

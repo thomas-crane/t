@@ -6,7 +6,7 @@ export enum TypeKind {
   Boolean,
   String,
   Array,
-  Function,
+  Fn,
   Struct,
   Optional,
   Nil,

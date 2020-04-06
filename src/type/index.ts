@@ -1,6 +1,6 @@
 import { ArrayType } from './array-type';
 import { BooleanType } from './boolean-type';
-import { FunctionType } from './function-type';
+import { FnType } from './function-type';
 import { NilType } from './nil-type';
 import { NumberType } from './number-type';
 import { OptionalType } from './optional-type';
@@ -14,7 +14,7 @@ export type Type
   = NumberType
   | BooleanType
   | StringType
-  | FunctionType
+  | FnType
   | ArrayType
   | StructType
   | OptionalType

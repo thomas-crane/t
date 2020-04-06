@@ -9,5 +9,6 @@ export function createNilType(): NilType {
   return {
     kind: TypeKind.Nil,
     name: 'nil',
+    fields: {},
   };
 }
