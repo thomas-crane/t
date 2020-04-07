@@ -122,4 +122,7 @@ export enum SyntaxKind {
 
   // top level
   SourceFile,
+
+  // synthetic nodes
+  BlockEnd,
 }

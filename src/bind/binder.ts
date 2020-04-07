@@ -73,17 +73,17 @@ export function createBinder(diagnostics: DiagnosticType[]): Binder {
         case SyntaxKind.ArrayExpression:
           return bindArrayExpression(this, node);
         case SyntaxKind.Boolean:
-          return undefined;
+          return;
         case SyntaxKind.FnCallExpression:
           return bindFnCallExpression(this, node);
         case SyntaxKind.Identifier:
           return bindIdentifierExpression(this, node);
         case SyntaxKind.Number:
-          return undefined;
+          return;
         case SyntaxKind.ParenExpression:
           return bindParenExpression(this, node);
         case SyntaxKind.String:
-          return undefined;
+          return;
         case SyntaxKind.StructExpression:
           return bindStructExpression(this, node);
 
@@ -108,6 +108,8 @@ export function createBinder(diagnostics: DiagnosticType[]): Binder {
           return bindGotoStatement(this, node);
         case SyntaxKind.StructDeclStatement:
           return bindStructDeclStatement(this, node);
+        case SyntaxKind.BlockEnd:
+          return;
 
         // types
         case SyntaxKind.ArrayType:

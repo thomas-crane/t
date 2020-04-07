@@ -128,6 +128,8 @@ export function createPrinter(): Printer {
           return printGotoStatement(this, node);
         case SyntaxKind.StructDeclStatement:
           return printStructDeclStatement(this, node);
+        case SyntaxKind.BlockEnd:
+          return;
 
         // types
         case SyntaxKind.ArrayType:

@@ -117,6 +117,8 @@ export function createTypeChecker(diagnostics: DiagnosticType[]): TypeChecker {
           return checkGotoStatement(this, node);
         case SyntaxKind.StructDeclStatement:
           return checkStructDeclStatement(this, node);
+        case SyntaxKind.BlockEnd:
+          return;
 
         // types
         case SyntaxKind.ArrayType:

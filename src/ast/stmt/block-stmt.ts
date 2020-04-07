@@ -9,16 +9,17 @@ import { DataFlowPass } from '../../flow/data-flow';
 import { Printer } from '../../printer';
 import { SymbolType } from '../../symbol';
 import { TypeChecker } from '../../typecheck/typechecker';
-import { createIdentifierExpression } from '../expr/identifier-expr';
 import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
+import { BlockEnd, createBlockEnd } from './block-end';
 import { GotoStatement } from './goto-stmt';
 import { IfStatement } from './if-stmt';
-import { createReturnStatement, ReturnStatement } from './return-stmt';
+import { ReturnStatement } from './return-stmt';
 
 export type BlockExit
   = ReturnStatement
   | IfStatement
   | GotoStatement
+  | BlockEnd
   ;
 
 export function isBlockExit(node: SyntaxNode): node is BlockExit {
@@ -26,6 +27,7 @@ export function isBlockExit(node: SyntaxNode): node is BlockExit {
     case SyntaxKind.ReturnStatement:
     case SyntaxKind.IfStatement:
     case SyntaxKind.GotoStatement:
+    case SyntaxKind.BlockEnd:
       return true;
     default:
       return false;
@@ -46,16 +48,13 @@ export interface BlockStatement extends SyntaxNode {
 }
 
 export function createBlockStatement(): BlockStatement {
-  // create a synthetic `return nil` as the exit for this block.
-  const nilName = createIdentifierExpression('nil');
-  nilName.flags |= SyntaxNodeFlags.Synthetic;
-  const implicitReturn = createReturnStatement(nilName);
-  implicitReturn.flags |= SyntaxNodeFlags.Synthetic;
+  // create a block end as the exit for this block.
+  const blockEnd = createBlockEnd();
 
   return {
     kind: SyntaxKind.BlockStatement,
     statements: [],
-    exit: implicitReturn,
+    exit: blockEnd,
     afterExit: [],
     flags: SyntaxNodeFlags.None,
     symbolTable: createLinkedTable(globalValueTable),

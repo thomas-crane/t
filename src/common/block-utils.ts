@@ -1,5 +1,5 @@
 import { BlockExit, BlockStatement } from '../ast/stmt/block-stmt';
-import { SyntaxKind, SyntaxNodeFlags } from '../ast/syntax-node';
+import { SyntaxKind } from '../ast/syntax-node';
 
 export function getDeadEnds(block: BlockStatement): BlockStatement[] {
   const visited: Set<BlockExit> = new Set();
@@ -16,10 +16,9 @@ export function getDeadEnds(block: BlockStatement): BlockStatement[] {
           return getDeadEnds(exit.target);
         }
       case SyntaxKind.ReturnStatement:
-        if (exit.flags & SyntaxNodeFlags.Synthetic) {
-          return [block];
-        }
         return [];
+      case SyntaxKind.BlockEnd:
+        return [block];
     }
   }
   return checkExits(block.exit);

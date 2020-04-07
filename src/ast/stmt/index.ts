@@ -1,4 +1,5 @@
 import { AssignmentStatement } from './assignment-stmt';
+import { BlockEnd } from './block-end';
 import { BlockStatement } from './block-stmt';
 import { DeclarationStatement } from './declaration-stmt';
 import { ExpressionStatement } from './expression-stmt';
@@ -23,4 +24,5 @@ export type StatementNode
   | ExpressionStatement
   | StructDeclStatement
   | GotoStatement
+  | BlockEnd
   ;
