@@ -7,7 +7,7 @@ import { createNumberExpression, NumberExpression } from './ast/expr/number-expr
 import { createParenExpression, ParenExpression } from './ast/expr/paren-expr';
 import { createStringExpression, StringExpression } from './ast/expr/string-expr';
 import { createStructExpression, createStructMemberExpression, StructExpression, StructMemberExpression } from './ast/expr/struct-expr';
-import { createSourceFile, SourceFile } from './ast/source-file';
+import { createSourceFile, SourceFile, TopLevelStatement } from './ast/source-file';
 import { StatementNode } from './ast/stmt';
 import { AssignmentStatement, createAssignmentStatement } from './ast/stmt/assignment-stmt';
 import { BlockStatement, createBlockStatement } from './ast/stmt/block-stmt';
@@ -206,6 +206,25 @@ export function createParser(source: SourceFile): Parser {
     return createTypeReference(typeName, { pos: typeName.pos, end: typeName.end });
   }
 
+  function parseTopLevelStatement(): TopLevelStatement | undefined {
+    switch (tokens[idx].kind) {
+      case SyntaxKind.FnKeyword:
+        return parseFnDeclarationStatement();
+      case SyntaxKind.StructKeyword:
+        return parseStructDeclStatement();
+      default:
+        const statement = parseStatement();
+        if (statement !== undefined) {
+          diagnostics.push(createDiagnosticError(
+            DiagnosticSource.Parser,
+            DiagnosticCode.UnexpectedToken,
+            'Expected a top level statement.',
+            { pos: statement.pos, end: statement.end },
+          ));
+        }
+    }
+  }
+
   function parseStatement(): StatementNode | undefined {
     switch (tokens[idx].kind) {
       case SyntaxKind.LeftCurlyToken:
@@ -213,8 +232,6 @@ export function createParser(source: SourceFile): Parser {
       case SyntaxKind.LetKeyword:
       case SyntaxKind.MutKeyword:
         return parseDeclarationStatement();
-      case SyntaxKind.FnKeyword:
-        return parseFnDeclarationStatement();
       case SyntaxKind.IfKeyword:
         return parseIfStatement();
       case SyntaxKind.LoopKeyword:
@@ -229,8 +246,6 @@ export function createParser(source: SourceFile): Parser {
         } else {
           return parseExpressionStatement();
         }
-      case SyntaxKind.StructKeyword:
-        return parseStructDeclStatement();
       default:
         return parseExpressionStatement();
     }
@@ -276,19 +291,20 @@ export function createParser(source: SourceFile): Parser {
             const intoBlock = createGotoStatement(statement);
             intoBlock.flags |= SyntaxNodeFlags.Synthetic;
             currentBlock().exit = intoBlock;
+
             // set the parent scope of the block to this block.
             statement.symbolTable.parent = currentBlock().symbolTable;
 
-            // if the block we jumped into has a synthetic exit, we
-            // need to create a new block to jump back out to.
-            const fallthroughs = getDeadEnds(statement);
-            if (fallthroughs.length > 0) {
+            // if the block we jumped into has any dead ends,
+            // those need to fall through into a new block.
+            const deadEnds = getDeadEnds(statement);
+            if (deadEnds.length > 0) {
               replaceBlock(statement);
-              for (const fallthrough of fallthroughs) {
-                // jump from the block into the new block.
+              for (const deadEnd of deadEnds) {
+                // jump from the dead end into the new block.
                 const exitBlock = createGotoStatement(currentBlock());
                 exitBlock.flags |= SyntaxNodeFlags.Synthetic;
-                fallthrough.exit = exitBlock;
+                deadEnd.exit = exitBlock;
               }
             } else {
               hasExit = true;
@@ -320,29 +336,22 @@ export function createParser(source: SourceFile): Parser {
             // set the scope parents.
             statement.body.symbolTable.parent = currentBlock().symbolTable;
             statement.elseBody.symbolTable.parent = currentBlock().symbolTable;
-            // if either one of the branches has a synthetic
-            // exit, we will need to create a new block
-            // to jump back into after the if statement.
-            const branchExitFlags = statement.body.exit.flags | statement.elseBody.exit.flags;
-            if (branchExitFlags & SyntaxNodeFlags.Synthetic) {
+
+            // replace any dead ends in the if statement.
+            const deadEnds = [...getDeadEnds(statement.body), ...getDeadEnds(statement.elseBody)];
+            if (deadEnds.length > 0) {
               // replace the current block with a new one.
               replaceBlock(statement);
 
-              // check the body.
-              if (statement.body.exit.flags & SyntaxNodeFlags.Synthetic) {
+              for (const deadEnd of deadEnds) {
+                // jump into the new block.
                 const gotoExit = createGotoStatement(currentBlock());
                 gotoExit.flags |= SyntaxNodeFlags.Synthetic;
-                statement.body.exit = gotoExit;
-              }
-              // check the else body.
-              if (statement.elseBody.exit.flags & SyntaxNodeFlags.Synthetic) {
-                const gotoExit = createGotoStatement(currentBlock());
-                gotoExit.flags |= SyntaxNodeFlags.Synthetic;
-                statement.elseBody.exit = gotoExit;
+                deadEnd.exit = gotoExit;
               }
             } else {
-              // if neither branches have a synthetic exit, any
-              // code after the if statement is unreachable.
+              // if there are no dead ends in the if statement,
+              // any code after it is unreachable.
               hasExit = true;
             }
             break;
@@ -846,7 +855,7 @@ export function createParser(source: SourceFile): Parser {
   return {
     parse() {
       while (!atEnd() && tokens[idx].kind !== SyntaxKind.EndOfFileToken) {
-        const statement = parseStatement();
+        const statement = parseTopLevelStatement();
         if (statement !== undefined) {
           parsedSource.statements.push(statement);
         }
