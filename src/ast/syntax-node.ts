@@ -30,11 +30,6 @@ export const enum SyntaxNodeFlags {
    * This node has side effects.
    */
   HasSideEffects = 1 << 3,
-  /**
-   * The current scope should be retained
-   * before this node is checked.
-   */
-  RetainScope = 1 << 4,
 }
 
 /**
