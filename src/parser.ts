@@ -300,7 +300,7 @@ export function createParser(source: SourceFile): Parser {
 
             const endList = getDeadEnds(statement.body);
             const stopEnds = endList.filter((b) => (b.exit as BlockEnd).endKind === BlockEndKind.Stop);
-            const deadEnds = endList.filter((b) => (b.exit as BlockEnd).endKind === BlockEndKind.Stop);
+            const deadEnds = endList.filter((b) => (b.exit as BlockEnd).endKind === BlockEndKind.End);
             // if there are any dead ends, they simply jump back to the
             // start of the loop.
             if (deadEnds.length > 0) {

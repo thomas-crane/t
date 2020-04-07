@@ -1,6 +1,6 @@
 {
   "name": "t",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "A basic language used to explore compiler design techniques.",
   "main": "lib/index.js",
   "scripts": {
