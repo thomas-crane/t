@@ -3,10 +3,14 @@ import { DiagnosticType } from '../diagnostic';
 import { DataFlowPass } from '../flow/data-flow';
 import { Printer } from '../printer';
 import { TypeChecker } from '../typecheck/typechecker';
-import { StatementNode } from './stmt';
-import { BlockStatement } from './stmt/block-stmt';
+import { FnDeclarationStatement } from './stmt/fn-declaration-stmt';
 import { registerStructName, registerStructType, StructDeclStatement } from './stmt/struct-decl-stmt';
 import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from './syntax-node';
+
+export type TopLevelStatement
+  = FnDeclarationStatement
+  | StructDeclStatement
+  ;
 
 /**
  * A top level node which contains the list of statements in a program,
@@ -14,7 +18,7 @@ import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from './syntax-node';
  */
 export interface SourceFile extends SyntaxNode {
   kind: SyntaxKind.SourceFile;
-  statements: StatementNode[];
+  statements: TopLevelStatement[];
   text: string;
   fileName: string;
 
@@ -22,7 +26,7 @@ export interface SourceFile extends SyntaxNode {
 }
 
 export function createSourceFile(
-  statements: StatementNode[],
+  statements: TopLevelStatement[],
   text: string,
   fileName: string,
   diagnostics?: DiagnosticType[],
@@ -67,7 +71,11 @@ export function checkSourceFile(checker: TypeChecker, node: SourceFile) {
 }
 
 export function dataFlowSourceFile(pass: DataFlowPass, node: SourceFile) {
-  node.statements
-    .filter((stmt) => stmt.kind === SyntaxKind.BlockStatement)
-    .forEach((stmt) => pass.visitNode(stmt as BlockStatement));
+  for (const stmt of node.statements) {
+    switch (stmt.kind) {
+      case SyntaxKind.FnDeclarationStatement:
+        pass.visitNode(stmt);
+        break;
+    }
+  }
 }

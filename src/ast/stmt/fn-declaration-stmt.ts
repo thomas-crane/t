@@ -3,6 +3,7 @@ import { createLinkedTable } from '../../common/linked-table';
 import { DiagnosticCode } from '../../diagnostic/diagnostic-code';
 import { createDiagnosticError } from '../../diagnostic/diagnostic-error';
 import { DiagnosticSource } from '../../diagnostic/diagnostic-source';
+import { DataFlowPass } from '../../flow/data-flow';
 import { Printer } from '../../printer';
 import { SymbolType } from '../../symbol';
 import { createFunctionSymbol, createParameterSymbol, ParameterSymbol } from '../../symbol/function-symbol';
@@ -165,4 +166,8 @@ export function checkFnParameter(checker: TypeChecker, node: FnParameter) {
   }
   checker.checkNode(node.typeNode);
   node.name.type = node.typeNode.type;
+}
+
+export function dataFlowFnDeclarationStatement(pass: DataFlowPass, node: FnDeclarationStatement) {
+  pass.visitNode(node.body);
 }

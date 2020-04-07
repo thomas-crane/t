@@ -3,9 +3,11 @@ import { BlockStatement, dataFlowBlockStatement } from '../ast/stmt/block-stmt';
 import { SyntaxKind } from '../ast/syntax-node';
 import { DiagnosticType } from '../diagnostic';
 import { unreachable } from '../utils';
+import { FnDeclarationStatement, dataFlowFnDeclarationStatement } from '../ast/stmt/fn-declaration-stmt';
 
 type VisitableNode
   = SourceFile
+  | FnDeclarationStatement
   | BlockStatement
   ;
 
@@ -32,7 +34,8 @@ export function createDataFlowPass(diagnostics: DiagnosticType[]): DataFlowPass 
       switch (node.kind) {
         case SyntaxKind.BlockStatement:
           return dataFlowBlockStatement(this, node);
-
+        case SyntaxKind.FnDeclarationStatement:
+          return dataFlowFnDeclarationStatement(this, node);
         case SyntaxKind.SourceFile:
           return dataFlowSourceFile(this, node);
       }

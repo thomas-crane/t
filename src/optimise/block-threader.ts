@@ -15,8 +15,8 @@ export interface BlockThreader {
 export function createBlockThreader(): BlockThreader {
   function threadSourceFile(node: SourceFile) {
     for (const stmt of node.statements) {
-      if (stmt.kind === SyntaxKind.BlockStatement) {
-        threadNode(stmt);
+      if (stmt.kind === SyntaxKind.FnDeclarationStatement) {
+        threadNode(stmt.body);
       }
     }
   }
