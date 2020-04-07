@@ -6,6 +6,7 @@
   "scripts": {
     "compile": "tsc -p .",
     "lint": "tslint -p .",
+    "lint:fix": "tslint -p . --fix",
     "test": "ava"
   },
   "bin": {
