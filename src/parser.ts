@@ -10,11 +10,12 @@ import { createStructExpression, createStructMemberExpression, StructExpression,
 import { createSourceFile, SourceFile, TopLevelStatement } from './ast/source-file';
 import { StatementNode } from './ast/stmt';
 import { AssignmentStatement, createAssignmentStatement } from './ast/stmt/assignment-stmt';
+import { BlockEnd, BlockEndKind, createBlockEnd } from './ast/stmt/block-end';
 import { BlockStatement, createBlockStatement } from './ast/stmt/block-stmt';
 import { createDeclarationStatement, DeclarationStatement } from './ast/stmt/declaration-stmt';
 import { createExpressionStatement, ExpressionStatement } from './ast/stmt/expression-stmt';
 import { createFnDeclarationStatement, createFnParameter, FnDeclarationStatement, FnParameter } from './ast/stmt/fn-declaration-stmt';
-import { createGotoStatement, GotoStatement } from './ast/stmt/goto-stmt';
+import { createGotoStatement } from './ast/stmt/goto-stmt';
 import { createIfStatement, IfStatement } from './ast/stmt/if-stmt';
 import { createLoopStatement, LoopStatement } from './ast/stmt/loop-stmt';
 import { createReturnStatement, ReturnStatement } from './ast/stmt/return-stmt';
@@ -33,23 +34,6 @@ import { createDiagnosticError } from './diagnostic/diagnostic-error';
 import { DiagnosticSource } from './diagnostic/diagnostic-source';
 import { createLexer } from './lexer';
 import { TextRange } from './types';
-
-interface LoopBlock {
-  block: BlockStatement;
-  hasStop: boolean;
-  afterBlock: BlockStatement;
-}
-
-function createLoopBlock(): LoopBlock {
-  const block = createBlockStatement();
-  const afterBlock = createBlockStatement();
-  afterBlock.flags |= SyntaxNodeFlags.Synthetic;
-  return {
-    block,
-    hasStop: false,
-    afterBlock,
-  };
-}
 
 /**
  * An interface for turning some text into a source file node.
@@ -91,7 +75,7 @@ export function createParser(source: SourceFile): Parser {
   /**
    * The stack of loop statements currently being parsed.
    */
-  const loopBlocks: LoopBlock[] = [];
+  let loopCounter = 0;
 
   while (true) {
     const token = lexer.nextToken();
@@ -250,14 +234,9 @@ export function createParser(source: SourceFile): Parser {
         return parseExpressionStatement();
     }
   }
-  function parseBlockStatement(existingBlock?: BlockStatement): BlockStatement {
+  function parseBlockStatement(): BlockStatement {
     // create a new block and add it to the stack.
-    let block: BlockStatement;
-    if (existingBlock) {
-      block = existingBlock;
-    } else {
-      block = createBlockStatement();
-    }
+    const block = createBlockStatement();
     blocks.push(block);
 
     // set the start pos.
@@ -319,14 +298,35 @@ export function createParser(source: SourceFile): Parser {
             // set the parent scope.
             statement.body.symbolTable.parent = currentBlock().symbolTable;
 
-            // if this loop statement had an exit, replace the current
-            // block with the afterBlock of that loop. Otherwise the
-            // rest of the code is unreachable.
-            const currentLoop = loopBlocks.pop()!;
-            if (currentLoop.hasStop) {
-              blocks.pop();
-              blocks.push(currentLoop.afterBlock);
-            } else {
+            const endList = getDeadEnds(statement.body);
+            const stopEnds = endList.filter((b) => (b.exit as BlockEnd).endKind === BlockEndKind.Stop);
+            const deadEnds = endList.filter((b) => (b.exit as BlockEnd).endKind === BlockEndKind.Stop);
+            // if there are any dead ends, they simply jump back to the
+            // start of the loop.
+            if (deadEnds.length > 0) {
+              for (const deadEnd of deadEnds) {
+                // jump from the dead end back into the loop.
+                const exitBlock = createGotoStatement(statement.body);
+                exitBlock.flags |= SyntaxNodeFlags.Synthetic;
+                deadEnd.exit = exitBlock;
+              }
+            }
+            // if there are stop statements, they need to break out
+            // into an adjacent block.
+            if (stopEnds.length > 0) {
+              // replace the current block with a new one.
+              replaceBlock(statement);
+
+              for (const stopEnd of stopEnds) {
+                // jump into the new block.
+                const gotoExit = createGotoStatement(currentBlock());
+                gotoExit.flags |= SyntaxNodeFlags.Synthetic;
+                stopEnd.exit = gotoExit;
+              }
+            }
+            // if there are no stops and some dead
+            // ends, this could be an infinite loop.
+            if (stopEnds.length === 0 && deadEnds.length > 0) {
               hasExit = true;
             }
             break;
@@ -370,12 +370,6 @@ export function createParser(source: SourceFile): Parser {
       block.end = idx;
     }
 
-    // if this block still has a synthetic exit and we're
-    // in a loop, create a jump back to it's parent.
-    if (currentBlock().exit.flags & SyntaxNodeFlags.Synthetic && loopBlocks.length > 0) {
-      const gotoLoop = createGotoStatement(loopBlocks[loopBlocks.length - 1].block);
-      currentBlock().exit = gotoLoop;
-    }
     // remove this block from the stack.
     blocks.pop();
     return block;
@@ -462,15 +456,15 @@ export function createParser(source: SourceFile): Parser {
     // make sure the loop counter is incremented
     // before we parse the body so that the exit
     // can be constructed properly.
-    const loopBlock = createLoopBlock();
-    loopBlocks.push(loopBlock);
-    const body = parseBlockStatement(loopBlock.block);
+    loopCounter++;
+    const body = parseBlockStatement();
+    loopCounter--;
     return createLoopStatement(body, { pos: start.pos, end: body.end });
   }
 
-  function parseStopStatement(): GotoStatement | undefined {
+  function parseStopStatement(): BlockEnd | undefined {
     const token = consume(SyntaxKind.StopKeyword);
-    if (loopBlocks.length === 0) {
+    if (loopCounter === 0) {
       diagnostics.push(createDiagnosticError(
         DiagnosticSource.Parser,
         DiagnosticCode.UnexpectedToken,
@@ -479,11 +473,8 @@ export function createParser(source: SourceFile): Parser {
       ));
       return undefined;
     }
-    // create a goto to the afterBlock of the current loopBlock,
-    // and mark that the current loop has a stop.
-    const target = loopBlocks[loopBlocks.length - 1].afterBlock;
-    loopBlocks[loopBlocks.length - 1].hasStop = true;
-    return createGotoStatement(target, { pos: token.pos, end: token.end });
+    // add an end for now, this will be replaced with a goto into the current loop block.
+    return createBlockEnd(BlockEndKind.Stop, { pos: token.pos, end: token.end });
   }
 
   function parseReturnStatement(): ReturnStatement | undefined {

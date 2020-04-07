@@ -10,7 +10,7 @@ import { Printer } from '../../printer';
 import { SymbolType } from '../../symbol';
 import { TypeChecker } from '../../typecheck/typechecker';
 import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
-import { BlockEnd, createBlockEnd } from './block-end';
+import { BlockEnd, BlockEndKind, createBlockEnd } from './block-end';
 import { GotoStatement } from './goto-stmt';
 import { IfStatement } from './if-stmt';
 import { ReturnStatement } from './return-stmt';
@@ -49,7 +49,7 @@ export interface BlockStatement extends SyntaxNode {
 
 export function createBlockStatement(): BlockStatement {
   // create a block end as the exit for this block.
-  const blockEnd = createBlockEnd();
+  const blockEnd = createBlockEnd(BlockEndKind.End);
 
   return {
     kind: SyntaxKind.BlockStatement,
