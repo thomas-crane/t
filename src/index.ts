@@ -38,22 +38,22 @@ yargs
         },
         thread: {
           type: 'boolean',
-          default: false,
+          default: true,
           description: 'Run the block threading pass.',
         },
         bind: {
           type: 'boolean',
-          default: false,
+          default: true,
           description: 'Run the name resolution pass.',
         },
         check: {
           type: 'boolean',
-          default: false,
+          default: true,
           description: 'Run the type checking pass.',
         },
         dataFlow: {
           type: 'boolean',
-          default: false,
+          default: true,
           description: 'Run the data flow pass.',
         },
       });
