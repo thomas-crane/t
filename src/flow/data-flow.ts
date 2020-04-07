@@ -1,9 +1,9 @@
 import { dataFlowSourceFile, SourceFile } from '../ast/source-file';
 import { BlockStatement, dataFlowBlockStatement } from '../ast/stmt/block-stmt';
+import { dataFlowFnDeclarationStatement, FnDeclarationStatement } from '../ast/stmt/fn-declaration-stmt';
 import { SyntaxKind } from '../ast/syntax-node';
 import { DiagnosticType } from '../diagnostic';
 import { unreachable } from '../utils';
-import { FnDeclarationStatement, dataFlowFnDeclarationStatement } from '../ast/stmt/fn-declaration-stmt';
 
 type VisitableNode
   = SourceFile
