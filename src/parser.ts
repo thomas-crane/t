@@ -26,7 +26,7 @@ import { TypeNode } from './ast/types';
 import { createArrayTypeNode } from './ast/types/array-type-node';
 import { createOptionalTypeNode } from './ast/types/optional-type-node';
 import { createTypeReference, TypeReference } from './ast/types/type-reference';
-import { getDeadEnds } from './common/block-utils';
+import { getAllEnds, getDeadEnds } from './common/block-utils';
 import { binaryOpName, unaryOpName } from './common/op-names';
 import { DiagnosticType } from './diagnostic';
 import { DiagnosticCode } from './diagnostic/diagnostic-code';
@@ -299,7 +299,7 @@ export function createParser(source: SourceFile): Parser {
             // set the parent scope.
             statement.body.symbolTable.parent = currentBlock().symbolTable;
 
-            const endList = getDeadEnds(statement.body);
+            const endList = getAllEnds(statement.body);
             const stopEnds = endList.filter((b) => (b.exit as BlockEnd).endKind === BlockEndKind.Stop);
             const deadEnds = endList.filter((b) => (b.exit as BlockEnd).endKind === BlockEndKind.End);
             // if there are any dead ends, they simply jump back to the
