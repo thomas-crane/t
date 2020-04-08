@@ -97,6 +97,7 @@ export function bindDeclarationStatement(binder: Binder, node: DeclarationStatem
 
 export function checkDeclarationStatement(checker: TypeChecker, node: DeclarationStatement) {
   if (node.typeNode !== undefined) {
+    checker.checkNode(node.typeNode);
     if (node.typeNode.type === undefined) {
       return;
     }
