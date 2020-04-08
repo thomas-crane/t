@@ -2,6 +2,7 @@ import { Binder } from '../../bind/binder';
 import { DiagnosticCode } from '../../diagnostic/diagnostic-code';
 import { createDiagnosticError } from '../../diagnostic/diagnostic-error';
 import { DiagnosticSource } from '../../diagnostic/diagnostic-source';
+import { DataFlowPass } from '../../flow/data-flow';
 import { Printer } from '../../printer';
 import { TypeMatch } from '../../typecheck/type-match';
 import { TypeChecker } from '../../typecheck/typechecker';
@@ -72,4 +73,9 @@ export function checkIfStatement(checker: TypeChecker, node: IfStatement) {
   if (node.elseBody) {
     checker.checkNode(node.elseBody);
   }
+}
+
+export function dataFlowIfStatement(pass: DataFlowPass, node: IfStatement) {
+  pass.visitNode(node.body);
+  pass.visitNode(node.elseBody);
 }

@@ -1,4 +1,5 @@
 import { Binder } from '../../bind/binder';
+import { DataFlowPass } from '../../flow/data-flow';
 import { Printer } from '../../printer';
 import { TypeChecker } from '../../typecheck/typechecker';
 import { TextRange } from '../../types';
@@ -37,4 +38,8 @@ export function bindGotoStatement(binder: Binder, node: GotoStatement) {
 
 export function checkGotoStatement(checker: TypeChecker, node: GotoStatement) {
   checker.checkNode(node.target);
+}
+
+export function dataFlowGotoStatement(pass: DataFlowPass, node: GotoStatement) {
+  pass.visitNode(node.target);
 }

@@ -151,4 +151,5 @@ export function dataFlowBlockStatement(pass: DataFlowPass, node: BlockStatement)
       },
     ));
   }
+  pass.visitNode(node.exit);
 }
