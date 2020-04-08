@@ -260,6 +260,7 @@ export function createParser(source: SourceFile): Parser {
         switch (statement.kind) {
           case SyntaxKind.ReturnStatement:
           case SyntaxKind.GotoStatement:
+          case SyntaxKind.BlockEnd:
             // any code after a `return` or `stop` statement
             // is unreachable and does not require a new block.
             currentBlock().exit = statement;
