@@ -102,6 +102,7 @@ export function checkBlockStatement(checker: TypeChecker, node: BlockStatement) 
   }
   checker.checkedBlocks.add(node);
   node.statements.forEach((stmt) => checker.checkNode(stmt));
+  checker.checkNode(node.exit);
 }
 
 export function dataFlowBlockStatement(pass: DataFlowPass, node: BlockStatement) {
