@@ -1,4 +1,5 @@
 import { Binder } from '../../bind/binder';
+import { getAllEnds } from '../../common/block-utils';
 import { createLinkedTable } from '../../common/linked-table';
 import { DiagnosticCode } from '../../diagnostic/diagnostic-code';
 import { createDiagnosticError } from '../../diagnostic/diagnostic-error';
@@ -7,13 +8,17 @@ import { DataFlowPass } from '../../flow/data-flow';
 import { Printer } from '../../printer';
 import { SymbolType } from '../../symbol';
 import { createFunctionSymbol, createParameterSymbol, ParameterSymbol } from '../../symbol/function-symbol';
+import { Type } from '../../type';
+import { TypeKind } from '../../type/type-kind';
+import { TypeMatch } from '../../typecheck/type-match';
 import { TypeChecker } from '../../typecheck/typechecker';
 import { TextRange } from '../../types';
-import { setTextRange } from '../../utils';
-import { IdentifierExpression } from '../expr/identifier-expr';
+import { setTextRange, typeMatch } from '../../utils';
+import { createIdentifierExpression, IdentifierExpression } from '../expr/identifier-expr';
 import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
 import { TypeNode } from '../types';
 import { BlockStatement } from './block-stmt';
+import { createReturnStatement, ReturnStatement } from './return-stmt';
 
 /**
  * A function declaration statement.
@@ -112,15 +117,12 @@ export function bindFnDeclarationStatement(binder: Binder, node: FnDeclarationSt
 
     // create a new scope and add the parameters.
     const paramTable = createLinkedTable<string, SymbolType>();
-    paramTable.parent = node.body.symbolTable;
+    paramTable.parent = node.body.symbolTable.parent;
     paramSymbols.forEach((param) => paramTable.set(param.name, param));
-    // bind each statement in the fn body. We don't want
-    // to bind it as a block statement because this will
-    // add another scope level unnecessarily.
-    const oldNearest = binder.nearestSymbolTable;
-    binder.nearestSymbolTable = paramTable;
-    node.body.statements.forEach((stmt) => binder.bindNode(stmt));
-    binder.nearestSymbolTable = oldNearest;
+    node.body.symbolTable.parent = paramTable;
+    binder.bindNode(node.body);
+    // restore the old scope.
+    node.body.symbolTable.parent = paramTable.parent;
   }
 }
 
@@ -136,17 +138,87 @@ export function checkFnDeclarationStatement(checker: TypeChecker, node: FnDeclar
   // check the params.
   node.params.forEach((param) => checkFnParameter(checker, param));
 
-  // make sure the fn has a return type.
-  if (node.returnTypeNode === undefined) {
-    checker.diagnostics.push(createDiagnosticError(
-      DiagnosticSource.Checker,
-      DiagnosticCode.CannotInferType,
-      'Function return types cannot be inferred',
-      { pos: node.fnName.pos, end: node.fnName.end },
-    ));
-    return;
+  // get the expected return type.
+  let expectedType: Type | undefined;
+  if (node.returnTypeNode !== undefined) {
+    checker.checkNode(node.returnTypeNode);
+    if (node.returnTypeNode.type === undefined) {
+      return;
+    }
+    expectedType = node.returnTypeNode.type;
+    // checker.diagnostics.push(createDiagnosticError(
+    //   DiagnosticSource.Checker,
+    //   DiagnosticCode.CannotInferType,
+    //   'Function return types cannot be inferred',
+    //   { pos: node.fnName.pos, end: node.fnName.end },
+    // ));
+    // return;
   }
-  checker.checkNode(node.returnTypeNode);
+  // typecheck each node in the body.
+  checker.checkNode(node.body);
+
+  // if there is no expected type, try to infer it
+  // by taking the first return type.
+  const fnEnds = getAllEnds(node.body);
+  if (expectedType === undefined) {
+    const firstReturn: BlockStatement | undefined = fnEnds
+      .filter((block) => block.exit.kind === SyntaxKind.ReturnStatement)
+      .filter((block) => (block.exit as ReturnStatement).value.type !== undefined)[0];
+
+    // if there is still no expected type, it couldn't be inferred.
+    if (firstReturn === undefined) {
+      checker.diagnostics.push(createDiagnosticError(
+        DiagnosticSource.Checker,
+        DiagnosticCode.CannotInferType,
+        'The return type of this function could not be inferred.',
+        { pos: node.fnName.pos, end: node.fnName.end },
+      ));
+      return;
+    } else {
+      expectedType = (firstReturn.exit as ReturnStatement).value.type!;
+    }
+  }
+
+  // check each return end.
+  for (const end of fnEnds) {
+    switch (end.exit.kind) {
+      case SyntaxKind.ReturnStatement:
+        const match = typeMatch(end.exit.value.type, expectedType);
+        if (match !== TypeMatch.Equal) {
+          checker.diagnostics.push(createDiagnosticError(
+            DiagnosticSource.Checker,
+            DiagnosticCode.UnexpectedType,
+            `Expected a value of type ${expectedType.name}`,
+            { pos: end.exit.value.pos, end: end.exit.value.end },
+          ));
+        }
+        break;
+      case SyntaxKind.BlockEnd:
+        // if the return type is nil, we can insert an implicit
+        // return nil.
+        if (expectedType.kind === TypeKind.Nil) {
+          const nil = end.symbolTable.get('nil');
+          if (nil === undefined) {
+            return;
+          }
+          const nilName = createIdentifierExpression('nil');
+          nilName.symbol = nil;
+          nil.references.push(nilName);
+          nilName.flags |= SyntaxNodeFlags.Synthetic;
+          const implicitReturn = createReturnStatement(nilName);
+          implicitReturn.flags |= SyntaxNodeFlags.Synthetic;
+          end.exit = implicitReturn;
+        } else {
+          // otherwise this path does not return.
+          checker.diagnostics.push(createDiagnosticError(
+            DiagnosticSource.Checker,
+            DiagnosticCode.UnexpectedType,
+            'Not all code paths return a value.',
+            { pos: node.fnName.pos, end: node.fnName.end },
+          ));
+        }
+    }
+  }
 
   // set the current fn and check the body, then unset it.
   checker.currentFn = node;
