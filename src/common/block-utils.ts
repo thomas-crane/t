@@ -1,5 +1,5 @@
 import { BlockEnd, BlockEndKind } from '../ast/stmt/block-end';
-import { BlockExit, BlockStatement } from '../ast/stmt/block-stmt';
+import { BlockStatement } from '../ast/stmt/block-stmt';
 import { SyntaxKind } from '../ast/syntax-node';
 
 export function getDeadEnds(block: BlockStatement): BlockStatement[] {
@@ -9,41 +9,41 @@ export function getDeadEnds(block: BlockStatement): BlockStatement[] {
 }
 
 export function getAllEnds(block: BlockStatement): BlockStatement[] {
-  const visited: Set<BlockExit> = new Set();
-  function checkExits(exit: BlockExit): BlockStatement[] {
-    switch (exit.kind) {
+  // add the initial block to the visited list.
+  const visited: Set<BlockStatement> = new Set([block]);
+
+  function getEnds(currentBlock: BlockStatement): BlockStatement[] {
+    switch (currentBlock.exit.kind) {
       case SyntaxKind.IfStatement:
-        // check for statements that exit into themselves.
+        // make sure the if statement does not cause a loop.
         let bodyEnds: BlockStatement[];
-        if (exit.body.exit === exit) {
+        if (visited.has(currentBlock.exit.body)) {
           bodyEnds = [];
         } else {
-          bodyEnds = getAllEnds(exit.body);
+          visited.add(currentBlock.exit.body);
+          bodyEnds = getEnds(currentBlock.exit.body);
         }
         let elseBodyEnds: BlockStatement[];
-        if (exit.elseBody.exit === exit) {
+        if (visited.has(currentBlock.exit.elseBody)) {
           elseBodyEnds = [];
         } else {
-          elseBodyEnds = getAllEnds(exit.elseBody);
+          visited.add(currentBlock.exit.elseBody);
+          elseBodyEnds = getAllEnds(currentBlock.exit.elseBody);
         }
         return [...bodyEnds, ...elseBodyEnds];
       case SyntaxKind.GotoStatement:
-        // check for blocks that immediately loop into themselves.
-        if (exit.target === block) {
-          return [];
-        }
-        if (visited.has(exit)) {
+        if (visited.has(currentBlock)) {
           // if this exit has been visited before,
           // the graph has become a loop.
           return [];
         } else {
-          visited.add(exit);
-          return getAllEnds(exit.target);
+          visited.add(currentBlock);
+          return getAllEnds(currentBlock.exit.target);
         }
       case SyntaxKind.ReturnStatement:
       case SyntaxKind.BlockEnd:
-        return [block];
+        return [currentBlock];
     }
   }
-  return checkExits(block.exit);
+  return getEnds(block);
 }
