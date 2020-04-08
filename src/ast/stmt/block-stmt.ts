@@ -8,6 +8,7 @@ import { createDiagnosticWarning } from '../../diagnostic/diagnostic-warning';
 import { DataFlowPass } from '../../flow/data-flow';
 import { Printer } from '../../printer';
 import { SymbolType } from '../../symbol';
+import { SymbolKind } from '../../symbol/symbol-kind';
 import { TypeChecker } from '../../typecheck/typechecker';
 import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
 import { BlockEnd, BlockEndKind, createBlockEnd } from './block-end';
@@ -113,10 +114,27 @@ export function dataFlowBlockStatement(pass: DataFlowPass, node: BlockStatement)
   const symbols = node.symbolTable.entries();
   for (const [, sym] of symbols) {
     if (sym.references.length === 0) {
+      let message: string;
+      switch (sym.kind) {
+        case SymbolKind.Function:
+          message = 'Function is never called.';
+          break;
+        case SymbolKind.Struct:
+          message = 'Struct is never used.';
+          break;
+        case SymbolKind.StructMember:
+          message = 'Struct member is never used.';
+          break;
+        case SymbolKind.Parameter:
+          message = 'Parameter is never used.';
+          break;
+        default:
+          message = 'Variable is never used.';
+      }
       pass.diagnostics.push(createDiagnosticWarning(
         DiagnosticSource.DataFlow,
         DiagnosticCode.NameNotUsed,
-        `Unused variable "${sym.name}"`,
+        message,
         // TODO(thomas.crane): make this pos better.
         { pos: sym.firstMention.pos, end: sym.firstMention.end },
       ));
