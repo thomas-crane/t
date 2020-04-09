@@ -13,6 +13,10 @@
     "tcc": "lib/index.js"
   },
   "ava": {
+    "files": [
+      "src/**/*.spec.ts",
+      "!src/test/*.ts"
+    ],
     "extensions": [
       "ts"
     ],
