@@ -28,17 +28,17 @@ export function getAllEnds(block: BlockStatement): BlockStatement[] {
           elseBodyEnds = [];
         } else {
           visited.add(currentBlock.exit.elseBody);
-          elseBodyEnds = getAllEnds(currentBlock.exit.elseBody);
+          elseBodyEnds = getEnds(currentBlock.exit.elseBody);
         }
         return [...bodyEnds, ...elseBodyEnds];
       case SyntaxKind.GotoStatement:
-        if (visited.has(currentBlock)) {
+        if (visited.has(currentBlock.exit.target)) {
           // if this exit has been visited before,
           // the graph has become a loop.
           return [];
         } else {
-          visited.add(currentBlock);
-          return getAllEnds(currentBlock.exit.target);
+          visited.add(currentBlock.exit.target);
+          return getEnds(currentBlock.exit.target);
         }
       case SyntaxKind.ReturnStatement:
       case SyntaxKind.BlockEnd:
