@@ -1,449 +1,149 @@
-import {
-  ArrayExpression,
-  ArrayTypeNode,
-  AssignmentStatement,
-  BinaryExpression,
-  BinaryOperator,
-  BlockStatement,
-  BooleanNode,
-  DeclarationStatement,
-  ExpressionStatement,
-  FnCallExpression,
-  FnDeclarationStatement,
-  FnParameter,
-  IdentifierNode,
-  IfStatement,
-  IndexExpression,
-  LoopStatement,
-  MemberAccessExpression,
-  Node,
-  NumberNode,
-  OptionalTypeNode,
-  ParenExpression,
-  ReturnStatement,
-  SourceFile,
-  StringNode,
-  StructDeclStatement,
-  StructExpression,
-  StructMember,
-  StructMemberExpression,
-  SyntaxKind,
-  SyntaxToken,
-  TypeReference,
-} from './types';
+import { Node } from './ast';
+import { printArrayExpression } from './ast/expr/array-expr';
+import { printBooleanExpression } from './ast/expr/boolean-expr';
+import { printFnCallExpression } from './ast/expr/fn-call-expr';
+import { printIdentifierExpression } from './ast/expr/identifier-expr';
+import { printNumberExpression } from './ast/expr/number-expr';
+import { printParenExpression } from './ast/expr/paren-expr';
+import { printStringExpression } from './ast/expr/string-expr';
+import { printStructExpression } from './ast/expr/struct-expr';
+import { printSourceFile } from './ast/source-file';
+import { printAssignmentStatement } from './ast/stmt/assignment-stmt';
+import { BlockStatement, printBlockStatement } from './ast/stmt/block-stmt';
+import { printDeclarationStatement } from './ast/stmt/declaration-stmt';
+import { printExpressionStatement } from './ast/stmt/expression-stmt';
+import { printFnDeclarationStatement } from './ast/stmt/fn-declaration-stmt';
+import { printGotoStatement } from './ast/stmt/goto-stmt';
+import { printIfStatement } from './ast/stmt/if-stmt';
+import { printLoopStatement } from './ast/stmt/loop-stmt';
+import { printReturnStatement } from './ast/stmt/return-stmt';
+import { printStructDeclStatement } from './ast/stmt/struct-decl-stmt';
+import { SyntaxKind } from './ast/syntax-node';
+import { printArrayTypeNode } from './ast/types/array-type-node';
+import { printOptionalTypeNode } from './ast/types/optional-type-node';
+import { printTypeReference } from './ast/types/type-reference';
+import { unreachable } from './utils';
 
-type TypeKeyword
-  = SyntaxKind.NumKeyword
-  | SyntaxKind.BoolKeyword
-  | SyntaxKind.StrKeyword
-  | SyntaxKind.NilKeyword
-  ;
-
-const INDENT_SIZE = 2;
-
-/**
- * Converts the given node into an S-expression like string.
- */
-export function printNode(node: Node): string {
-  switch (node.kind) {
-    case SyntaxKind.Identifier:
-      return printIdentifierNode(node);
-    case SyntaxKind.Number:
-      return printNumberNode(node);
-    case SyntaxKind.Boolean:
-      return printBooleanNode(node);
-    case SyntaxKind.String:
-      return printStringNode(node);
-
-    case SyntaxKind.TypeReference:
-      return printTypeReference(node);
-    case SyntaxKind.ArrayType:
-      return printArrayType(node);
-    case SyntaxKind.OptionalType:
-      return printOptionalType(node);
-    case SyntaxKind.NumKeyword:
-    case SyntaxKind.BoolKeyword:
-    case SyntaxKind.StrKeyword:
-    case SyntaxKind.NilKeyword:
-      return printTypeKeyword(node);
-
-    case SyntaxKind.BinaryExpression:
-      return printBinaryExpression(node);
-    case SyntaxKind.FnCallExpression:
-      return printFnCallExpression(node);
-    case SyntaxKind.ParenExpression:
-      return printParenExpression(node);
-    case SyntaxKind.ArrayExpression:
-      return printArrayExpression(node);
-    case SyntaxKind.StructExpression:
-      return printStructExpression(node);
-    case SyntaxKind.StructMemberExpression:
-      return printStructMemberExpression(node);
-    case SyntaxKind.NilExpression:
-      return printNilExpression();
-    case SyntaxKind.IndexExpression:
-      return printIndexExpression(node);
-    case SyntaxKind.MemberAccessExpression:
-      return printMemberAccessExpression(node);
-
-    case SyntaxKind.BlockStatement:
-      return printBlockStatement(node);
-    case SyntaxKind.IfStatement:
-      return printIfStatement(node);
-    case SyntaxKind.AssignmentStatement:
-      return printAssignmentStatement(node);
-    case SyntaxKind.DeclarationStatement:
-      return printDeclarationStatement(node);
-    case SyntaxKind.FnParameter:
-      return printFnParameter(node);
-    case SyntaxKind.FnDeclarationStatement:
-      return printFnDeclarationStatement(node);
-    case SyntaxKind.ReturnStatement:
-      return printReturnStatement(node);
-    case SyntaxKind.LoopStatement:
-      return printLoopStatement(node);
-    case SyntaxKind.StopStatement:
-      return printStopStatement();
-    case SyntaxKind.ExpressionStatement:
-      return printExpressionStatement(node);
-    case SyntaxKind.StructDeclStatement:
-      return printStructDeclStatement(node);
-    case SyntaxKind.StructMember:
-      return printStructMember(node);
-
-    case SyntaxKind.SourceFile:
-      return printSourceFile(node);
-  }
+export interface Printer {
+  /**
+   * Block statements which have already been printed.
+   * This can be used to avoid infinite loops when
+   * printing blocks that exit into themselves.
+   */
+  readonly printedBlocks: Map<BlockStatement, number>;
+  /**
+   * Prints the `str` if it is given, then
+   * increases the current indentation of the printer.
+   */
+  indent(str?: string): void;
+  /**
+   * Prints the given `str` and appends a newline.
+   */
+  println(str: string): void;
+  /**
+   * Decreases the current indentation of the printer,
+   * then prints the `str` if it is given.
+   */
+  dedent(str?: string): void;
+  /**
+   * Prints the given node by passing this printer
+   * to that node's print function.
+   */
+  printNode(node: Node): void;
+  /**
+   * Returns the buffered output of this printer
+   * and clears the buffer.
+   */
+  flush(): string;
 }
 
-function printIdentifierNode(node: IdentifierNode): string {
-  return `(IdentifierNode "${node.value}")`;
-}
+export function createPrinter(): Printer {
+  let buffer = '';
+  let currentIndent = 0;
+  const INDENT_SIZE = 2;
+  const printedBlocks = new Map<BlockStatement, number>();
+  return {
+    printedBlocks,
+    indent(str) {
+      if (str !== undefined) {
+        this.println(str);
+      }
+      currentIndent++;
+    },
+    println(str) {
+      buffer += ' '.repeat(currentIndent * INDENT_SIZE);
+      buffer += str + '\n';
+    },
+    dedent(str) {
+      if (currentIndent > 0) {
+        currentIndent--;
+      }
+      if (str !== undefined) {
+        this.println(str);
+      }
+    },
+    flush() {
+      const copy = buffer.slice();
+      buffer = '';
+      return copy;
+    },
+    printNode(node) {
+      switch (node.kind) {
+        // expressions
+        case SyntaxKind.ArrayExpression:
+          return printArrayExpression(this, node);
+        case SyntaxKind.Boolean:
+          return printBooleanExpression(this, node);
+        case SyntaxKind.FnCallExpression:
+          return printFnCallExpression(this, node);
+        case SyntaxKind.Identifier:
+          return printIdentifierExpression(this, node);
+        case SyntaxKind.Number:
+          return printNumberExpression(this, node);
+        case SyntaxKind.ParenExpression:
+          return printParenExpression(this, node);
+        case SyntaxKind.String:
+          return printStringExpression(this, node);
+        case SyntaxKind.StructExpression:
+          return printStructExpression(this, node);
 
-function printNumberNode(node: NumberNode): string {
-  return `(NumberNode "${node.value}")`;
-}
+        // statements
+        case SyntaxKind.AssignmentStatement:
+          return printAssignmentStatement(this, node);
+        case SyntaxKind.BlockStatement:
+          return printBlockStatement(this, node);
+        case SyntaxKind.DeclarationStatement:
+          return printDeclarationStatement(this, node);
+        case SyntaxKind.ExpressionStatement:
+          return printExpressionStatement(this, node);
+        case SyntaxKind.FnDeclarationStatement:
+          return printFnDeclarationStatement(this, node);
+        case SyntaxKind.IfStatement:
+          return printIfStatement(this, node);
+        case SyntaxKind.LoopStatement:
+          return printLoopStatement(this, node);
+        case SyntaxKind.ReturnStatement:
+          return printReturnStatement(this, node);
+        case SyntaxKind.GotoStatement:
+          return printGotoStatement(this, node);
+        case SyntaxKind.StructDeclStatement:
+          return printStructDeclStatement(this, node);
+        case SyntaxKind.BlockEnd:
+          return;
 
-function printBooleanNode(node: BooleanNode): string {
-  return `(BooleanNode "${node.value}")`;
-}
+        // types
+        case SyntaxKind.ArrayType:
+          return printArrayTypeNode(this, node);
+        case SyntaxKind.OptionalType:
+          return printOptionalTypeNode(this, node);
+        case SyntaxKind.TypeReference:
+          return printTypeReference(this, node);
 
-function printStringNode(node: StringNode): string {
-  return `(StringNode "${node.value}")`;
-}
+        case SyntaxKind.SourceFile:
+          return printSourceFile(this, node);
+      }
 
-function printTypeReference(node: TypeReference): string {
-  return `(TypeReference ${printNode(node.name)})`;
-}
-
-function printArrayType(node: ArrayTypeNode): string {
-  return `(ArrayType ${printNode(node.itemType)})`;
-}
-
-function printOptionalType(node: OptionalTypeNode): string {
-  return `(OptionalType ${printNode(node.valueType)})`;
-}
-
-function printTypeKeyword(node: SyntaxToken<TypeKeyword>) {
-  switch (node.kind) {
-    case SyntaxKind.NumKeyword:
-      return '(NumKeyword)';
-    case SyntaxKind.BoolKeyword:
-      return '(BoolKeyword)';
-    case SyntaxKind.StrKeyword:
-      return '(StrKeyword)';
-    case SyntaxKind.NilKeyword:
-      return '(NilKeyword)';
-  }
-}
-
-function printBinaryExpression(node: BinaryExpression): string {
-  const lhs = printNode(node.left);
-  const rhs = printNode(node.right);
-  const op = binaryOpToString(node.operator);
-  return [
-    '(BinaryExpression',
-    ...indent([
-      lhs,
-      op,
-      rhs,
-    ], INDENT_SIZE),
-    ')',
-  ].join('\n');
-}
-function binaryOpToString(op: BinaryOperator): string {
-  switch (op.kind) {
-    case SyntaxKind.PlusToken:
-      return '+';
-    case SyntaxKind.MinusToken:
-      return '-';
-    case SyntaxKind.StarToken:
-      return '*';
-    case SyntaxKind.SlashToken:
-      return '/';
-    case SyntaxKind.LessThan:
-      return '<';
-    case SyntaxKind.GreaterThan:
-      return '>';
-    case SyntaxKind.EqualTo:
-      return '==';
-    case SyntaxKind.NotEqualTo:
-      return '!=';
-    case SyntaxKind.LogicalAnd:
-      return '&&';
-    case SyntaxKind.LogicalOr:
-      return '||';
-  }
-}
-
-function printFnCallExpression(node: FnCallExpression): string {
-  const name = printNode(node.fn);
-  const args = node.args.map((arg) => printNode(arg));
-  return [
-    '(FnCallExpression',
-    ...indent([
-      name,
-      ...args,
-    ], INDENT_SIZE),
-    ')',
-  ].join('\n');
-}
-
-function printParenExpression(node: ParenExpression): string {
-  const expr = printNode(node.expr);
-  return `(ParenExpression ${expr})`;
-}
-
-function printArrayExpression(node: ArrayExpression): string {
-  const printedItems = node.items.map((item) => printNode(item));
-  return [
-    '(ArrayExpression',
-    ...indent(printedItems, INDENT_SIZE),
-    ')',
-  ].join('\n');
-}
-
-function printStructExpression(node: StructExpression): string {
-  const members: string[] = [
-    printNode(node.name),
-  ];
-  // tslint:disable-next-line: forin
-  for (const name in node.members) {
-    members.push(printNode(node.members[name]));
-  }
-  return [
-    '(StructExpression',
-    ...indent(members, INDENT_SIZE),
-    ')',
-  ].join('\n');
-}
-
-function printStructMemberExpression(node: StructMemberExpression): string {
-  return [
-    '(StructMemberExpression',
-    ...indent([
-      printNode(node.name),
-      printNode(node.value),
-    ], INDENT_SIZE),
-    ')',
-  ].join('\n');
-}
-
-function printNilExpression(): string {
-  return '(NilExpression)';
-}
-
-function printIndexExpression(node: IndexExpression): string {
-  return [
-    '(IndexExpression',
-    ...indent([
-      printNode(node.target),
-      printNode(node.index),
-    ], INDENT_SIZE),
-    ')',
-  ].join('\n');
-}
-
-function printMemberAccessExpression(node: MemberAccessExpression): string {
-  return [
-    '(MemberAccessExpression',
-    ...indent([
-      printNode(node.target),
-      printNode(node.member),
-    ], INDENT_SIZE),
-    ')',
-  ].join('\n');
-}
-
-function printBlockStatement(node: BlockStatement): string {
-  const statements = node.statements.map((stmt) => printNode(stmt));
-  const indented = indent(statements, 2);
-  return [
-    '(BlockStatement',
-    ...indented,
-    ')',
-  ].join('\n');
-}
-
-function printIfStatement(node: IfStatement): string {
-  const condition = printNode(node.condition);
-  const body = printNode(node.body);
-  const result = [
-    '(IfStatement',
-    ...indent([
-      condition,
-      body,
-    ], INDENT_SIZE),
-  ];
-  if (node.elseBody) {
-    const elseBody = printNode(node.elseBody);
-    result.push(...indent([elseBody], INDENT_SIZE));
-  }
-  result.push(')');
-  return result.join('\n');
-}
-
-function printAssignmentStatement(node: AssignmentStatement): string {
-  const identifier = printNode(node.identifier);
-  const value = printNode(node.value);
-  return [
-    '(AssignmentStatement',
-    ...indent([
-      identifier,
-      value,
-    ], INDENT_SIZE),
-    ')',
-  ].join('\n');
-}
-
-function printDeclarationStatement(node: DeclarationStatement): string {
-  const identifier = printNode(node.identifier);
-  const value = printNode(node.value);
-  const declType = node.isConst ? 'LetKeyword' : 'MutKeyword';
-  const result = [
-    declType,
-    identifier,
-  ];
-  if (node.typeNode) {
-    const typeNode = printNode(node.typeNode);
-    result.push(typeNode);
-  }
-  result.push(value);
-  return [
-    '(DeclarationStatement',
-    ...indent(result, INDENT_SIZE),
-    ')',
-  ].join('\n');
-}
-
-function printFnParameter(node: FnParameter): string {
-  const identifier = printNode(node.name);
-  const result = [identifier];
-  if (node.typeNode) {
-    const typeNode = printNode(node.typeNode);
-    result.push(typeNode);
-  }
-  return [
-    '(FnParameter',
-    ...indent(result, INDENT_SIZE),
-    ')',
-  ].join('\n');
-}
-
-function printFnDeclarationStatement(node: FnDeclarationStatement): string {
-  const fnName = printNode(node.fnName);
-  const params = node.params.map((param) => printNode(param));
-  const body = printNode(node.body);
-  const result = [
-    fnName,
-    ...params,
-  ];
-  if (node.returnTypeNode) {
-    const typeNode = printNode(node.returnTypeNode);
-    result.push(typeNode);
-  }
-  result.push(body);
-  return [
-    '(FnDeclarationStatement',
-    ...indent(result, INDENT_SIZE),
-    ')',
-  ].join('\n');
-}
-
-function printReturnStatement(node: ReturnStatement): string {
-  const value = printNode(node.value);
-  return `(ReturnStatement ${value})`;
-}
-
-function printLoopStatement(node: LoopStatement): string {
-  const body = printNode(node.body);
-  return [
-    '(LoopStatement',
-    ...indent([body], 2),
-    ')',
-  ].join('\n');
-}
-
-function printStopStatement(): string {
-  return '(StopStatement)';
-}
-
-function printExpressionStatement(node: ExpressionStatement): string {
-  const expr = printNode(node.expr);
-  return `(ExpressionStatement ${expr})`;
-}
-
-function printStructDeclStatement(node: StructDeclStatement): string {
-  const members: string[] = [];
-  // tslint:disable-next-line: forin
-  for (const name in node.members) {
-    members.push(printNode(node.members[name]));
-  }
-  return [
-    '(StructDeclStatement',
-    ...indent([
-      printNode(node.name),
-      ...members,
-    ], INDENT_SIZE),
-    ')',
-  ].join('\n');
-}
-
-function printStructMember(node: StructMember): string {
-  const result: string[] = [];
-  if (!node.isConst) {
-    result.push('MutKeyword');
-  }
-  result.push(printNode(node.name));
-  if (node.typeNode) {
-    result.push(printNode(node.typeNode));
-  }
-  return [
-    '(StructMember',
-    ...indent(result, INDENT_SIZE),
-    ')',
-  ].join('\n');
-}
-
-function printSourceFile(node: SourceFile): string {
-  const statements = node.statements.map((statement) => printNode(statement));
-  return [
-    '(SourceFile',
-    ...indent(statements, INDENT_SIZE),
-    ')',
-  ].join('\n');
-}
-
-function indent(lines: string[], count: number): string[] {
-  const result: string[] = [];
-  for (const line of lines) {
-    // check if lines need to be recursively indented.
-    const parts = line.split('\n');
-    if (parts.length !== 1) {
-      result.push(...indent(parts, count));
-    } else {
-      result.push(`${' '.repeat(count)}${line}`);
-    }
-  }
-  return result;
+      unreachable(node);
+    },
+  };
 }

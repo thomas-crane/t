@@ -1,16 +1,22 @@
-import { createToken } from './factory';
-import {
-  ArrayType,
-  BinaryOperator,
-  FunctionType,
-  OptionalType,
-  StructType,
-  SyntaxKind,
-  TextRange,
-  Type,
-  TypeKind,
-  TypeMatch,
-} from './types';
+import { format } from 'util';
+import { SyntaxKind } from './ast/syntax-node';
+import { BinaryOperator } from './ast/token';
+import { Type } from './type';
+import { ArrayType } from './type/array-type';
+import { FnType } from './type/function-type';
+import { OptionalType } from './type/optional-type';
+import { StructType } from './type/struct-type';
+import { TypeKind } from './type/type-kind';
+import { TypeMatch } from './typecheck/type-match';
+import { TextRange } from './types';
+
+/**
+ * Used to assert at compile time that a switch statement over
+ * a discriminated union type is exhaustive of that type.
+ */
+export function unreachable(value: never): never {
+  throw new Error(format('The value %o caused some unreachable code to be reached.', value));
+}
 
 /**
  * Sets the text range on the given target.
@@ -62,8 +68,8 @@ export function typeMatch(fromType: Type | undefined, toType: Type | undefined):
     case TypeKind.String:
     case TypeKind.Nil:
       return TypeMatch.Equal;
-    case TypeKind.Function:
-      return typeMatchFunction(fromType, toType as FunctionType);
+    case TypeKind.Fn:
+      return typeMatchFunction(fromType, toType as FnType);
     case TypeKind.Array:
       return typeMatchArray(fromType, toType as ArrayType);
     case TypeKind.Struct:
@@ -73,7 +79,7 @@ export function typeMatch(fromType: Type | undefined, toType: Type | undefined):
   }
 }
 
-function typeMatchFunction(fromType: FunctionType, toType: FunctionType): TypeMatch {
+function typeMatchFunction(fromType: FnType, toType: FnType): TypeMatch {
   if (fromType.parameters.length !== toType.parameters.length) {
     return TypeMatch.NoMatch;
   }
@@ -86,8 +92,8 @@ function typeMatchFunction(fromType: FunctionType, toType: FunctionType): TypeMa
   }
 
   const paramMatches = fromType.parameters.map((fromParam, i) => {
-    const fromParamType = fromParam.firstMention.type;
-    const toParamType = toType.parameters[i].firstMention.type;
+    const fromParamType = fromParam;
+    const toParamType = toType.parameters[i];
     return typeMatch(fromParamType, toParamType);
   });
   if (paramMatches.some((match) => match !== TypeMatch.Equal)) {
@@ -143,7 +149,7 @@ export function checkStructRecursion(struct: StructType): boolean {
 }
 
 export function operatorCanNarrow(operator: BinaryOperator): boolean {
-  switch (operator.kind) {
+  switch (operator) {
     case SyntaxKind.EqualTo:
     case SyntaxKind.NotEqualTo:
       return true;
@@ -153,12 +159,12 @@ export function operatorCanNarrow(operator: BinaryOperator): boolean {
 }
 
 export function invertNarrowingOperator(operator: BinaryOperator): BinaryOperator {
-  switch (operator.kind) {
+  switch (operator) {
     case SyntaxKind.EqualTo:
-      return createToken(SyntaxKind.NotEqualTo);
+      return SyntaxKind.NotEqualTo;
     case SyntaxKind.NotEqualTo:
-      return createToken(SyntaxKind.EqualTo);
+      return SyntaxKind.EqualTo;
     default:
-      throw new Error(`invertNarrowingOperator should not have been called with operator ${SyntaxKind[operator.kind]}`);
+      throw new Error(`invertNarrowingOperator should not have been called with operator ${SyntaxKind[operator]}`);
   }
 }

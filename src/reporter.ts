@@ -1,5 +1,26 @@
 import * as chalk from 'chalk';
-import { DiagnosticKind, DiagnosticType, Reporter, ReporterOptions, SourceFile, TextRange } from './types';
+import { Writable } from 'stream';
+import { SourceFile } from './ast/source-file';
+import { DiagnosticType } from './diagnostic';
+import { DiagnosticKind } from './diagnostic/diagnostic-kind';
+import { TextRange } from './types';
+
+/**
+ * Options which can change the way a @see Reporter
+ * will report diagnostics.
+ */
+export interface ReporterOptions {
+  color: boolean;
+  output: Writable;
+}
+
+/**
+ * An interface for reporting the
+ * diagnostics from a given source file.
+ */
+export interface Reporter {
+  report(source: SourceFile): void;
+}
 
 const DEFAULT_OPTIONS: ReporterOptions = {
   color: true,
@@ -58,15 +79,29 @@ export function createReporter(options: ReporterOptions = DEFAULT_OPTIONS): Repo
   };
 
   function diagnosticType(diagnostic: DiagnosticType) {
+    const color = diagnosticColor(diagnostic);
     switch (diagnostic.kind) {
       case DiagnosticKind.Hint:
-        return colors.hint('hint');
+        return color('hint');
       case DiagnosticKind.Error:
-        return colors.err('error');
+        return color('error');
       case DiagnosticKind.Message:
-        return colors.msg('message');
+        return color('message');
       case DiagnosticKind.Warning:
-        return colors.warn('warning');
+        return color('warning');
+    }
+  }
+
+  function diagnosticColor(diagnostic: DiagnosticType): ColorFn {
+    switch (diagnostic.kind) {
+      case DiagnosticKind.Hint:
+        return colors.hint;
+      case DiagnosticKind.Error:
+        return colors.err;
+      case DiagnosticKind.Message:
+        return colors.msg;
+      case DiagnosticKind.Warning:
+        return colors.warn;
     }
   }
 
@@ -88,15 +123,16 @@ export function createReporter(options: ReporterOptions = DEFAULT_OPTIONS): Repo
   }
 
   function writeLineInfo(source: SourceFile, diagnostic: DiagnosticType) {
+    const highlightColor = diagnosticColor(diagnostic);
     const lineNumber = getLineNumber(source.text, diagnostic.pos).toString();
     const lnSpacing = ' '.repeat(lineNumber.length);
     const line = getLine(source.text, diagnostic.pos, diagnostic.end);
     const relativePos = getLinePos(source.text, diagnostic.pos, diagnostic.end);
     const errLen = relativePos.end - relativePos.pos;
-    let errorMarker = colors.err('^'.repeat(errLen));
+    let errorMarker = highlightColor('^'.repeat(errLen));
     // if the underline is 2 characters or less, add `-- here` to make it stand out more.
     if (errLen <= 2) {
-      errorMarker += colors.err('-- here');
+      errorMarker += highlightColor('-- here');
     }
 
     options.output.write(`${lnSpacing}${colors.blue('-->')} in ${colors.cyan(source.fileName)}\n`);

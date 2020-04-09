@@ -1,14 +1,22 @@
 {
   "name": "t",
-  "version": "0.1.0",
+  "version": "0.2.7",
   "description": "A basic language used to explore compiler design techniques.",
   "main": "lib/index.js",
   "scripts": {
     "compile": "tsc -p .",
     "lint": "tslint -p .",
+    "lint:fix": "tslint -p . --fix",
     "test": "ava"
   },
+  "bin": {
+    "tcc": "lib/index.js"
+  },
   "ava": {
+    "files": [
+      "src/**/*.spec.ts",
+      "!src/test/*.ts"
+    ],
     "extensions": [
       "ts"
     ],
@@ -32,12 +40,14 @@
   "homepage": "https://github.com/thomas-crane/t#readme",
   "devDependencies": {
     "@types/node": "^13.1.8",
+    "@types/yargs": "^15.0.4",
     "ava": "^3.0.0",
     "ts-node": "^8.6.2",
     "tslint": "^5.20.1",
     "typescript": "^3.7.5"
   },
   "dependencies": {
-    "chalk": "^3.0.0"
+    "chalk": "^3.0.0",
+    "yargs": "^15.3.1"
   }
 }
