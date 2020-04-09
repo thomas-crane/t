@@ -67,6 +67,7 @@ export function printFnCallExpression(printer: Printer, node: FnCallExpression) 
   }
   if (node.fnFlags & FnCallFlags.Index) {
     printIndex(printer, node);
+    return;
   }
   printer.indent('(FnCallExpression');
   printer.printNode(node.fn);
@@ -90,7 +91,7 @@ function printBinaryOp(printer: Printer, node: FnCallExpression) {
 }
 
 function printUnaryOp(printer: Printer, node: FnCallExpression) {
-  printer.indent('(UnaryOp');
+  printer.indent('(UnaryExpression');
   printer.printNode(node.fn);
   printer.printNode(node.args[0]);
   printer.dedent(')');
