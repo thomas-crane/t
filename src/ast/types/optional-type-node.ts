@@ -25,7 +25,7 @@ export function createOptionalTypeNode(
 }
 
 export function printOptionalTypeNode(printer: Printer, node: OptionalTypeNode) {
-  printer.indent('(OptionalTypeNode');
+  printer.indent('(OptionalType');
   printer.printNode(node.valueType);
   printer.dedent(')');
 }
