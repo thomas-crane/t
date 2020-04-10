@@ -18,7 +18,7 @@ export function createGlobalTypeTable(): ScopedMap<string, SymbolType> {
   numNode.symbol = numSymbol;
 
   const boolNode = createSyntheticIdentifier('bool');
-  const boolSymbol = createTypeSymbol(numNode.value, numNode);
+  const boolSymbol = createTypeSymbol(boolNode.value, boolNode);
   boolNode.symbol = boolSymbol;
 
   const strNode = createSyntheticIdentifier('str');
