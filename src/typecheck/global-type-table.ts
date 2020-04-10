@@ -21,8 +21,8 @@ export function createGlobalTypeTable(): ScopedMap<string, Type> {
 
   const addOpName = binaryOpName[SyntaxKind.PlusToken];
   const subOpName = binaryOpName[SyntaxKind.MinusToken];
-  const mulOpName = binaryOpName[SyntaxKind.PlusToken];
-  const divOpName = binaryOpName[SyntaxKind.MinusToken];
+  const mulOpName = binaryOpName[SyntaxKind.StarToken];
+  const divOpName = binaryOpName[SyntaxKind.SlashToken];
 
   const ltOpName = binaryOpName[SyntaxKind.LessThan];
   const gtOpName = binaryOpName[SyntaxKind.GreaterThan];
