@@ -1,9 +1,15 @@
+# dependencies
 node_modules/
+
+# build artifacts
 lib/
 tsconfig.tsbuildinfo
 
 # random test files
 *.t
+
+# allow t files in example dir
+!examples/*.t
 
 # editors
 .vscode/
