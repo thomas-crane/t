@@ -36,8 +36,13 @@ export const enum SyntaxNodeFlags {
  * Types of syntax which can appear in a source file of t.
  */
 export enum SyntaxKind {
+  // markers or thrown away tokens.
   EndOfFileToken,
   UnknownToken,
+  Comment,
+
+  // marker
+  FirstToken,
 
   // keywords
   LetKeyword,

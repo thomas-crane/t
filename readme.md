@@ -36,10 +36,10 @@ Options:
 ### Variables
 
 ```
-; immutable
+# immutable
 let x = 10
 
-; mutable
+# mutable
 mut x = 10
 ```
 
@@ -70,10 +70,10 @@ mut x = 0
 mut y: num? = nil
 
 if y != nil {
-  ; y has a type of `num` here.
+  # y has a type of `num` here.
   x = x + y
 } else {
-  ; y has a type of `nil` here.
+  # y has a type of `nil` here.
 }
 ```
 
@@ -97,7 +97,7 @@ Because the index used to access the array may be outside the length of the arra
 let first_element = my_array[0] ; first_element is `num?` here.
 
 if first_element != nil {
-  ; first_element is `num` here.
+  # first_element is `num` here.
 }
 ```
 
