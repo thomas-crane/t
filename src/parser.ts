@@ -79,9 +79,10 @@ export function createParser(source: SourceFile): Parser {
 
   while (true) {
     const token = lexer.nextToken();
-    // skip unknown tokens, they will just cause
-    // superfluous diagnostic messages.
-    if (token.kind !== SyntaxKind.UnknownToken) {
+    // skip any tokens before the FirstToken
+    // marker. These tokens are superfluous
+    // and will causes more diagnostic messages.
+    if (token.kind > SyntaxKind.FirstToken) {
       tokens.push(token);
     }
     if (token.kind === SyntaxKind.EndOfFileToken) {

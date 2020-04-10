@@ -95,6 +95,18 @@ export function createLexer(src: string): Lexer {
         return createToken(SyntaxKind.EndOfFileToken, { pos, end: pos });
       }
 
+      // comments
+      if (src[pos] === '#') {
+        // consume until the end of the line.
+        const start = pos;
+        do {
+          pos++;
+        } while (!atEnd() && src[pos] !== '\n');
+        // skip the newline.
+        pos++;
+        return createToken(SyntaxKind.Comment, { pos: start, end: pos });
+      }
+
       // numbers
       if (digit.test(src[pos])) {
         const start = pos;
