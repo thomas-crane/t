@@ -2,7 +2,7 @@ import { Node } from '../ast';
 import { checkArrayExpression } from '../ast/expr/array-expr';
 import { checkBooleanExpression } from '../ast/expr/boolean-expr';
 import { checkFnCallExpression } from '../ast/expr/fn-call-expr';
-import { checkIdentifierExpression } from '../ast/expr/identifier-expr';
+import { checkNameExpression } from '../ast/expr/name-expr';
 import { checkNumberExpression } from '../ast/expr/number-expr';
 import { checkParenExpression } from '../ast/expr/paren-expr';
 import { checkStringExpression } from '../ast/expr/string-expr';
@@ -85,8 +85,8 @@ export function createTypeChecker(diagnostics: DiagnosticType[]): TypeChecker {
           return checkBooleanExpression(this, node);
         case SyntaxKind.FnCallExpression:
           return checkFnCallExpression(this, node);
-        case SyntaxKind.Identifier:
-          return checkIdentifierExpression(this, node);
+        case SyntaxKind.Name:
+          return checkNameExpression(this, node);
         case SyntaxKind.Number:
           return checkNumberExpression(this, node);
         case SyntaxKind.ParenExpression:

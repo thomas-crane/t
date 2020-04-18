@@ -14,7 +14,7 @@ import { TypeMatch } from '../../typecheck/type-match';
 import { TypeChecker } from '../../typecheck/typechecker';
 import { TextRange } from '../../types';
 import { setTextRange, typeMatch } from '../../utils';
-import { createIdentifierExpression, IdentifierExpression } from '../expr/identifier-expr';
+import { createNameExpression, NameExpression } from '../expr/name-expr';
 import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
 import { TypeNode } from '../types';
 import { BlockStatement } from './block-stmt';
@@ -26,7 +26,7 @@ import { createReturnStatement, ReturnStatement } from './return-stmt';
 export interface FnDeclarationStatement extends SyntaxNode {
   kind: SyntaxKind.FnDeclarationStatement;
 
-  fnName: IdentifierExpression;
+  fnName: NameExpression;
   params: FnParameter[];
   returnTypeNode?: TypeNode;
   body: BlockStatement;
@@ -38,12 +38,12 @@ export interface FnDeclarationStatement extends SyntaxNode {
 export interface FnParameter extends SyntaxNode {
   kind: SyntaxKind.FnParameter;
 
-  name: IdentifierExpression;
+  name: NameExpression;
   typeNode?: TypeNode;
 }
 
 export function createFnDeclarationStatement(
-  fnName: IdentifierExpression,
+  fnName: NameExpression,
   params: FnParameter[],
   returnTypeNode: TypeNode | undefined,
   body: BlockStatement,
@@ -60,7 +60,7 @@ export function createFnDeclarationStatement(
 }
 
 export function createFnParameter(
-  name: IdentifierExpression,
+  name: NameExpression,
   typeNode: TypeNode | undefined,
   location?: TextRange,
 ): FnParameter {
@@ -201,7 +201,7 @@ export function checkFnDeclarationStatement(checker: TypeChecker, node: FnDeclar
           if (nil === undefined) {
             return;
           }
-          const nilName = createIdentifierExpression('nil');
+          const nilName = createNameExpression('nil');
           nilName.symbol = nil;
           nil.references.push(nilName);
           nilName.flags |= SyntaxNodeFlags.Synthetic;

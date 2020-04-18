@@ -6,7 +6,7 @@ import { Printer } from '../../printer';
 import { TypeChecker } from '../../typecheck/typechecker';
 import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
-import { IdentifierExpression } from '../expr/identifier-expr';
+import { NameExpression } from '../expr/name-expr';
 import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
 
 /**
@@ -15,11 +15,11 @@ import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
  */
 export interface TypeReference extends SyntaxNode {
   kind: SyntaxKind.TypeReference;
-  name: IdentifierExpression;
+  name: NameExpression;
 }
 
 export function createTypeReference(
-  name: IdentifierExpression,
+  name: NameExpression,
   location?: TextRange,
 ): TypeReference {
   return setTextRange({

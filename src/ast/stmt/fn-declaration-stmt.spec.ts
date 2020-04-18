@@ -1,6 +1,6 @@
 import test from 'ava';
 import { printExpect } from '../../test/macros';
-import { createIdentifierExpression } from '../expr/identifier-expr';
+import { createNameExpression } from '../expr/name-expr';
 import { createTypeReference } from '../types/type-reference';
 import { createBlockStatement } from './block-stmt';
 import { createFnDeclarationStatement, createFnParameter } from './fn-declaration-stmt';
@@ -9,42 +9,42 @@ test(
   'simple print',
   printExpect,
   createFnDeclarationStatement(
-    createIdentifierExpression('add'),
+    createNameExpression('add'),
     [
       createFnParameter(
-        createIdentifierExpression('a'),
+        createNameExpression('a'),
         createTypeReference(
-          createIdentifierExpression('num'),
+          createNameExpression('num'),
         ),
       ),
       createFnParameter(
-        createIdentifierExpression('b'),
+        createNameExpression('b'),
         createTypeReference(
-          createIdentifierExpression('num'),
+          createNameExpression('num'),
         ),
       ),
     ],
     createTypeReference(
-      createIdentifierExpression('num'),
+      createNameExpression('num'),
     ),
     createBlockStatement(),
   ),
   `(FnDeclarationStatement
-  (IdentifierExpression "add")
+  (NameExpression "add")
   (FnParameter
-    (IdentifierExpression "a")
+    (NameExpression "a")
     (TypeReference
-      (IdentifierExpression "num")
+      (NameExpression "num")
     )
   )
   (FnParameter
-    (IdentifierExpression "b")
+    (NameExpression "b")
     (TypeReference
-      (IdentifierExpression "num")
+      (NameExpression "num")
     )
   )
   (TypeReference
-    (IdentifierExpression "num")
+    (NameExpression "num")
   )
   (BlockStatement 0
   )

@@ -3,7 +3,7 @@ import { binaryOpName } from '../../common/op-names';
 import { printExpect } from '../../test/macros';
 import { SyntaxKind } from '../syntax-node';
 import { createFnCallExpression, FnCallFlags } from './fn-call-expr';
-import { createIdentifierExpression } from './identifier-expr';
+import { createNameExpression } from './name-expr';
 import { createNumberExpression } from './number-expr';
 
 // printer tests
@@ -11,7 +11,7 @@ test(
   'binary expressions',
   printExpect,
   createFnCallExpression(
-    createIdentifierExpression(binaryOpName[SyntaxKind.PlusToken]),
+    createNameExpression(binaryOpName[SyntaxKind.PlusToken]),
     [
       createNumberExpression(10),
       createNumberExpression(20),
@@ -20,7 +20,7 @@ test(
   ),
   `(BinaryExpression
   (NumberExpression 10)
-  (IdentifierExpression "+")
+  (NameExpression "+")
   (NumberExpression 20)
 )`,
 );
@@ -28,14 +28,14 @@ test(
   'unary expressions',
   printExpect,
   createFnCallExpression(
-    createIdentifierExpression(binaryOpName[SyntaxKind.PlusToken]),
+    createNameExpression(binaryOpName[SyntaxKind.PlusToken]),
     [
       createNumberExpression(10),
     ],
     FnCallFlags.Operator | FnCallFlags.UnaryOp,
   ),
   `(UnaryExpression
-  (IdentifierExpression "+")
+  (NameExpression "+")
   (NumberExpression 10)
 )`,
 );
@@ -43,29 +43,29 @@ test(
   'field access',
   printExpect,
   createFnCallExpression(
-    createIdentifierExpression('target'),
+    createNameExpression('target'),
     [
-      createIdentifierExpression('member'),
+      createNameExpression('member'),
     ],
     FnCallFlags.FieldAccess,
   ),
   `(FieldAccess
-  (IdentifierExpression "target")
-  (IdentifierExpression "member")
+  (NameExpression "target")
+  (NameExpression "member")
 )`,
 );
 test(
   'index',
   printExpect,
   createFnCallExpression(
-    createIdentifierExpression('arr'),
+    createNameExpression('arr'),
     [
       createNumberExpression(0),
     ],
     FnCallFlags.Index,
   ),
   `(IndexExpression
-  (IdentifierExpression "arr")
+  (NameExpression "arr")
   (NumberExpression 0)
 )`,
 );

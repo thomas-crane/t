@@ -1,7 +1,7 @@
 import { Node } from '../ast';
 import { bindArrayExpression } from '../ast/expr/array-expr';
 import { bindFnCallExpression } from '../ast/expr/fn-call-expr';
-import { bindIdentifierExpression } from '../ast/expr/identifier-expr';
+import { bindNameExpression } from '../ast/expr/name-expr';
 import { bindParenExpression } from '../ast/expr/paren-expr';
 import { bindStructExpression } from '../ast/expr/struct-expr';
 import { bindSourceFile } from '../ast/source-file';
@@ -76,8 +76,8 @@ export function createBinder(diagnostics: DiagnosticType[]): Binder {
           return;
         case SyntaxKind.FnCallExpression:
           return bindFnCallExpression(this, node);
-        case SyntaxKind.Identifier:
-          return bindIdentifierExpression(this, node);
+        case SyntaxKind.Name:
+          return bindNameExpression(this, node);
         case SyntaxKind.Number:
           return;
         case SyntaxKind.ParenExpression:

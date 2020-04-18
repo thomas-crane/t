@@ -12,24 +12,24 @@ import { TypeChecker } from '../../typecheck/typechecker';
 import { TextRange } from '../../types';
 import { setTextRange, typeMatch } from '../../utils';
 import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
-import { IdentifierExpression } from './identifier-expr';
+import { NameExpression } from './name-expr';
 
 export interface StructExpression extends SyntaxNode {
   kind: SyntaxKind.StructExpression;
 
-  name: IdentifierExpression;
+  name: NameExpression;
   members: Record<string, StructMemberExpression>;
 }
 
 export interface StructMemberExpression extends SyntaxNode {
   kind: SyntaxKind.StructMemberExpression;
 
-  name: IdentifierExpression;
+  name: NameExpression;
   value: ExpressionNode;
 }
 
 export function createStructExpression(
-  name: IdentifierExpression,
+  name: NameExpression,
   members: StructExpression['members'],
   location?: TextRange,
 ): StructExpression {
@@ -42,7 +42,7 @@ export function createStructExpression(
 }
 
 export function createStructMemberExpression(
-  name: IdentifierExpression,
+  name: NameExpression,
   value: ExpressionNode,
   location?: TextRange,
 ): StructMemberExpression {

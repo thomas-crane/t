@@ -1,15 +1,15 @@
 import test from 'ava';
 import { printExpect } from '../../test/macros';
-import { createIdentifierExpression } from '../expr/identifier-expr';
+import { createNameExpression } from '../expr/name-expr';
 import { createTypeReference } from './type-reference';
 
 test(
   'simple print',
   printExpect,
   createTypeReference(
-    createIdentifierExpression('SomeType'),
+    createNameExpression('SomeType'),
   ),
   `(TypeReference
-  (IdentifierExpression "SomeType")
+  (NameExpression "SomeType")
 )`,
 );

@@ -1,6 +1,6 @@
 import test from 'ava';
 import { printExpect } from '../../test/macros';
-import { createIdentifierExpression } from './identifier-expr';
+import { createNameExpression } from './name-expr';
 import { createNumberExpression } from './number-expr';
 import { createStructExpression, createStructMemberExpression } from './struct-expr';
 
@@ -9,37 +9,37 @@ test(
   'simple print',
   printExpect,
   createStructExpression(
-    createIdentifierExpression('Point'),
+    createNameExpression('Point'),
     {},
   ),
   `(StructExpression
-  (IdentifierExpression "Point")
+  (NameExpression "Point")
 )`,
 );
 test(
   'prints members',
   printExpect,
   createStructExpression(
-    createIdentifierExpression('Point'),
+    createNameExpression('Point'),
     {
       x: createStructMemberExpression(
-        createIdentifierExpression('x'),
+        createNameExpression('x'),
         createNumberExpression(10),
       ),
       y: createStructMemberExpression(
-        createIdentifierExpression('y'),
+        createNameExpression('y'),
         createNumberExpression(20),
       ),
     },
   ),
   `(StructExpression
-  (IdentifierExpression "Point")
+  (NameExpression "Point")
   (StructMemberExpression
-    (IdentifierExpression "x")
+    (NameExpression "x")
     (NumberExpression 10)
   )
   (StructMemberExpression
-    (IdentifierExpression "y")
+    (NameExpression "y")
     (NumberExpression 20)
   )
 )`,

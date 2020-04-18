@@ -2,7 +2,7 @@ import { ExpressionNode } from './ast/expr';
 import { ArrayExpression, createArrayExpression } from './ast/expr/array-expr';
 import { BooleanExpression, createBooleanExpression } from './ast/expr/boolean-expr';
 import { createFnCallExpression, FnCallFlags } from './ast/expr/fn-call-expr';
-import { createIdentifierExpression, IdentifierExpression } from './ast/expr/identifier-expr';
+import { createNameExpression, NameExpression } from './ast/expr/name-expr';
 import { createNumberExpression, NumberExpression } from './ast/expr/number-expr';
 import { createParenExpression, ParenExpression } from './ast/expr/paren-expr';
 import { createStringExpression, StringExpression } from './ast/expr/string-expr';
@@ -593,7 +593,7 @@ export function createParser(source: SourceFile): Parser {
         }
 
         // turn the operator into an identifier.
-        const opName = createIdentifierExpression(
+        const opName = createNameExpression(
           binaryOpName[operator.kind as BinaryOperator],
           { pos: operator.pos, end: operator.end },
         );
@@ -619,7 +619,7 @@ export function createParser(source: SourceFile): Parser {
         return undefined;
       }
       // turn the operator into an identifier.
-      const opName = createIdentifierExpression(
+      const opName = createNameExpression(
         unaryOpName[operator.kind as UnaryOperator],
         { pos: operator.pos, end: operator.end },
       );
@@ -765,10 +765,10 @@ export function createParser(source: SourceFile): Parser {
     return createArrayExpression(items, { pos: start.pos, end: end.end });
   }
 
-  function parseIdentifierExpression(): IdentifierExpression {
+  function parseIdentifierExpression(): NameExpression {
     const token = consume(SyntaxKind.IdentifierToken);
     const value = source.text.slice(token.pos, token.end);
-    return createIdentifierExpression(value, { pos: token.pos, end: token.end });
+    return createNameExpression(value, { pos: token.pos, end: token.end });
   }
 
   function parseNumberExpression(): NumberExpression {

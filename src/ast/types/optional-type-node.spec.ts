@@ -1,6 +1,6 @@
 import test from 'ava';
 import { printExpect } from '../../test/macros';
-import { createIdentifierExpression } from '../expr/identifier-expr';
+import { createNameExpression } from '../expr/name-expr';
 import { createOptionalTypeNode } from './optional-type-node';
 import { createTypeReference } from './type-reference';
 
@@ -9,7 +9,7 @@ test(
   printExpect,
   createOptionalTypeNode(
     createTypeReference(
-      createIdentifierExpression('num'),
+      createNameExpression('num'),
     ),
   ),
   `(OptionalType

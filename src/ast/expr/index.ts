@@ -1,7 +1,7 @@
 import { ArrayExpression } from './array-expr';
 import { BooleanExpression } from './boolean-expr';
 import { FnCallExpression } from './fn-call-expr';
-import { IdentifierExpression } from './identifier-expr';
+import { NameExpression } from './name-expr';
 import { NumberExpression } from './number-expr';
 import { ParenExpression } from './paren-expr';
 import { StringExpression } from './string-expr';
@@ -12,7 +12,7 @@ import { StructExpression } from './struct-expr';
  */
 export type ExpressionNode
   = NumberExpression
-  | IdentifierExpression
+  | NameExpression
   | BooleanExpression
   | StringExpression
   | FnCallExpression

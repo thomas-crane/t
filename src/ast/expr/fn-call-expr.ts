@@ -12,7 +12,7 @@ import { TypeChecker } from '../../typecheck/typechecker';
 import { TextRange } from '../../types';
 import { setTextRange, typeMatch } from '../../utils';
 import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
-import { IdentifierExpression } from './identifier-expr';
+import { NameExpression } from './name-expr';
 
 export const enum FnCallFlags {
   None = 0,
@@ -202,7 +202,7 @@ function checkFieldAccess(checker: TypeChecker, node: FnCallExpression) {
   }
 
   // we now need to do name resolution on the field.
-  const name = node.args[0] as IdentifierExpression;
+  const name = node.args[0] as NameExpression;
   if (node.fn.type.fields[name.value] === undefined) {
     checker.diagnostics.push(createDiagnosticError(
       DiagnosticSource.Binder,
@@ -220,7 +220,7 @@ function checkFieldAccess(checker: TypeChecker, node: FnCallExpression) {
 function checkBinaryOp(checker: TypeChecker, node: FnCallExpression) {
   const left = node.args[0];
   const right = node.args[1];
-  const operator = node.fn as IdentifierExpression;
+  const operator = node.fn as NameExpression;
 
   // type check both args.
   checker.checkNode(left);
@@ -260,7 +260,7 @@ function checkBinaryOp(checker: TypeChecker, node: FnCallExpression) {
 
 function checkUnaryOp(checker: TypeChecker, node: FnCallExpression) {
   const operand = node.args[0];
-  const operator = node.fn as IdentifierExpression;
+  const operator = node.fn as NameExpression;
 
   // type check the arg
   checker.checkNode(operand);

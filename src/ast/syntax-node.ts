@@ -106,7 +106,7 @@ export enum SyntaxKind {
   StructExpression,
 
   // literals
-  Identifier,
+  Name,
   Number,
   Boolean,
   String,

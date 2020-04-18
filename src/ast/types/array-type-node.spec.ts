@@ -1,6 +1,6 @@
 import test from 'ava';
 import { printExpect } from '../../test/macros';
-import { createIdentifierExpression } from '../expr/identifier-expr';
+import { createNameExpression } from '../expr/name-expr';
 import { createArrayTypeNode } from './array-type-node';
 import { createTypeReference } from './type-reference';
 
@@ -9,12 +9,12 @@ test(
   printExpect,
   createArrayTypeNode(
     createTypeReference(
-      createIdentifierExpression('num'),
+      createNameExpression('num'),
     ),
   ),
   `(ArrayType
   (TypeReference
-    (IdentifierExpression "num")
+    (NameExpression "num")
   )
 )`,
 );

@@ -2,7 +2,7 @@ import { Node } from './ast';
 import { printArrayExpression } from './ast/expr/array-expr';
 import { printBooleanExpression } from './ast/expr/boolean-expr';
 import { printFnCallExpression } from './ast/expr/fn-call-expr';
-import { printIdentifierExpression } from './ast/expr/identifier-expr';
+import { printNameExpression } from './ast/expr/name-expr';
 import { printNumberExpression } from './ast/expr/number-expr';
 import { printParenExpression } from './ast/expr/paren-expr';
 import { printStringExpression } from './ast/expr/string-expr';
@@ -96,8 +96,8 @@ export function createPrinter(): Printer {
           return printBooleanExpression(this, node);
         case SyntaxKind.FnCallExpression:
           return printFnCallExpression(this, node);
-        case SyntaxKind.Identifier:
-          return printIdentifierExpression(this, node);
+        case SyntaxKind.Name:
+          return printNameExpression(this, node);
         case SyntaxKind.Number:
           return printNumberExpression(this, node);
         case SyntaxKind.ParenExpression:

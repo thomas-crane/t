@@ -9,7 +9,7 @@ import { TypeChecker } from '../../typecheck/typechecker';
 import { TextRange } from '../../types';
 import { setTextRange, typeMatch } from '../../utils';
 import { ExpressionNode } from '../expr';
-import { IdentifierExpression } from '../expr/identifier-expr';
+import { NameExpression } from '../expr/name-expr';
 import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
 
 /**
@@ -18,12 +18,12 @@ import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
 export interface AssignmentStatement extends SyntaxNode {
   kind: SyntaxKind.AssignmentStatement;
 
-  identifier: IdentifierExpression;
+  identifier: NameExpression;
   value: ExpressionNode;
 }
 
 export function createAssignmentStatement(
-  identifier: IdentifierExpression,
+  identifier: NameExpression,
   value: ExpressionNode,
   location?: TextRange,
 ): AssignmentStatement {

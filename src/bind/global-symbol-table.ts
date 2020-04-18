@@ -1,4 +1,4 @@
-import { createIdentifierExpression, IdentifierExpression } from '../ast/expr/identifier-expr';
+import { createNameExpression, NameExpression } from '../ast/expr/name-expr';
 import { SyntaxNodeFlags } from '../ast/syntax-node';
 import { createLinkedTable, LinkedTable } from '../common/linked-table';
 import { createScopedMap, ScopedMap } from '../common/scoped-map';
@@ -6,8 +6,8 @@ import { SymbolType } from '../symbol';
 import { createTypeSymbol, TypeSymbol } from '../symbol/type-symbol';
 import { createVariableSymbol } from '../symbol/variable-symbol';
 
-function createSyntheticIdentifier(name: string): IdentifierExpression {
-  const identifier = createIdentifierExpression(name);
+function createSyntheticIdentifier(name: string): NameExpression {
+  const identifier = createNameExpression(name);
   identifier.flags |= SyntaxNodeFlags.Synthetic;
   return identifier;
 }

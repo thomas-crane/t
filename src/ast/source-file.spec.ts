@@ -1,6 +1,6 @@
 import test from 'ava';
 import { printExpect } from '../test/macros';
-import { createIdentifierExpression } from './expr/identifier-expr';
+import { createNameExpression } from './expr/name-expr';
 import { createSourceFile } from './source-file';
 import { createBlockStatement } from './stmt/block-stmt';
 import { createFnDeclarationStatement } from './stmt/fn-declaration-stmt';
@@ -12,10 +12,10 @@ test(
   createSourceFile(
     [
       createFnDeclarationStatement(
-        createIdentifierExpression('main'),
+        createNameExpression('main'),
         [],
         createTypeReference(
-          createIdentifierExpression('nil'),
+          createNameExpression('nil'),
         ),
         createBlockStatement(),
       ),
@@ -25,9 +25,9 @@ test(
   ),
   `(SourceFile
   (FnDeclarationStatement
-    (IdentifierExpression "main")
+    (NameExpression "main")
     (TypeReference
-      (IdentifierExpression "nil")
+      (NameExpression "nil")
     )
     (BlockStatement 0
     )

@@ -11,27 +11,27 @@ import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
 /**
  * An identifier literal expression.
  */
-export interface IdentifierExpression extends SyntaxNode {
-  kind: SyntaxKind.Identifier;
+export interface NameExpression extends SyntaxNode {
+  kind: SyntaxKind.Name;
   value: string;
 }
 
-export function createIdentifierExpression(
+export function createNameExpression(
   value: string,
   location?: TextRange,
-): IdentifierExpression {
+): NameExpression {
   return setTextRange({
-    kind: SyntaxKind.Identifier,
+    kind: SyntaxKind.Name,
     value,
     flags: SyntaxNodeFlags.None,
   }, location);
 }
 
-export function printIdentifierExpression(printer: Printer, node: IdentifierExpression) {
-  printer.println(`(IdentifierExpression "${node.value}")`);
+export function printNameExpression(printer: Printer, node: NameExpression) {
+  printer.println(`(NameExpression "${node.value}")`);
 }
 
-export function bindIdentifierExpression(binder: Binder, node: IdentifierExpression) {
+export function bindNameExpression(binder: Binder, node: NameExpression) {
   const varSymbol = binder.nearestSymbolTable.get(node.value);
   if (varSymbol !== undefined) {
     varSymbol.references.push(node);
@@ -50,7 +50,7 @@ export function bindIdentifierExpression(binder: Binder, node: IdentifierExpress
   }
 }
 
-export function checkIdentifierExpression(checker: TypeChecker, node: IdentifierExpression) {
+export function checkNameExpression(checker: TypeChecker, node: NameExpression) {
   if (node.symbol === undefined) {
     return;
   }

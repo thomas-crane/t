@@ -1,6 +1,6 @@
 import test from 'ava';
 import { printExpect } from '../../test/macros';
-import { createIdentifierExpression } from '../expr/identifier-expr';
+import { createNameExpression } from '../expr/name-expr';
 import { createNumberExpression } from '../expr/number-expr';
 import { createTypeReference } from '../types/type-reference';
 import { createDeclarationStatement } from './declaration-stmt';
@@ -10,7 +10,7 @@ test(
   printExpect,
   createDeclarationStatement(
     true,
-    createIdentifierExpression('x'),
+    createNameExpression('x'),
     undefined,
     createNumberExpression(10),
   ),
@@ -26,7 +26,7 @@ test(
   printExpect,
   createDeclarationStatement(
     false,
-    createIdentifierExpression('x'),
+    createNameExpression('x'),
     undefined,
     createNumberExpression(10),
   ),
@@ -41,9 +41,9 @@ test(
   printExpect,
   createDeclarationStatement(
     true,
-    createIdentifierExpression('x'),
+    createNameExpression('x'),
     createTypeReference(
-      createIdentifierExpression('num'),
+      createNameExpression('num'),
     ),
     createNumberExpression(10),
   ),

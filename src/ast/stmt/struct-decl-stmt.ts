@@ -10,14 +10,14 @@ import { TypeKind } from '../../type/type-kind';
 import { TypeChecker } from '../../typecheck/typechecker';
 import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
-import { IdentifierExpression } from '../expr/identifier-expr';
+import { NameExpression } from '../expr/name-expr';
 import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
 import { TypeNode } from '../types';
 
 export interface StructDeclStatement extends SyntaxNode {
   kind: SyntaxKind.StructDeclStatement;
 
-  name: IdentifierExpression;
+  name: NameExpression;
   members: Record<string, StructMember>;
 }
 
@@ -25,12 +25,12 @@ export interface StructMember extends SyntaxNode {
   kind: SyntaxKind.StructMember;
 
   isConst: boolean;
-  name: IdentifierExpression;
+  name: NameExpression;
   typeNode?: TypeNode;
 }
 
 export function createStructDeclStatement(
-  name: IdentifierExpression,
+  name: NameExpression,
   members: StructDeclStatement['members'],
   location?: TextRange,
 ): StructDeclStatement {
@@ -44,7 +44,7 @@ export function createStructDeclStatement(
 
 export function createStructMember(
   isConst: boolean,
-  name: IdentifierExpression,
+  name: NameExpression,
   typeNode: TypeNode | undefined,
   location?: TextRange,
 ): StructMember {

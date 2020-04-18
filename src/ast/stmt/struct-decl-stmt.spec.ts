@@ -1,6 +1,6 @@
 import test from 'ava';
 import { printExpect } from '../../test/macros';
-import { createIdentifierExpression } from '../expr/identifier-expr';
+import { createNameExpression } from '../expr/name-expr';
 import { createTypeReference } from '../types/type-reference';
 import { createStructDeclStatement, createStructMember } from './struct-decl-stmt';
 
@@ -8,11 +8,11 @@ test(
   'simple print',
   printExpect,
   createStructDeclStatement(
-    createIdentifierExpression('Point'),
+    createNameExpression('Point'),
     {},
   ),
   `(StructDeclStatement
-  (IdentifierExpression "Point")
+  (NameExpression "Point")
 )`,
 );
 
@@ -20,37 +20,37 @@ test(
   'prints members',
   printExpect,
   createStructDeclStatement(
-    createIdentifierExpression('Point'),
+    createNameExpression('Point'),
     {
       x: createStructMember(
         true,
-        createIdentifierExpression('x'),
+        createNameExpression('x'),
         createTypeReference(
-          createIdentifierExpression('num'),
+          createNameExpression('num'),
         ),
       ),
       y: createStructMember(
         false,
-        createIdentifierExpression('y'),
+        createNameExpression('y'),
         createTypeReference(
-          createIdentifierExpression('num'),
+          createNameExpression('num'),
         ),
       ),
     },
   ),
   `(StructDeclStatement
-  (IdentifierExpression "Point")
+  (NameExpression "Point")
   (StructMember
-    (IdentifierExpression "x")
+    (NameExpression "x")
     (TypeReference
-      (IdentifierExpression "num")
+      (NameExpression "num")
     )
   )
   (StructMember
     (MutKeyword)
-    (IdentifierExpression "y")
+    (NameExpression "y")
     (TypeReference
-      (IdentifierExpression "num")
+      (NameExpression "num")
     )
   )
 )`,
