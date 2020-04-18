@@ -1,4 +1,4 @@
-import { ExpressionNode } from '.';
+import { ExpressionNode, ExpressionSyntaxNode } from '.';
 import { Binder } from '../../bind/binder';
 import { DiagnosticCode } from '../../diagnostic/diagnostic-code';
 import { createDiagnosticError } from '../../diagnostic/diagnostic-error';
@@ -10,12 +10,12 @@ import { TypeMatch } from '../../typecheck/type-match';
 import { TypeChecker } from '../../typecheck/typechecker';
 import { TextRange } from '../../types';
 import { setTextRange, typeMatch } from '../../utils';
-import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
+import { SyntaxKind, SyntaxNodeFlags } from '../syntax-node';
 
 /**
  * A list of expressions surrounded by square brackets.
  */
-export interface ArrayExpression extends SyntaxNode {
+export interface ArrayExpression extends ExpressionSyntaxNode {
   kind: SyntaxKind.ArrayExpression;
 
   items: ExpressionNode[];

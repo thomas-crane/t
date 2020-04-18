@@ -1,13 +1,14 @@
+import { ExpressionSyntaxNode } from '.';
 import { Printer } from '../../printer';
 import { TypeChecker } from '../../typecheck/typechecker';
 import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
-import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
+import { SyntaxKind, SyntaxNodeFlags } from '../syntax-node';
 
 /**
  * A boolean literal expression.
  */
-export interface BooleanExpression extends SyntaxNode {
+export interface BooleanExpression extends ExpressionSyntaxNode {
   kind: SyntaxKind.Boolean;
   value: boolean;
 }

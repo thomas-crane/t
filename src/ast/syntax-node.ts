@@ -1,5 +1,4 @@
 import { SymbolType } from '../symbol';
-import { Type } from '../type';
 import { TextRange } from '../types';
 
 /**
@@ -10,7 +9,6 @@ export interface SyntaxNode extends TextRange {
   flags: SyntaxNodeFlags;
 
   symbol?: SymbolType;
-  type?: Type;
 }
 
 export const enum SyntaxNodeFlags {

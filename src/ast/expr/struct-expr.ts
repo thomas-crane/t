@@ -1,4 +1,4 @@
-import { ExpressionNode } from '.';
+import { ExpressionNode, ExpressionSyntaxNode } from '.';
 import { Binder } from '../../bind/binder';
 import { DiagnosticCode } from '../../diagnostic/diagnostic-code';
 import { createDiagnosticError } from '../../diagnostic/diagnostic-error';
@@ -14,14 +14,14 @@ import { setTextRange, typeMatch } from '../../utils';
 import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
 import { NameExpression } from './name-expr';
 
-export interface StructExpression extends SyntaxNode {
+export interface StructExpression extends ExpressionSyntaxNode {
   kind: SyntaxKind.StructExpression;
 
   name: NameExpression;
   members: Record<string, StructMemberExpression>;
 }
 
-export interface StructMemberExpression extends SyntaxNode {
+export interface StructMemberExpression extends ExpressionSyntaxNode {
   kind: SyntaxKind.StructMemberExpression;
 
   name: NameExpression;

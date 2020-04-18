@@ -1,3 +1,4 @@
+import { ExpressionSyntaxNode } from '.';
 import { Binder } from '../../bind/binder';
 import { DiagnosticCode } from '../../diagnostic/diagnostic-code';
 import { createDiagnosticError } from '../../diagnostic/diagnostic-error';
@@ -6,12 +7,12 @@ import { Printer } from '../../printer';
 import { TypeChecker } from '../../typecheck/typechecker';
 import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
-import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
+import { SyntaxKind, SyntaxNodeFlags } from '../syntax-node';
 
 /**
  * An identifier literal expression.
  */
-export interface NameExpression extends SyntaxNode {
+export interface NameExpression extends ExpressionSyntaxNode {
   kind: SyntaxKind.Name;
   value: string;
 }

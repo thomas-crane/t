@@ -1,15 +1,15 @@
-import { ExpressionNode } from '.';
+import { ExpressionNode, ExpressionSyntaxNode } from '.';
 import { Binder } from '../../bind/binder';
 import { Printer } from '../../printer';
 import { TypeChecker } from '../../typecheck/typechecker';
 import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
-import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
+import { SyntaxKind, SyntaxNodeFlags } from '../syntax-node';
 
 /**
  * An expression which is wrapped in parentheses.
  */
-export interface ParenExpression extends SyntaxNode {
+export interface ParenExpression extends ExpressionSyntaxNode {
   kind: SyntaxKind.ParenExpression;
 
   expr: ExpressionNode;

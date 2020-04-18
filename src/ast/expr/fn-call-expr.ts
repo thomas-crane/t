@@ -1,4 +1,4 @@
-import { ExpressionNode } from '.';
+import { ExpressionNode, ExpressionSyntaxNode } from '.';
 import { Binder } from '../../bind/binder';
 import { DiagnosticCode } from '../../diagnostic/diagnostic-code';
 import { createDiagnosticError } from '../../diagnostic/diagnostic-error';
@@ -11,7 +11,7 @@ import { TypeMatch } from '../../typecheck/type-match';
 import { TypeChecker } from '../../typecheck/typechecker';
 import { TextRange } from '../../types';
 import { setTextRange, typeMatch } from '../../utils';
-import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
+import { SyntaxKind, SyntaxNodeFlags } from '../syntax-node';
 import { NameExpression } from './name-expr';
 
 export const enum FnCallFlags {
@@ -29,7 +29,7 @@ export const enum FnCallFlags {
 /**
  * A function call expression.
  */
-export interface FnCallExpression extends SyntaxNode {
+export interface FnCallExpression extends ExpressionSyntaxNode {
   kind: SyntaxKind.FnCallExpression;
 
   fn: ExpressionNode;
