@@ -89,9 +89,9 @@ export function bindDeclarationStatement(binder: Binder, node: DeclarationStatem
     }
 
     // add the new symbol.
-    const varSymbol = createVariableSymbol(node.identifier.value, node.isConst, node);
+    const varSymbol = createVariableSymbol(node.identifier, node.isConst);
     node.identifier.symbol = varSymbol;
-    binder.nearestSymbolTable.set(varSymbol.name, varSymbol);
+    binder.nearestSymbolTable.set(varSymbol.name.value, varSymbol);
   }
 }
 

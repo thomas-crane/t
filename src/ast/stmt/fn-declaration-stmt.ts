@@ -7,7 +7,7 @@ import { DiagnosticSource } from '../../diagnostic/diagnostic-source';
 import { DataFlowPass } from '../../flow/data-flow';
 import { Printer } from '../../printer';
 import { SymbolType } from '../../symbol';
-import { createFunctionSymbol, createParameterSymbol, ParameterSymbol } from '../../symbol/function-symbol';
+import { createFnSymbol, createParameterSymbol, ParameterSymbol } from '../../symbol/function-symbol';
 import { Type } from '../../type';
 import { TypeKind } from '../../type/type-kind';
 import { TypeMatch } from '../../typecheck/type-match';
@@ -111,14 +111,14 @@ export function bindFnDeclarationStatement(binder: Binder, node: FnDeclarationSt
     const paramSymbols = node.params.map((param) => param.name.symbol as ParameterSymbol);
 
     // create the fn symbol and add it to the scope.
-    const fnSymbol = createFunctionSymbol(node.fnName.value, paramSymbols, node);
+    const fnSymbol = createFnSymbol(node.fnName, paramSymbols);
     node.fnName.symbol = fnSymbol;
-    binder.nearestSymbolTable.set(fnSymbol.name, fnSymbol);
+    binder.nearestSymbolTable.set(fnSymbol.name.value, fnSymbol);
 
     // create a new scope and add the parameters.
     const paramTable = createLinkedTable<string, SymbolType>();
     paramTable.parent = node.body.symbolTable.parent;
-    paramSymbols.forEach((param) => paramTable.set(param.name, param));
+    paramSymbols.forEach((param) => paramTable.set(param.name.value, param));
     node.body.symbolTable.parent = paramTable;
     binder.bindNode(node.body);
     // restore the old scope.
@@ -130,7 +130,7 @@ export function bindFnParameter(binder: Binder, node: FnParameter) {
   if (node.typeNode) {
     binder.bindNode(node.typeNode);
   }
-  const paramSymbol = createParameterSymbol(node.name.value, node.name);
+  const paramSymbol = createParameterSymbol(node.name);
   node.name.symbol = paramSymbol;
 }
 

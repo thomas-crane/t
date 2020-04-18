@@ -93,10 +93,9 @@ export function bindStructDeclStatement(binder: Binder, node: StructDeclStatemen
       binder.bindNode(memberNode.typeNode);
     }
     const memberSymbol = createStructMemberSymbol(
-      memberNode.name.value,
+      memberNode.name,
       memberNode.isConst,
       structSymbol,
-      memberNode,
     );
     memberNode.name.symbol = memberSymbol;
     structSymbol.members[name] = memberSymbol;
@@ -115,9 +114,9 @@ export function registerStructName(binder: Binder, node: StructDeclStatement) {
     ));
     node.flags |= SyntaxNodeFlags.HasErrors;
   } else {
-    const structSymbol = createStructSymbol(node.name.value, {}, node);
+    const structSymbol = createStructSymbol(node.name, {});
     node.name.symbol = structSymbol;
-    binder.typeSymbolTable.set(structSymbol.name, structSymbol);
+    binder.typeSymbolTable.set(structSymbol.name.value, structSymbol);
   }
 }
 

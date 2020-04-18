@@ -1,4 +1,4 @@
-import { SyntaxNode } from '../ast/syntax-node';
+import { NameExpression } from '../ast/expr/name-expr';
 import { Symbol } from './symbol';
 import { SymbolKind } from './symbol-kind';
 
@@ -11,15 +11,13 @@ export interface VariableSymbol extends Symbol {
 }
 
 export function createVariableSymbol(
-  name: string,
+  name: NameExpression,
   isConst: boolean,
-  firstMention: SyntaxNode,
 ): VariableSymbol {
   return {
     kind: SymbolKind.Variable,
-    name,
     isConst,
-    firstMention,
+    name,
     references: [],
   };
 }

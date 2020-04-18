@@ -1,4 +1,4 @@
-import { SyntaxNode } from '../ast/syntax-node';
+import { NameExpression } from '../ast/expr/name-expr';
 import { SymbolKind } from './symbol-kind';
 
 /**
@@ -6,7 +6,12 @@ import { SymbolKind } from './symbol-kind';
  */
 export interface Symbol {
   kind: SymbolKind;
-  name: string;
-  firstMention: SyntaxNode;
-  references: SyntaxNode[];
+  /**
+   * The name expression node at which this symbol was declared.
+   */
+  name: NameExpression;
+  /**
+   * Other name expressions which are referring to this node.
+   */
+  references: NameExpression[];
 }

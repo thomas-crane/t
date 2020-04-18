@@ -57,12 +57,12 @@ export function checkAssignmentStatement(checker: TypeChecker, node: AssignmentS
     checker.diagnostics.push(createDiagnosticError(
       DiagnosticSource.Checker,
       DiagnosticCode.CannotAssignToConst,
-      `Cannot assign to "${varSymbol.name}" because it is not mutable.`,
+      `Cannot assign to "${varSymbol.name.value}" because it is not mutable.`,
       { pos: node.identifier.pos, end: node.identifier.end },
     ));
   }
 
-  const expectedType = varSymbol.firstMention.type;
+  const expectedType = varSymbol.name.type;
   if (expectedType === undefined) {
     return undefined;
   }

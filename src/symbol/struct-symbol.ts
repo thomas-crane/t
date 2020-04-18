@@ -1,4 +1,4 @@
-import { SyntaxNode } from '../ast/syntax-node';
+import { NameExpression } from '../ast/expr/name-expr';
 import { Symbol } from './symbol';
 import { SymbolKind } from './symbol-kind';
 
@@ -16,31 +16,27 @@ export interface StructMemberSymbol extends Symbol {
 }
 
 export function createStructSymbol(
-  name: string,
+  name: NameExpression,
   members: Record<string, StructMemberSymbol>,
-  firstMention: SyntaxNode,
 ): StructSymbol {
   return {
     kind: SymbolKind.Struct,
-    name,
     members,
-    firstMention,
+    name,
     references: [],
   };
 }
 
 export function createStructMemberSymbol(
-  name: string,
+  name: NameExpression,
   isConst: boolean,
   struct: StructSymbol,
-  firstMention: SyntaxNode,
 ): StructMemberSymbol {
   return {
     kind: SymbolKind.StructMember,
-    name,
     isConst,
     struct,
-    firstMention,
+    name,
     references: [],
   };
 }

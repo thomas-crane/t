@@ -58,6 +58,6 @@ export function checkNameExpression(checker: TypeChecker, node: NameExpression) 
   if (checker.narrowedTypes.get(node.symbol) !== undefined) {
     node.type = checker.narrowedTypes.get(node.symbol);
   } else {
-    node.type = node.symbol.firstMention.type;
+    node.type = node.symbol.name.type;
   }
 }

@@ -40,10 +40,11 @@ export function createGlobalTypeTable(): ScopedMap<string, SymbolType> {
 
 function createGlobalValueTable(): LinkedTable<string, SymbolType> {
   const nilNode = createSyntheticIdentifier('nil');
-  const nilSymbol = createVariableSymbol(nilNode.value, true, nilNode);
+  const nilSymbol = createVariableSymbol(nilNode, true);
+  nilNode.symbol = nilSymbol;
 
   const table = createLinkedTable<string, SymbolType>();
-  table.set(nilSymbol.name, nilSymbol);
+  table.set(nilSymbol.name.value, nilSymbol);
 
   return table;
 }

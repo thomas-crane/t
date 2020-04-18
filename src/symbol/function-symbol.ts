@@ -1,11 +1,11 @@
-import { SyntaxNode } from '../ast/syntax-node';
+import { NameExpression } from '../ast/expr/name-expr';
 import { Symbol } from './symbol';
 import { SymbolKind } from './symbol-kind';
 
 /**
  * A symbol which refers to a function.
  */
-export interface FunctionSymbol extends Symbol {
+export interface FnSymbol extends Symbol {
   kind: SymbolKind.Function;
   parameters: ParameterSymbol[];
 }
@@ -17,28 +17,24 @@ export interface ParameterSymbol extends Symbol {
   kind: SymbolKind.Parameter;
 }
 
-export function createFunctionSymbol(
-  name: string,
+export function createFnSymbol(
+  name: NameExpression,
   parameters: ParameterSymbol[],
-  firstMention: SyntaxNode,
-): FunctionSymbol {
+): FnSymbol {
   return {
     kind: SymbolKind.Function,
-    name,
     parameters,
-    firstMention,
+    name,
     references: [],
   };
 }
 
 export function createParameterSymbol(
-  name: string,
-  firstMention: SyntaxNode,
+  name: NameExpression,
 ): ParameterSymbol {
   return {
     kind: SymbolKind.Parameter,
     name,
-    firstMention,
     references: [],
   };
 }

@@ -136,7 +136,7 @@ export function dataFlowBlockStatement(pass: DataFlowPass, node: BlockStatement)
         DiagnosticCode.NameNotUsed,
         message,
         // TODO(thomas.crane): make this pos better.
-        { pos: sym.firstMention.pos, end: sym.firstMention.end },
+        { pos: sym.name.pos, end: sym.name.end },
       ));
     }
   }
