@@ -19,9 +19,6 @@ import { checkLoopStatement } from '../ast/stmt/loop-stmt';
 import { checkReturnStatement } from '../ast/stmt/return-stmt';
 import { checkStructDeclStatement } from '../ast/stmt/struct-decl-stmt';
 import { SyntaxKind } from '../ast/syntax-node';
-import { checkArrayTypeNode } from '../ast/types/array-type-node';
-import { checkOptionalTypeNode } from '../ast/types/optional-type-node';
-import { checkTypeReference } from '../ast/types/type-reference';
 import { createScopedMap, ScopedMap } from '../common/scoped-map';
 import { DiagnosticType } from '../diagnostic';
 import { SymbolType } from '../symbol';
@@ -119,14 +116,6 @@ export function createTypeChecker(diagnostics: DiagnosticType[]): TypeChecker {
           return checkStructDeclStatement(this, node);
         case SyntaxKind.BlockEnd:
           return;
-
-        // types
-        case SyntaxKind.ArrayType:
-          return checkArrayTypeNode(this, node);
-        case SyntaxKind.OptionalType:
-          return checkOptionalTypeNode(this, node);
-        case SyntaxKind.TypeReference:
-          return checkTypeReference(this, node);
 
         case SyntaxKind.SourceFile:
           return checkSourceFile(this, node);

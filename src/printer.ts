@@ -19,9 +19,6 @@ import { printLoopStatement } from './ast/stmt/loop-stmt';
 import { printReturnStatement } from './ast/stmt/return-stmt';
 import { printStructDeclStatement } from './ast/stmt/struct-decl-stmt';
 import { SyntaxKind } from './ast/syntax-node';
-import { printArrayTypeNode } from './ast/types/array-type-node';
-import { printOptionalTypeNode } from './ast/types/optional-type-node';
-import { printTypeReference } from './ast/types/type-reference';
 import { unreachable } from './utils';
 
 export interface Printer {
@@ -130,14 +127,6 @@ export function createPrinter(): Printer {
           return printStructDeclStatement(this, node);
         case SyntaxKind.BlockEnd:
           return;
-
-        // types
-        case SyntaxKind.ArrayType:
-          return printArrayTypeNode(this, node);
-        case SyntaxKind.OptionalType:
-          return printOptionalTypeNode(this, node);
-        case SyntaxKind.TypeReference:
-          return printTypeReference(this, node);
 
         case SyntaxKind.SourceFile:
           return printSourceFile(this, node);

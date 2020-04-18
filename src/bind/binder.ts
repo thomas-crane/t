@@ -16,9 +16,6 @@ import { bindLoopStatement } from '../ast/stmt/loop-stmt';
 import { bindReturnStatement } from '../ast/stmt/return-stmt';
 import { bindStructDeclStatement } from '../ast/stmt/struct-decl-stmt';
 import { SyntaxKind } from '../ast/syntax-node';
-import { bindArrayTypeNode } from '../ast/types/array-type-node';
-import { bindOptionalTypeNode } from '../ast/types/optional-type-node';
-import { bindTypeReference } from '../ast/types/type-reference';
 import { LinkedTable } from '../common/linked-table';
 import { ScopedMap } from '../common/scoped-map';
 import { DiagnosticType } from '../diagnostic';
@@ -110,14 +107,6 @@ export function createBinder(diagnostics: DiagnosticType[]): Binder {
           return bindStructDeclStatement(this, node);
         case SyntaxKind.BlockEnd:
           return;
-
-        // types
-        case SyntaxKind.ArrayType:
-          return bindArrayTypeNode(this, node);
-        case SyntaxKind.OptionalType:
-          return bindOptionalTypeNode(this, node);
-        case SyntaxKind.TypeReference:
-          return bindTypeReference(this, node);
 
         case SyntaxKind.SourceFile:
           return bindSourceFile(this, node);
