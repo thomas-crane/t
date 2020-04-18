@@ -16,7 +16,6 @@ import { TextRange } from '../../types';
 import { setTextRange, typeMatch } from '../../utils';
 import { createNameExpression, NameExpression } from '../expr/name-expr';
 import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
-import { TypeNode } from '../types';
 import { BlockStatement } from './block-stmt';
 import { createReturnStatement, ReturnStatement } from './return-stmt';
 
@@ -28,7 +27,7 @@ export interface FnDeclarationStatement extends SyntaxNode {
 
   fnName: NameExpression;
   params: FnParameter[];
-  returnTypeNode?: TypeNode;
+  returnTypeNode?: Type;
   body: BlockStatement;
 }
 
@@ -39,13 +38,13 @@ export interface FnParameter extends SyntaxNode {
   kind: SyntaxKind.FnParameter;
 
   name: NameExpression;
-  typeNode?: TypeNode;
+  typeNode?: Type;
 }
 
 export function createFnDeclarationStatement(
   fnName: NameExpression,
   params: FnParameter[],
-  returnTypeNode: TypeNode | undefined,
+  returnTypeNode: Type | undefined,
   body: BlockStatement,
   location?: TextRange,
 ): FnDeclarationStatement {
@@ -61,7 +60,7 @@ export function createFnDeclarationStatement(
 
 export function createFnParameter(
   name: NameExpression,
-  typeNode: TypeNode | undefined,
+  typeNode: Type | undefined,
   location?: TextRange,
 ): FnParameter {
   return setTextRange({
@@ -76,9 +75,6 @@ export function printFnDeclarationStatement(printer: Printer, node: FnDeclaratio
   printer.indent('(FnDeclarationStatement');
   printer.printNode(node.fnName);
   node.params.forEach((param) => printFnParameter(printer, param));
-  if (node.returnTypeNode) {
-    printer.printNode(node.returnTypeNode);
-  }
   printer.printNode(node.body);
   printer.dedent(')');
 }
@@ -86,9 +82,6 @@ export function printFnDeclarationStatement(printer: Printer, node: FnDeclaratio
 export function printFnParameter(printer: Printer, node: FnParameter) {
   printer.indent('(FnParameter');
   printer.printNode(node.name);
-  if (node.typeNode) {
-    printer.printNode(node.typeNode);
-  }
   printer.dedent(')');
 }
 
@@ -103,9 +96,6 @@ export function bindFnDeclarationStatement(binder: Binder, node: FnDeclarationSt
     ));
     node.flags |= SyntaxNodeFlags.HasErrors;
   } else {
-    if (node.returnTypeNode) {
-      binder.bindNode(node.returnTypeNode);
-    }
     // bind params
     node.params.forEach((param) => bindFnParameter(binder, param));
     const paramSymbols = node.params.map((param) => param.name.symbol as ParameterSymbol);
@@ -127,9 +117,6 @@ export function bindFnDeclarationStatement(binder: Binder, node: FnDeclarationSt
 }
 
 export function bindFnParameter(binder: Binder, node: FnParameter) {
-  if (node.typeNode) {
-    binder.bindNode(node.typeNode);
-  }
   const paramSymbol = createParameterSymbol(node.name);
   node.name.symbol = paramSymbol;
 }

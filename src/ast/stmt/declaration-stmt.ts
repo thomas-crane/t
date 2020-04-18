@@ -5,6 +5,7 @@ import { DiagnosticSource } from '../../diagnostic/diagnostic-source';
 import { createDiagnosticWarning } from '../../diagnostic/diagnostic-warning';
 import { Printer } from '../../printer';
 import { createVariableSymbol } from '../../symbol/variable-symbol';
+import { Type } from '../../type';
 import { TypeMatch } from '../../typecheck/type-match';
 import { TypeChecker } from '../../typecheck/typechecker';
 import { TextRange } from '../../types';
@@ -12,7 +13,6 @@ import { setTextRange, typeMatch } from '../../utils';
 import { ExpressionNode } from '../expr';
 import { NameExpression } from '../expr/name-expr';
 import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
-import { TypeNode } from '../types';
 
 /**
  * A variable declaration statement. This encompasses
@@ -23,14 +23,14 @@ export interface DeclarationStatement extends SyntaxNode {
 
   isConst: boolean;
   identifier: NameExpression;
-  typeNode?: TypeNode;
+  typeNode?: Type;
   value: ExpressionNode;
 }
 
 export function createDeclarationStatement(
   isConst: boolean,
   identifier: NameExpression,
-  typeNode: TypeNode | undefined,
+  typeNode: Type | undefined,
   value: ExpressionNode,
   location?: TextRange,
 ): DeclarationStatement {
@@ -63,9 +63,7 @@ export function bindDeclarationStatement(binder: Binder, node: DeclarationStatem
   // bind the value first. If we bind the name first, we could end
   // up with code such as `let x = x + 1` being considered valid.
   binder.bindNode(node.value);
-  if (node.typeNode) {
-    binder.bindNode(node.typeNode);
-  }
+
   // since we allow shadowing, just look in the immediate scope for duplicates.
   const existingSymbol = binder.nearestSymbolTable.getImmediate(node.identifier.value);
   if (existingSymbol !== undefined) {

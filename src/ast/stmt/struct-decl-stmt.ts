@@ -5,6 +5,7 @@ import { DiagnosticSource } from '../../diagnostic/diagnostic-source';
 import { Printer } from '../../printer';
 import { createStructMemberSymbol, createStructSymbol } from '../../symbol/struct-symbol';
 import { SymbolKind } from '../../symbol/symbol-kind';
+import { Type } from '../../type';
 import { createStructType, StructType } from '../../type/struct-type';
 import { TypeKind } from '../../type/type-kind';
 import { TypeChecker } from '../../typecheck/typechecker';
@@ -12,7 +13,6 @@ import { TextRange } from '../../types';
 import { setTextRange } from '../../utils';
 import { NameExpression } from '../expr/name-expr';
 import { SyntaxKind, SyntaxNode, SyntaxNodeFlags } from '../syntax-node';
-import { TypeNode } from '../types';
 
 export interface StructDeclStatement extends SyntaxNode {
   kind: SyntaxKind.StructDeclStatement;
@@ -26,7 +26,7 @@ export interface StructMember extends SyntaxNode {
 
   isConst: boolean;
   name: NameExpression;
-  typeNode?: TypeNode;
+  typeNode?: Type;
 }
 
 export function createStructDeclStatement(
@@ -45,7 +45,7 @@ export function createStructDeclStatement(
 export function createStructMember(
   isConst: boolean,
   name: NameExpression,
-  typeNode: TypeNode | undefined,
+  typeNode: Type | undefined,
   location?: TextRange,
 ): StructMember {
   return setTextRange({
@@ -73,9 +73,6 @@ export function printStructMember(printer: Printer, node: StructMember) {
     printer.println('(MutKeyword)');
   }
   printer.printNode(node.name);
-  if (node.typeNode) {
-    printer.printNode(node.typeNode);
-  }
   printer.dedent(')');
 }
 
@@ -89,9 +86,6 @@ export function bindStructDeclStatement(binder: Binder, node: StructDeclStatemen
   // tslint:disable-next-line: forin
   for (const name in node.members) {
     const memberNode = node.members[name];
-    if (memberNode.typeNode) {
-      binder.bindNode(memberNode.typeNode);
-    }
     const memberSymbol = createStructMemberSymbol(
       memberNode.name,
       memberNode.isConst,
