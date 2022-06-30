@@ -1,4 +1,4 @@
-import * as chalk from 'chalk';
+import chalk from 'chalk';
 import { Writable } from 'stream';
 import { SourceFile } from './ast/source-file';
 import { DiagnosticType } from './diagnostic';

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // tslint:disable: no-console
 
-import * as chalk from 'chalk';
+import chalk from 'chalk';
 import { createReadStream } from 'fs';
 import { Readable } from 'stream';
 import { inspect } from 'util';
